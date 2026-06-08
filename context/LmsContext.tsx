@@ -1,0 +1,206 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { LmsEvent, CalendarViewType, LmsState, Subject } from "../types/lms";
+
+interface LmsContextType extends LmsState {
+  subjects: Subject[];
+  setSelectedView: (view: CalendarViewType) => void;
+  setActiveDayIndex: (index: number) => void;
+  setSearchQuery: (query: string) => void;
+  toggleCategory: (category: string) => void;
+  addEvent: (event: Omit<LmsEvent, "id" | "createdAt" | "updatedAt" | "deletedAt">) => void;
+  deleteEvent: (id: string) => void;
+  showAddModal: boolean;
+  setShowAddModal: (show: boolean) => void;
+  selectedEvent: LmsEvent | null;
+  setSelectedEvent: (event: LmsEvent | null) => void;
+  addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => void;
+  deleteSubject: (id: string) => void;
+}
+
+const LmsContext = createContext<LmsContextType | undefined>(undefined);
+
+export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [events, setEvents] = useState<LmsEvent[]>([]);
+  const [selectedView, setSelectedView] = useState<CalendarViewType>("week");
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(3); // default Thursday (THU 14/05)
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [currentTime, setCurrentTime] = useState<string>("07:21");
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [selectedEvent, setSelectedEvent] = useState<LmsEvent | null>(null);
+
+  // Fetch subjects from JSON static file on mount
+  useEffect(() => {
+    fetch("/data/subjects.json")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.json();
+      })
+      .then((data: Subject[]) => {
+        setSubjects(data);
+
+        // Derive calendar events from loaded subject schedules
+        const dayMap: { [key: string]: number } = {
+          "Monday": 0,
+          "Tuesday": 1,
+          "Wednesday": 2,
+          "Thursday": 3,
+          "Friday": 4,
+          "Saturday": 5,
+          "Sunday": 6
+        };
+
+        const loadedEvents: LmsEvent[] = [];
+        data.forEach((subj) => {
+          if (subj.schedules) {
+            subj.schedules.forEach((sch) => {
+              loadedEvents.push({
+                id: sch.id,
+                title: sch.title || `${subj.name} Session`,
+                subtitle: sch.subtitle || subj.room || "",
+                timeStart: sch.startTime,
+                timeEnd: sch.endTime,
+                dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
+                color: sch.color || subj.color || "cream",
+                subjectId: subj.id,
+                description: sch.description,
+                image: sch.image,
+                tag: sch.tag,
+                status: sch.status,
+                participants: sch.participants,
+                link: sch.link,
+                createdAt: subj.createdAt,
+                updatedAt: subj.updatedAt,
+                deletedAt: null
+              });
+            });
+          }
+        });
+        setEvents(loadedEvents);
+      })
+      .catch((err) => {
+        console.error("Error fetching subjects data:", err);
+      });
+  }, []);
+
+  // Slowly simulate time moving to show dynamic line updates
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const [h, m] = currentTime.split(":").map(Number);
+      let newM = m + 1;
+      let newH = h;
+      if (newM >= 60) {
+        newM = 0;
+        newH = h + 1;
+        if (newH >= 24) newH = 0;
+      }
+      const newTimeString = `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
+      setCurrentTime(newTimeString);
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, [currentTime]);
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+    );
+  };
+
+  const addEvent = (eventData: Omit<LmsEvent, "id" | "createdAt" | "updatedAt" | "deletedAt">) => {
+    const now = new Date().toISOString();
+    const newEvent: LmsEvent = {
+      ...eventData,
+      id: Math.random().toString(36).substring(2, 9),
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+    setEvents((prev) => [...prev, newEvent]);
+  };
+
+  const deleteEvent = (id: string) => {
+    // Soft deletion: update deletedAt instead of removing
+    const now = new Date().toISOString();
+    setEvents((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, deletedAt: now } : e))
+    );
+    if (selectedEvent?.id === id) {
+      setSelectedEvent(null);
+    }
+  };
+
+  const addSubject = (subjectData: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => {
+    const now = new Date().toISOString();
+    const newSubject: Subject = {
+      ...subjectData,
+      id: Math.random().toString(36).substring(2, 9),
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+    setSubjects((prev) => [...prev, newSubject]);
+  };
+
+  const deleteSubject = (id: string) => {
+    // Soft deletion: update deletedAt instead of removing
+    const now = new Date().toISOString();
+    setSubjects((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, deletedAt: now } : s))
+    );
+    setEvents((prev) =>
+      prev.map((e) => (e.subjectId === id ? { ...e, deletedAt: now } : e))
+    );
+  };
+
+  // Expose active (non-soft-deleted) items only
+  const activeSubjects = subjects.filter((s) => !s.deletedAt);
+  const activeEvents = events.filter((e) => {
+    if (e.deletedAt) return false;
+    if (e.subjectId) {
+      return activeSubjects.some((s) => s.id === e.subjectId);
+    }
+    return true;
+  });
+
+  return (
+    <LmsContext.Provider
+      value={{
+        subjects: activeSubjects,
+        events: activeEvents,
+        selectedView,
+        activeDayIndex,
+        searchQuery,
+        selectedCategories,
+        currentTime,
+        showAddModal,
+        setShowAddModal,
+        selectedEvent,
+        setSelectedEvent,
+        setSelectedView,
+        setActiveDayIndex,
+        setSearchQuery,
+        toggleCategory,
+        addEvent,
+        deleteEvent,
+        addSubject,
+        deleteSubject,
+      }}
+    >
+      {children}
+    </LmsContext.Provider>
+  );
+};
+
+export const useLms = () => {
+  const context = useContext(LmsContext);
+  if (!context) {
+    throw new Error("useLms must be used within a LmsProvider");
+  }
+  return context;
+};
