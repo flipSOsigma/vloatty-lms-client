@@ -34,7 +34,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Fetch subjects from JSON static file on mount
   useEffect(() => {
-    fetch("/data/subjects.json")
+    fetch(`/data/subjects.json?t=${Date.now()}`, { cache: "no-store" })
       .then((res) => {
         if (!res.ok) {
           throw new Error("Network response was not ok");
@@ -58,22 +58,16 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const loadedEvents: LmsEvent[] = [];
         data.forEach((subj) => {
           if (subj.schedules) {
-            subj.schedules.forEach((sch) => {
+            subj.schedules.forEach((sch, idx) => {
               loadedEvents.push({
-                id: sch.id,
-                title: sch.title || `${subj.name} Session`,
-                subtitle: sch.subtitle || subj.room || "",
+                id: `${subj.id}-${sch.day}-${idx}`,
+                title: subj.name,
+                subtitle: subj.room || "",
                 timeStart: sch.startTime,
                 timeEnd: sch.endTime,
                 dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
-                color: sch.color || subj.color || "cream",
+                color: subj.color || "cream",
                 subjectId: subj.id,
-                description: sch.description,
-                image: sch.image,
-                tag: sch.tag,
-                status: sch.status,
-                participants: sch.participants,
-                link: sch.link,
                 createdAt: subj.createdAt,
                 updatedAt: subj.updatedAt,
                 deletedAt: null

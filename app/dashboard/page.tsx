@@ -29,6 +29,10 @@ export default function DashboardPage() {
         return { progress: 95, classCount: 10 };
       case "s6":
         return { progress: 50, classCount: 14 };
+      case "s7":
+        return { progress: 40, classCount: 6 };
+      case "s8":
+        return { progress: 60, classCount: 8 };
       default:
         return { progress: 0, classCount: 4 };
     }

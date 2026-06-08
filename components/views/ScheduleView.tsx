@@ -15,13 +15,28 @@ const DAYS = [
   { label: "SU", date: "17/05", isPink: true },
 ];
 
-const HOURS = ["07:00", "07:30", "08:00", "08:30", "09:00", "09:30"];
+const HOURS = [
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+  "21:00",
+];
 
 const START_HOUR = 7;
-const TOTAL_MINUTES = 180; // 7:00 to 10:00
-const ROW_HEIGHT = 110; // height for 30 minutes in px
-const HOUR_HEIGHT = ROW_HEIGHT * 2; // 220px per hour
-const MINUTE_HEIGHT = HOUR_HEIGHT / 60; // 3.66px per minute
+const ROW_HEIGHT = 100; // height for 1 hour in px
+const HOUR_HEIGHT = ROW_HEIGHT;
+const MINUTE_HEIGHT = HOUR_HEIGHT / 60; // 1.667px per minute
 
 // Helper to convert "HH:MM" to minutes from 07:00
 const getMinutesFromStart = (timeStr: string): number => {
@@ -115,8 +130,7 @@ export default function ScheduleView() {
         })}
       </div>
 
-      {/* Main Grid Area */}
-      <div className="relative flex flex-row w-full" style={{ height: `${HOURS.length * ROW_HEIGHT}px` }}>
+      <div className="relative flex flex-row w-full" style={{ height: `${(HOURS.length - 1) * ROW_HEIGHT}px` }}>
         
         {/* Hours Column */}
         <div className="w-[60px] flex flex-col justify-between text-[11px] font-bold text-zinc-400 py-1 pr-4 relative">
@@ -153,7 +167,7 @@ export default function ScheduleView() {
           ))}
 
           {/* Current Time Line Indicator */}
-          {timeLineTop >= 0 && timeLineTop <= HOURS.length * ROW_HEIGHT && (
+          {timeLineTop >= 0 && timeLineTop <= (HOURS.length - 1) * ROW_HEIGHT && (
             <div
               className="absolute left-0 right-0 border-t-2 border-dashed border-[#f25c88] z-20 flex items-center pointer-events-none transition-all duration-500"
               style={{ top: `${timeLineTop}px` }}

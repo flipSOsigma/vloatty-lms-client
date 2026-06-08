@@ -22,6 +22,12 @@ const COLORS = [
   { id: "image-text", label: "Image Card", bg: "bg-[#F3F0EA]" },
 ];
 
+const TIME_OPTIONS = Array.from({ length: 29 }).map((_, i) => {
+  const h = Math.floor(i / 2) + 7;
+  const m = (i % 2) * 30;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+});
+
 export default function EventModal() {
   const {
     showAddModal,
@@ -36,7 +42,7 @@ export default function EventModal() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [timeStart, setTimeStart] = useState("08:00");
-  const [timeEnd, setTimeEnd] = useState("09:00");
+  const [durationMins, setDurationMins] = useState(100);
   const [dayIndex, setDayIndex] = useState(activeDayIndex);
   const [color, setColor] = useState<"cream" | "yellow" | "blue" | "image-text">("cream");
   const [tagText, setTagText] = useState("");
@@ -57,7 +63,7 @@ export default function EventModal() {
     setTitle("");
     setSubtitle("");
     setTimeStart("08:00");
-    setTimeEnd("09:00");
+    setDurationMins(100);
     setColor("cream");
     setTagText("");
     setDescription("");
@@ -69,11 +75,18 @@ export default function EventModal() {
     e.preventDefault();
     if (!title.trim()) return;
 
+    // Calculate end time: start time + duration minutes
+    const [h, m] = timeStart.split(":").map(Number);
+    const totalMins = h * 60 + m + durationMins;
+    const endH = Math.floor(totalMins / 60);
+    const endM = totalMins % 60;
+    const computedTimeEnd = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+
     addEvent({
       title,
       subtitle: subtitle || undefined,
       timeStart,
-      timeEnd,
+      timeEnd: computedTimeEnd,
       dayIndex,
       color,
       tag: tagText ? { text: tagText, type: tagType } : undefined,
@@ -286,30 +299,27 @@ export default function EventModal() {
                     onChange={(e) => setTimeStart(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-[#E5E1D8] bg-white outline-none text-[#121212] text-[13px] font-semibold focus:border-zinc-500"
                   >
-                    <option value="07:00">07:00</option>
-                    <option value="07:30">07:30</option>
-                    <option value="08:00">08:00</option>
-                    <option value="08:30">08:30</option>
-                    <option value="09:00">09:00</option>
-                    <option value="09:30">09:30</option>
+                    {TIME_OPTIONS.slice(0, -4).map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    Ends
+                    Duration
                   </label>
                   <select
-                    value={timeEnd}
-                    onChange={(e) => setTimeEnd(e.target.value)}
+                    value={durationMins}
+                    onChange={(e) => setDurationMins(Number(e.target.value))}
                     className="w-full px-3 py-2 rounded-xl border border-[#E5E1D8] bg-white outline-none text-[#121212] text-[13px] font-semibold focus:border-zinc-500"
                   >
-                    <option value="07:30">07:30</option>
-                    <option value="08:00">08:00</option>
-                    <option value="08:30">08:30</option>
-                    <option value="09:00">09:00</option>
-                    <option value="09:30">09:30</option>
-                    <option value="10:00">10:00</option>
+                    <option value={100}>100 min</option>
+                    <option value={150}>150 min</option>
+                    <option value={200}>200 min</option>
+                    <option value={250}>250 min</option>
                   </select>
                 </div>
               </div>

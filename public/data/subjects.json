@@ -7,33 +7,8 @@
     "color": "yellow",
     "description": "Explore limits, differentiation, integration, and applications of calculus in scientific modeling.",
     "schedules": [
-      {
-        "id": "e_s1_1",
-        "title": "Calculus I Lecture",
-        "subtitle": "West camp, Room 312",
-        "day": "Monday",
-        "startTime": "07:00",
-        "endTime": "07:30",
-        "color": "cream"
-      },
-      {
-        "id": "e_s1_2",
-        "title": "Algebra Quiz",
-        "subtitle": "West camp, Room 312",
-        "day": "Monday",
-        "startTime": "07:30",
-        "endTime": "07:55",
-        "color": "cream"
-      },
-      {
-        "id": "e_s1_3",
-        "title": "Linear Algebra Lecture",
-        "subtitle": "West camp, Room 312",
-        "day": "Friday",
-        "startTime": "08:00",
-        "endTime": "08:30",
-        "color": "cream"
-      }
+      { "day": "Monday", "startTime": "07:00", "endTime": "08:40" },
+      { "day": "Friday", "startTime": "10:00", "endTime": "11:40" }
     ],
     "createdAt": "2026-06-08T09:00:00.000Z",
     "updatedAt": "2026-06-08T09:30:00.000Z",
@@ -103,29 +78,8 @@
     "color": "blue",
     "description": "Study Newtonian mechanics, optics, thermodynamics, and quantum mechanics fundamentals.",
     "schedules": [
-      {
-        "id": "e_s2_1",
-        "title": "Physics Study Group",
-        "subtitle": "East camp, Room 200",
-        "day": "Monday",
-        "startTime": "08:00",
-        "endTime": "09:00",
-        "color": "yellow",
-        "link": { "text": "Syllabus.pdf", "url": "#" },
-        "participants": {
-          "initials": ["TY", "AB", "MR", "SG"],
-          "count": 7
-        }
-      },
-      {
-        "id": "e_s2_2",
-        "title": "Physics Lab Quiz",
-        "subtitle": "West camp, Room 312",
-        "day": "Friday",
-        "startTime": "08:30",
-        "endTime": "08:55",
-        "color": "cream"
-      }
+      { "day": "Monday", "startTime": "09:00", "endTime": "10:40" },
+      { "day": "Friday", "startTime": "12:00", "endTime": "13:40" }
     ],
     "createdAt": "2026-06-08T09:15:00.000Z",
     "updatedAt": "2026-06-08T09:15:00.000Z",
@@ -168,81 +122,9 @@
     "color": "image-text",
     "description": "Delve into algorithms, computational theory, machine learning, and software architectures.",
     "schedules": [
-      {
-        "id": "e_s3_1",
-        "title": "Intro to Computer Science",
-        "subtitle": "Online Session",
-        "day": "Tuesday",
-        "startTime": "07:00",
-        "endTime": "08:00",
-        "color": "cream",
-        "status": "joinable",
-        "participants": {
-          "initials": ["TY"],
-          "count": 1
-        }
-      },
-      {
-        "id": "e_s3_2",
-        "title": "Programming Quiz",
-        "subtitle": "West camp, Room 312",
-        "day": "Tuesday",
-        "startTime": "08:00",
-        "endTime": "08:15",
-        "color": "cream"
-      },
-      {
-        "id": "e_s3_3",
-        "title": "Machine Learning",
-        "day": "Tuesday",
-        "startTime": "08:15",
-        "endTime": "09:30",
-        "color": "image-text",
-        "tag": { "text": "Artificial Intelligence", "type": "pink" },
-        "description": "Do you know how to build neural networks in Python? Learn the fundamentals of backpropagation and optimizer selection.",
-        "image": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=300&auto=format&fit=crop"
-      },
-      {
-        "id": "e_s3_4",
-        "title": "Computer Networks Team",
-        "subtitle": "East camp, Room 200",
-        "day": "Friday",
-        "startTime": "07:00",
-        "endTime": "08:00",
-        "color": "yellow",
-        "link": { "text": "LabGuide.pdf", "url": "#" },
-        "participants": {
-          "initials": ["TY", "AB", "MR", "SG"],
-          "count": 7
-        }
-      },
-      {
-        "id": "e_s3_5",
-        "title": "Databases Seminar",
-        "subtitle": "West camp, Room 404",
-        "day": "Friday",
-        "startTime": "09:00",
-        "endTime": "09:30",
-        "color": "blue",
-        "participants": {
-          "initials": ["TY", "AB", "MR", "ES"],
-          "count": 16
-        }
-      },
-      {
-        "id": "e_s3_6",
-        "title": "Web Dev Office Hours",
-        "subtitle": "Online Meeting",
-        "day": "Saturday",
-        "startTime": "07:30",
-        "endTime": "08:30",
-        "color": "cream",
-        "status": "joinable",
-        "participants": {
-          "initials": ["TY"],
-          "count": 1
-        }
-      }
+      { "day": "Tuesday", "startTime": "07:00", "endTime": "09:30" },
+      { "day": "Friday", "startTime": "07:00", "endTime": "09:30" },
+      { "day": "Saturday", "startTime": "08:00", "endTime": "09:40" }
     ],
     "createdAt": "2026-06-08T09:20:00.000Z",
     "updatedAt": "2026-06-08T09:20:00.000Z",
@@ -285,24 +167,8 @@
     "color": "cream",
     "description": "Discover reaction thermodynamics, organic synthesis paths, and molecular kinetics.",
     "schedules": [
-      {
-        "id": "e_s4_1",
-        "title": "Chemistry Lab Prep",
-        "subtitle": "West camp, Room 312",
-        "day": "Monday",
-        "startTime": "09:00",
-        "endTime": "09:30",
-        "color": "cream"
-      },
-      {
-        "id": "e_s4_2",
-        "title": "Organic Chemistry",
-        "subtitle": "West camp, Room 312",
-        "day": "Wednesday",
-        "startTime": "09:40",
-        "endTime": "10:00",
-        "color": "cream"
-      }
+      { "day": "Monday", "startTime": "11:00", "endTime": "12:40" },
+      { "day": "Wednesday", "startTime": "10:00", "endTime": "11:40" }
     ],
     "createdAt": "2026-06-08T09:25:00.000Z",
     "updatedAt": "2026-06-08T09:25:00.000Z",
@@ -337,15 +203,7 @@
     "color": "cream",
     "description": "Analyze creative prose writing styles, structures, drama, and historical poetry blocks.",
     "schedules": [
-      {
-        "id": "e_s5_1",
-        "title": "English Literature Review",
-        "subtitle": "West camp, Room 312",
-        "day": "Wednesday",
-        "startTime": "08:00",
-        "endTime": "08:30",
-        "color": "cream"
-      }
+      { "day": "Wednesday", "startTime": "08:00", "endTime": "09:40" }
     ],
     "createdAt": "2026-06-08T09:30:00.000Z",
     "updatedAt": "2026-06-08T09:30:00.000Z",
@@ -380,15 +238,7 @@
     "color": "blue",
     "description": "Examine cell genetics, virus cycles, pathogens, and cell cultivation lab protocols.",
     "schedules": [
-      {
-        "id": "e_s6_1",
-        "title": "Microbiology Review",
-        "subtitle": "West camp, Room 312",
-        "day": "Saturday",
-        "startTime": "08:30",
-        "endTime": "09:00",
-        "color": "cream"
-      }
+      { "day": "Saturday", "startTime": "10:00", "endTime": "11:40" }
     ],
     "createdAt": "2026-06-08T09:35:00.000Z",
     "updatedAt": "2026-06-08T09:35:00.000Z",
@@ -423,20 +273,7 @@
     "color": "cream",
     "description": "Study ancient civilizations, world wars, and the political evolutions of modern human societies.",
     "schedules": [
-      {
-        "id": "e_s7_1",
-        "title": "History Seminar",
-        "subtitle": "Online Classroom",
-        "day": "Thursday",
-        "startTime": "07:00",
-        "endTime": "08:00",
-        "color": "cream",
-        "status": "in-progress",
-        "participants": {
-          "initials": ["TY"],
-          "count": 1
-        }
-      }
+      { "day": "Thursday", "startTime": "07:00", "endTime": "08:40" }
     ],
     "createdAt": "2026-06-08T09:40:00.000Z",
     "updatedAt": "2026-06-08T09:40:00.000Z",
@@ -471,19 +308,7 @@
     "color": "image-text",
     "description": "Explore stellar physics, cosmological evolution, black holes, and the physical laws governing the universe.",
     "schedules": [
-      {
-        "id": "e_s8_1",
-        "title": "Advanced Astrophysics",
-        "subtitle": "West camp, Room 312",
-        "day": "Thursday",
-        "startTime": "08:00",
-        "endTime": "09:30",
-        "color": "image-text",
-        "tag": { "text": "Space Science", "type": "blue" },
-        "description": "What tools and stellar models can you leverage to map cosmic evolution and stellar trajectories in our galaxy?",
-        "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=300&auto=format&fit=crop",
-        "status": "joinable"
-      }
+      { "day": "Thursday", "startTime": "09:00", "endTime": "10:40" }
     ],
     "createdAt": "2026-06-08T09:45:00.000Z",
     "updatedAt": "2026-06-08T09:45:00.000Z",
