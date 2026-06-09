@@ -82,23 +82,23 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
   }, []);
 
-  // Slowly simulate time moving to show dynamic line updates
+  // Sync with real date and time once mounted on the client to avoid SSR hydration mismatch
   useEffect(() => {
-    const timer = setInterval(() => {
-      const [h, m] = currentTime.split(":").map(Number);
-      let newM = m + 1;
-      let newH = h;
-      if (newM >= 60) {
-        newM = 0;
-        newH = h + 1;
-        if (newH >= 24) newH = 0;
-      }
-      const newTimeString = `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
-      setCurrentTime(newTimeString);
-    }, 60000);
+    const updateRealTimeAndDay = () => {
+      const now = new Date();
+      const currentHourMin = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      setCurrentTime(currentHourMin);
+
+      const day = now.getDay();
+      const todayIndex = day === 0 ? 6 : day - 1; // Sunday is 6, Monday is 0...
+      setActiveDayIndex(todayIndex);
+    };
+
+    updateRealTimeAndDay();
+    const timer = setInterval(updateRealTimeAndDay, 30000);
 
     return () => clearInterval(timer);
-  }, [currentTime]);
+  }, []);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((prev) =>

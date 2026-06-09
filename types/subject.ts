@@ -3,6 +3,9 @@ export interface Lesson {
   title: string;
   desc: string;
   homeworkFile?: string;
+  openDate: string; // ISO String
+  closeDate: string; // ISO String
+  closeType: "restrict" | "open";
   createdAt: string; // ISO String
   updatedAt: string; // ISO String
   deletedAt: string | null; // ISO String or null
@@ -26,15 +29,22 @@ export interface SubjectSchedule {
 }
 
 
+export interface SubjectLecturer {
+  userId: string;
+  name: string;
+}
+
 export interface Subject {
   id: string;
   name: string;
-  lecturer: string;
+  lecturers: SubjectLecturer[];
   room?: string;
   color?: "cream" | "yellow" | "blue" | "image-text";
   description?: string;
   modules: Module[];
   schedules?: SubjectSchedule[];
+  createdBy: string;
+  deletedBy: string | null;
   createdAt: string; // ISO String
   updatedAt: string; // ISO String
   deletedAt: string | null; // ISO String or null

@@ -11,32 +11,11 @@ export default function DashboardPage() {
 
   const filteredSubjects = subjects.filter((subject) =>
     subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    subject.lecturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    subject.lecturers.some((l) => l.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (subject.description && subject.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const getSubjectMeta = (id: string) => {
-    switch (id) {
-      case "s1":
-        return { progress: 68, classCount: 12 };
-      case "s2":
-        return { progress: 45, classCount: 8 };
-      case "s3":
-        return { progress: 85, classCount: 16 };
-      case "s4":
-        return { progress: 30, classCount: 6 };
-      case "s5":
-        return { progress: 95, classCount: 10 };
-      case "s6":
-        return { progress: 50, classCount: 14 };
-      case "s7":
-        return { progress: 40, classCount: 6 };
-      case "s8":
-        return { progress: 60, classCount: 8 };
-      default:
-        return { progress: 0, classCount: 4 };
-    }
-  };
+
 
   return (
     <>
@@ -54,18 +33,13 @@ export default function DashboardPage() {
             <span className="text-[14px] text-zinc-400 font-semibold">No subjects matched your search.</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredSubjects.map((subject) => {
-              const meta = getSubjectMeta(subject.id);
-              return (
-                <SubjectCard
-                  key={subject.id}
-                  subject={subject}
-                  progress={meta.progress}
-                  classCount={meta.classCount}
-                />
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredSubjects.map((subject) => (
+              <SubjectCard
+                key={subject.id}
+                subject={subject}
+              />
+            ))}
           </div>
         )}
       </div>

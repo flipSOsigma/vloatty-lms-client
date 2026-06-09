@@ -77,24 +77,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
     });
   };
 
-  const getSubjectMeta = (subjectId: string) => {
-    switch (subjectId) {
-      case "s1":
-        return { progress: 68, classCount: 12 };
-      case "s2":
-        return { progress: 45, classCount: 8 };
-      case "s3":
-        return { progress: 85, classCount: 16 };
-      case "s4":
-        return { progress: 30, classCount: 6 };
-      case "s5":
-        return { progress: 95, classCount: 10 };
-      case "s6":
-        return { progress: 50, classCount: 14 };
-      default:
-        return { progress: 0, classCount: 4 };
-    }
-  };
+
 
   if (!selectedSubject) {
     return (
@@ -113,7 +96,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
     );
   }
 
-  const meta = getSubjectMeta(selectedSubject.id);
+
 
   return (
     <div className="flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -155,7 +138,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </h2>
             <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
               <GraduationCap className="w-4 h-4" />
-              <span>Lecturer: {selectedSubject.lecturer}</span>
+              <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
             </div>
           </div>
 
@@ -185,21 +168,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Progress bar */}
-          <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-            <div className="flex justify-between items-center text-[11px] font-bold text-zinc-500">
-              <span>Course Progress</span>
-              <span>{meta.progress}%</span>
-            </div>
-            <div className="w-full h-2 rounded-full overflow-hidden bg-zinc-300/40">
-              <div
-                className={`h-full rounded-full transition-all duration-1000 ${
-                  selectedSubject.color === "yellow" ? "bg-[#121212]" : "bg-[#f25c88]"
-                }`}
-                style={{ width: `${meta.progress}%` }}
-              />
-            </div>
-          </div>
+
         </div>
 
         {/* Right Column: Modules and Lessons list */}

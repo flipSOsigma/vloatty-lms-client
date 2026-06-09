@@ -2,7 +2,9 @@
   {
     "id": "s1",
     "name": "Mathematics",
-    "lecturer": "Dr. Olivia",
+    "lecturers": [
+      { "userId": "u_olivia_123", "name": "Dr. Olivia" }
+    ],
     "room": "West camp, Room 312",
     "color": "yellow",
     "description": "Explore limits, differentiation, integration, and applications of calculus in scientific modeling.",
@@ -10,6 +12,8 @@
       { "day": "Monday", "startTime": "07:00", "endTime": "08:40" },
       { "day": "Friday", "startTime": "10:00", "endTime": "11:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:00:00.000Z",
     "updatedAt": "2026-06-08T09:30:00.000Z",
     "deletedAt": null,
@@ -27,6 +31,9 @@
             "id": "l1_1_1",
             "title": "Lesson 1: Intuitive Definition of Limits",
             "desc": "Investigating limit behaviors graphically and numerically as values approach a point.",
+            "openDate": "2026-06-01T08:00:00.000Z",
+            "closeDate": "2026-06-15T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:06:00.000Z",
             "updatedAt": "2026-06-08T09:06:00.000Z",
             "deletedAt": null
@@ -35,6 +42,9 @@
             "id": "l1_1_2",
             "title": "Lesson 2: Epsilon-Delta Definition of Limits",
             "desc": "Proving limits rigorously using mathematical continuity bounds.",
+            "openDate": "2026-06-01T08:00:00.000Z",
+            "closeDate": "2026-06-18T23:59:59.000Z",
+            "closeType": "open",
             "createdAt": "2026-06-08T09:08:00.000Z",
             "updatedAt": "2026-06-08T09:08:00.000Z",
             "deletedAt": null
@@ -54,6 +64,9 @@
             "id": "l1_2_1",
             "title": "Lesson 1: Power Rule & Chain Rule",
             "desc": "Practicing algebraic rules for quick derivative computations.",
+            "openDate": "2026-06-02T08:00:00.000Z",
+            "closeDate": "2026-06-12T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:11:00.000Z",
             "updatedAt": "2026-06-08T09:11:00.000Z",
             "deletedAt": null
@@ -62,6 +75,9 @@
             "id": "l1_2_2",
             "title": "Lesson 2: Optimization & Extrema",
             "desc": "Using critical points to solve real-world efficiency and volume maximization scenarios.",
+            "openDate": "2026-06-02T08:00:00.000Z",
+            "closeDate": "2026-06-20T23:59:59.000Z",
+            "closeType": "open",
             "createdAt": "2026-06-08T09:12:00.000Z",
             "updatedAt": "2026-06-08T09:12:00.000Z",
             "deletedAt": null
@@ -73,7 +89,10 @@
   {
     "id": "s2",
     "name": "Physics",
-    "lecturer": "Prof. Richard Feynman",
+    "lecturers": [
+      { "userId": "u_feynman_123", "name": "Prof. Richard Feynman" },
+      { "userId": "u_olivia_123", "name": "Dr. Olivia" }
+    ],
     "room": "East camp, Room 200",
     "color": "blue",
     "description": "Study Newtonian mechanics, optics, thermodynamics, and quantum mechanics fundamentals.",
@@ -81,6 +100,8 @@
       { "day": "Monday", "startTime": "09:00", "endTime": "10:40" },
       { "day": "Friday", "startTime": "12:00", "endTime": "13:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:15:00.000Z",
     "updatedAt": "2026-06-08T09:15:00.000Z",
     "deletedAt": null,
@@ -98,6 +119,9 @@
             "id": "l2_1_1",
             "title": "Lesson 1: Newton's Laws of Motion",
             "desc": "Forces, inertia, friction coefficient equations, and action-reaction pairings.",
+            "openDate": "2026-06-01T08:00:00.000Z",
+            "closeDate": "2026-06-14T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:17:00.000Z",
             "updatedAt": "2026-06-08T09:17:00.000Z",
             "deletedAt": null
@@ -106,6 +130,9 @@
             "id": "l2_1_2",
             "title": "Lesson 2: Work-Energy Theorem",
             "desc": "Calculating kinetic vs. potential energy conservation in gravitational fields.",
+            "openDate": "2026-06-01T08:00:00.000Z",
+            "closeDate": "2026-06-19T23:59:59.000Z",
+            "closeType": "open",
             "createdAt": "2026-06-08T09:18:00.000Z",
             "updatedAt": "2026-06-08T09:18:00.000Z",
             "deletedAt": null
@@ -117,7 +144,9 @@
   {
     "id": "s3",
     "name": "Computer Science",
-    "lecturer": "Dr. Alan Turing",
+    "lecturers": [
+      { "userId": "u_turing_123", "name": "Dr. Alan Turing" }
+    ],
     "room": "West camp, Lab 402",
     "color": "image-text",
     "description": "Delve into algorithms, computational theory, machine learning, and software architectures.",
@@ -126,6 +155,8 @@
       { "day": "Friday", "startTime": "07:00", "endTime": "09:30" },
       { "day": "Saturday", "startTime": "08:00", "endTime": "09:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:20:00.000Z",
     "updatedAt": "2026-06-08T09:20:00.000Z",
     "deletedAt": null,
@@ -143,6 +174,9 @@
             "id": "l3_1_1",
             "title": "Lesson 1: Trees & Balanced BSTs",
             "desc": "Implementing AVL and Red-Black trees for O(log N) lookup speeds.",
+            "openDate": "2026-06-03T08:00:00.000Z",
+            "closeDate": "2026-06-16T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:22:00.000Z",
             "updatedAt": "2026-06-08T09:22:00.000Z",
             "deletedAt": null
@@ -151,6 +185,9 @@
             "id": "l3_1_2",
             "title": "Lesson 2: Graph Traversals & Trees",
             "desc": "Writing Depth-First Search (DFS) and Breadth-First Search (BFS) graph pathing.",
+            "openDate": "2026-06-03T08:00:00.000Z",
+            "closeDate": "2026-06-22T23:59:59.000Z",
+            "closeType": "open",
             "createdAt": "2026-06-08T09:23:00.000Z",
             "updatedAt": "2026-06-08T09:23:00.000Z",
             "deletedAt": null
@@ -162,7 +199,10 @@
   {
     "id": "s4",
     "name": "Chemistry",
-    "lecturer": "Dr. Marie Curie",
+    "lecturers": [
+      { "userId": "u_curie_123", "name": "Dr. Marie Curie" },
+      { "userId": "u_turing_123", "name": "Dr. Alan Turing" }
+    ],
     "room": "West camp, Lab 304",
     "color": "cream",
     "description": "Discover reaction thermodynamics, organic synthesis paths, and molecular kinetics.",
@@ -170,6 +210,8 @@
       { "day": "Monday", "startTime": "11:00", "endTime": "12:40" },
       { "day": "Wednesday", "startTime": "10:00", "endTime": "11:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:25:00.000Z",
     "updatedAt": "2026-06-08T09:25:00.000Z",
     "deletedAt": null,
@@ -187,6 +229,9 @@
             "id": "l4_1_1",
             "title": "Lesson 1: Alkanes & Stereochemistry",
             "desc": "Naming branched alkanes and analyzing chiral carbon structures.",
+            "openDate": "2026-06-04T08:00:00.000Z",
+            "closeDate": "2026-06-13T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:27:00.000Z",
             "updatedAt": "2026-06-08T09:27:00.000Z",
             "deletedAt": null
@@ -198,13 +243,17 @@
   {
     "id": "s5",
     "name": "English Literature",
-    "lecturer": "Prof. William Shakespeare",
+    "lecturers": [
+      { "userId": "u_shakespeare_123", "name": "Prof. William Shakespeare" }
+    ],
     "room": "West camp, Room 102",
     "color": "cream",
     "description": "Analyze creative prose writing styles, structures, drama, and historical poetry blocks.",
     "schedules": [
       { "day": "Wednesday", "startTime": "08:00", "endTime": "09:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:30:00.000Z",
     "updatedAt": "2026-06-08T09:30:00.000Z",
     "deletedAt": null,
@@ -222,6 +271,9 @@
             "id": "l5_1_1",
             "title": "Lesson 1: Analysis of Hamlet",
             "desc": "Unpacking character motivations, moral dilemmas, and structural pacing in Hamlet.",
+            "openDate": "2026-06-05T08:00:00.000Z",
+            "closeDate": "2026-06-25T23:59:59.000Z",
+            "closeType": "open",
             "createdAt": "2026-06-08T09:32:00.000Z",
             "updatedAt": "2026-06-08T09:32:00.000Z",
             "deletedAt": null
@@ -233,13 +285,17 @@
   {
     "id": "s6",
     "name": "Microbiology",
-    "lecturer": "Dr. Louis Pasteur",
+    "lecturers": [
+      { "userId": "u_pasteur_123", "name": "Dr. Louis Pasteur" }
+    ],
     "room": "West camp, Room 305",
     "color": "blue",
     "description": "Examine cell genetics, virus cycles, pathogens, and cell cultivation lab protocols.",
     "schedules": [
       { "day": "Saturday", "startTime": "10:00", "endTime": "11:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:35:00.000Z",
     "updatedAt": "2026-06-08T09:35:00.000Z",
     "deletedAt": null,
@@ -257,6 +313,9 @@
             "id": "l6_1_1",
             "title": "Lesson 1: Lytic and Lysogenic Replication",
             "desc": "Examining phage cycles and integration methods into host genomes.",
+            "openDate": "2026-06-06T08:00:00.000Z",
+            "closeDate": "2026-06-14T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:37:00.000Z",
             "updatedAt": "2026-06-08T09:37:00.000Z",
             "deletedAt": null
@@ -268,13 +327,17 @@
   {
     "id": "s7",
     "name": "History",
-    "lecturer": "Prof. Herodotus",
+    "lecturers": [
+      { "userId": "u_herodotus_123", "name": "Prof. Herodotus" }
+    ],
     "room": "Online Classroom",
     "color": "cream",
     "description": "Study ancient civilizations, world wars, and the political evolutions of modern human societies.",
     "schedules": [
       { "day": "Thursday", "startTime": "07:00", "endTime": "08:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:40:00.000Z",
     "updatedAt": "2026-06-08T09:40:00.000Z",
     "deletedAt": null,
@@ -292,6 +355,9 @@
             "id": "l7_1_1",
             "title": "Lesson 1: The Roman Empire",
             "desc": "Studying the administrative challenges and military overreaches of ancient Rome.",
+            "openDate": "2026-06-07T08:00:00.000Z",
+            "closeDate": "2026-06-17T23:59:59.000Z",
+            "closeType": "open",
             "createdAt": "2026-06-08T09:42:00.000Z",
             "updatedAt": "2026-06-08T09:42:00.000Z",
             "deletedAt": null
@@ -303,13 +369,18 @@
   {
     "id": "s8",
     "name": "Astrophysics",
-    "lecturer": "Prof. Galileo Galilei",
+    "lecturers": [
+      { "userId": "u_galileo_123", "name": "Prof. Galileo Galilei" },
+      { "userId": "u_feynman_123", "name": "Prof. Richard Feynman" }
+    ],
     "room": "West camp, Room 312",
     "color": "image-text",
     "description": "Explore stellar physics, cosmological evolution, black holes, and the physical laws governing the universe.",
     "schedules": [
       { "day": "Thursday", "startTime": "09:00", "endTime": "10:40" }
     ],
+    "createdBy": "u_turing_yeager_2026",
+    "deletedBy": null,
     "createdAt": "2026-06-08T09:45:00.000Z",
     "updatedAt": "2026-06-08T09:45:00.000Z",
     "deletedAt": null,
@@ -317,7 +388,7 @@
       {
         "id": "m8_1",
         "title": "Module 1: Stellar Evolution",
-        "desc": "Nucleosynthesis, fusion lifecycles, and the formation of supernovae and cosmic objects.",
+        "desc": "Nucleosynthesis, fusion lifecycles, and the formation of cosmic objects.",
         "date": "2026-05-14T08:00:00.000Z",
         "createdAt": "2026-06-08T09:46:00.000Z",
         "updatedAt": "2026-06-08T09:46:00.000Z",
@@ -327,6 +398,9 @@
             "id": "l8_1_1",
             "title": "Lesson 1: Main Sequence Stars",
             "desc": "How hydrogen fusion maintains hydrostatic equilibrium in stellar cores.",
+            "openDate": "2026-06-08T08:00:00.000Z",
+            "closeDate": "2026-06-18T23:59:59.000Z",
+            "closeType": "restrict",
             "createdAt": "2026-06-08T09:47:00.000Z",
             "updatedAt": "2026-06-08T09:47:00.000Z",
             "deletedAt": null
