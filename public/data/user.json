@@ -1,0 +1,15 @@
+{
+  "user": {
+    "id": "c9c15c47-469a-412f-8431-21568eaf35d4",
+    "name": "Turing Yeager",
+    "email": "turing.y@vloatty.edu",
+    "premiumStatus": "professional",
+    "institution": "",
+    "avatar": ""
+  },
+  "jwt": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM5YzE1YzQ3LTQ2OWEtNDEyZi04NDMxLTIxNTY4ZWFmMzVkNCIsIm5hbWUiOiJUdXJpbmcgWWVhZ2VyIiwiZW1haWwiOiJ0dXJpbmcueUB2bG9hdHR5LmVkdSIsInByZW1pdW1TdGF0dXMiOiJwcm9mZXNzaW9uYWwiLCJpbnN0aXR1dGlvbiI6IiIsImlhdCI6MTc4MzkwMDAwMCwiZXhwIjoxNzg0MDAwMDAwfQ.mockSignatureHere123456789012345678901234567890",
+    "tokenType": "Bearer",
+    "expiresIn": 86400
+  }
+}

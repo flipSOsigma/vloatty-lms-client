@@ -5,15 +5,37 @@ import { useLms } from "../../context/LmsContext";
 import { LmsEvent } from "../../types/lms";
 import ScheduleCard from "../ui/ScheduleCard";
 
-const DAYS = [
-  { label: "MON", date: "11/05" },
-  { label: "TUE", date: "12/05" },
-  { label: "WED", date: "13/05" },
-  { label: "THU", date: "14/05", active: true },
-  { label: "FR", date: "15/05" },
-  { label: "SA", date: "16/05" },
-  { label: "SU", date: "17/05", isPink: true },
-];
+// Helper to get week number of a date
+const getWeekNumber = (d: Date): number => {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+};
+
+// Helper to generate the 7 days of the current week (Mon-Sun)
+const getWeekDates = (): { label: string; date: string; isPink?: boolean }[] => {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday...
+  const dayOffset = currentDay === 0 ? -6 : 1 - currentDay; // offset to Monday
+  
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + dayOffset);
+
+  const labels = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  return Array.from({ length: 7 }).map((_, idx) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + idx);
+    const dateStr = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return {
+      label: labels[idx],
+      date: dateStr,
+      isPink: idx === 6,
+    };
+  });
+};
+
 
 const HOURS = [
   "07:00",
@@ -58,6 +80,32 @@ export default function ScheduleView() {
     setSelectedEvent,
   } = useLms();
 
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const DAYS = React.useMemo(() => {
+    if (!mounted) {
+      return [
+        { label: "MON", date: "11/05" },
+        { label: "TUE", date: "12/05" },
+        { label: "WED", date: "13/05" },
+        { label: "THU", date: "14/05" },
+        { label: "FRI", date: "15/05" },
+        { label: "SAT", date: "16/05" },
+        { label: "SUN", date: "17/05", isPink: true },
+      ];
+    }
+    return getWeekDates();
+  }, [mounted]);
+
+  const currentWeekNumber = React.useMemo(() => {
+    if (!mounted) return 24;
+    return getWeekNumber(new Date());
+  }, [mounted]);
+
   // Filter events based on search query and category tags
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
@@ -89,7 +137,7 @@ export default function ScheduleView() {
       {/* Week Day Headers */}
       <div className="grid grid-cols-[60px_repeat(7,1fr)] w-full border-b border-[#E5E1D8]/60 pb-4 mb-4">
         <div className="flex items-center justify-center text-[11px] font-bold text-zinc-400">
-          W 24
+          {"W" + currentWeekNumber}
         </div>
         
         {DAYS.map((day, idx) => {
@@ -202,7 +250,7 @@ export default function ScheduleView() {
             const widthPercent = 14.285 - 1.0;
 
             const subject = subjects.find((s) => s.id === event.subjectId);
-            const lecturerName = subject ? subject.lecturer : undefined;
+            const lecturerName = subject ? subject.lecturers.map((l) => l.name).join(", ") : undefined;
 
             return (
               <ScheduleCard

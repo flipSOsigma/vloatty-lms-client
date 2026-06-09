@@ -12,6 +12,7 @@ import {
   FileCheck,
   X,
   Calendar,
+  Plus,
 } from "lucide-react";
 
 interface PageProps {
@@ -35,7 +36,7 @@ const formatDate = (isoString: string) => {
 export default function SubjectDetailPage({ params }: PageProps) {
   // Unwrap dynamic routing param promise
   const { id } = React.use(params);
-  const { subjects } = useLms();
+  const { subjects, currentUser } = useLms();
 
   // Simulated uploader states
   const [uploadedFiles, setUploadedFiles] = useState<{ [lessonId: string]: { name: string; size: string } }>({});
@@ -77,24 +78,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
     });
   };
 
-  const getSubjectMeta = (subjectId: string) => {
-    switch (subjectId) {
-      case "s1":
-        return { progress: 68, classCount: 12 };
-      case "s2":
-        return { progress: 45, classCount: 8 };
-      case "s3":
-        return { progress: 85, classCount: 16 };
-      case "s4":
-        return { progress: 30, classCount: 6 };
-      case "s5":
-        return { progress: 95, classCount: 10 };
-      case "s6":
-        return { progress: 50, classCount: 14 };
-      default:
-        return { progress: 0, classCount: 4 };
-    }
-  };
+
 
   if (!selectedSubject) {
     return (
@@ -113,15 +97,17 @@ export default function SubjectDetailPage({ params }: PageProps) {
     );
   }
 
-  const meta = getSubjectMeta(selectedSubject.id);
+
 
   return (
-    <div className="flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <>
       {/* Header Panel */}
       <Header />
 
-      {/* Navigation Row */}
-      <div className="flex items-center justify-between mt-1">
+      {/* Scrollable Container */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+        {/* Navigation Row */}
+        <div className="flex items-center justify-between mt-1">
         <Link
           href="/dashboard"
           className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-zinc-100 font-bold text-[12px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/50"
@@ -129,6 +115,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Back to Subjects</span>
         </Link>
+
         <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
           Syllabus Detail
         </span>
@@ -145,8 +132,19 @@ export default function SubjectDetailPage({ params }: PageProps) {
                   ? "bg-amber-100 text-amber-800"
                   : selectedSubject.color === "blue"
                   ? "bg-blue-100 text-blue-800"
+                  : !selectedSubject.color || selectedSubject.color.startsWith("#")
+                  ? ""
                   : "bg-zinc-200 text-zinc-800"
               }`}
+              style={
+                selectedSubject.color && selectedSubject.color.startsWith("#")
+                  ? {
+                      backgroundColor: `${selectedSubject.color}15`,
+                      color: selectedSubject.color,
+                      border: `1px solid ${selectedSubject.color}30`
+                    }
+                  : {}
+              }
             >
               {selectedSubject.room || "Room Online"}
             </span>
@@ -155,7 +153,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </h2>
             <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
               <GraduationCap className="w-4 h-4" />
-              <span>Lecturer: {selectedSubject.lecturer}</span>
+              <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
             </div>
           </div>
 
@@ -185,28 +183,42 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Progress bar */}
-          <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-            <div className="flex justify-between items-center text-[11px] font-bold text-zinc-500">
-              <span>Course Progress</span>
-              <span>{meta.progress}%</span>
-            </div>
-            <div className="w-full h-2 rounded-full overflow-hidden bg-zinc-300/40">
-              <div
-                className={`h-full rounded-full transition-all duration-1000 ${
-                  selectedSubject.color === "yellow" ? "bg-[#121212]" : "bg-[#f25c88]"
-                }`}
-                style={{ width: `${meta.progress}%` }}
-              />
-            </div>
-          </div>
+          {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
+            <Link
+              href={`/dashboard/subject/${selectedSubject.id}/manage`}
+              className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
+            >
+              <span>Manage Subject</span>
+            </Link>
+          )}
+
         </div>
 
         {/* Right Column: Modules and Lessons list */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight mb-2">
-            Course Modules & Lessons
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+            <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
+              Course Modules & Lessons
+            </h3>
+            {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/dashboard/subject/${selectedSubject.id}/module/create`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5E1D8] hover:bg-zinc-100 font-bold text-[11px] text-[#f25c88] cursor-pointer transition-colors shadow-sm bg-white/50"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Module</span>
+                </Link>
+                <Link
+                  href={`/dashboard/subject/${selectedSubject.id}/lesson/create`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5E1D8] hover:bg-zinc-100 font-bold text-[11px] text-[#f25c88] cursor-pointer transition-colors shadow-sm bg-white/50"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Lesson</span>
+                </Link>
+              </div>
+            )}
+          </div>
 
           {selectedSubject.modules.length === 0 ? (
             <div className="w-full h-48 flex items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl">
@@ -329,7 +341,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      </div>
+
       <EventModal />
-    </div>
+    </>
   );
 }
