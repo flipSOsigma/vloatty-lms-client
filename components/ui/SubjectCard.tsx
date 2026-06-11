@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, BookOpen, Settings, RefreshCw } from "lucide-react";
 import { Subject } from "../../types/subject";
 import { useRouter } from "next/navigation";
+import { useLms } from "../../context/LmsContext";
 
 interface SubjectCardProps {
   subject: Subject;
@@ -11,6 +12,7 @@ interface SubjectCardProps {
 
 export default function SubjectCard({ subject }: SubjectCardProps) {
   const router = useRouter();
+  const { showToast } = useLms();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
 
@@ -247,29 +249,32 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
                 setMenuOpen(false);
                 router.push(`/dashboard/subject/${subject.id}`);
               }}
-              className="flex items-center px-2.5 py-2 hover:bg-zinc-200/40 rounded-xl text-[11.5px] text-zinc-700 font-bold transition-all duration-200 cursor-pointer w-full text-left"
+              className="flex items-center gap-2 px-2.5 py-2 hover:bg-zinc-200/40 rounded-xl text-[11.5px] text-zinc-700 font-medium transition-all duration-200 cursor-pointer w-full text-left"
             >
+              <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
               View Syllabus
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setMenuOpen(false);
-                alert(`${subject.name} schedules synced successfully!`);
+                router.push(`/dashboard/subject/${subject.id}/manage`);
               }}
-              className="flex items-center px-2.5 py-2 hover:bg-zinc-200/40 rounded-xl text-[11.5px] text-zinc-700 font-bold transition-all duration-200 cursor-pointer w-full text-left"
+              className="flex items-center gap-2 px-2.5 py-2 hover:bg-zinc-200/40 rounded-xl text-[11.5px] text-zinc-700 font-medium transition-all duration-200 cursor-pointer w-full text-left"
             >
-              Sync Schedules
+              <Settings className="w-3.5 h-3.5 text-zinc-400" />
+              Manage Subject
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setMenuOpen(false);
-                alert(`${subject.name} archived successfully!`);
+                showToast(`${subject.name} schedules synced successfully!`, "success");
               }}
-              className="flex items-center px-2.5 py-2 hover:bg-red-50 text-red-600 rounded-xl text-[11.5px] font-bold transition-all duration-200 cursor-pointer w-full text-left"
+              className="flex items-center gap-2 px-2.5 py-2 hover:bg-zinc-200/40 rounded-xl text-[11.5px] text-zinc-700 font-medium transition-all duration-200 cursor-pointer w-full text-left"
             >
-              Archive Subject
+              <RefreshCw className="w-3.5 h-3.5 text-zinc-400" />
+              Sync Schedules
             </button>
           </div>
         </>

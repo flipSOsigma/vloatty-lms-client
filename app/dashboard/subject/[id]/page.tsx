@@ -13,6 +13,7 @@ import {
   X,
   Calendar,
   Plus,
+  Users,
 } from "lucide-react";
 
 interface PageProps {
@@ -123,75 +124,197 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
       {/* Split Details Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
-        {/* Left Column: Summary Info */}
-        <div className="lg:col-span-1 bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm sticky top-0">
-          <div className="flex flex-col gap-1">
-            <span
-              className={`inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit ${
-                selectedSubject.color === "yellow"
-                  ? "bg-amber-100 text-amber-800"
-                  : selectedSubject.color === "blue"
-                  ? "bg-blue-100 text-blue-800"
-                  : !selectedSubject.color || selectedSubject.color.startsWith("#")
-                  ? ""
-                  : "bg-zinc-200 text-zinc-800"
-              }`}
-              style={
-                selectedSubject.color && selectedSubject.color.startsWith("#")
-                  ? {
-                      backgroundColor: `${selectedSubject.color}15`,
-                      color: selectedSubject.color,
-                      border: `1px solid ${selectedSubject.color}30`
-                    }
-                  : {}
-              }
-            >
-              {selectedSubject.room || "Room Online"}
-            </span>
-            <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
-              {selectedSubject.name}
-            </h2>
-            <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
-              <GraduationCap className="w-4 h-4" />
-              <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
-            </div>
-          </div>
-
-          {selectedSubject.description && (
-            <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
-              {selectedSubject.description}
-            </p>
-          )}
-
-          {/* Class Schedules */}
-          {selectedSubject.schedules && selectedSubject.schedules.length > 0 && (
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-              <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
-                Class Schedule
+        {/* Left Column: Summary Info & Participants */}
+        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0">
+          <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
+            <div className="flex flex-col gap-1">
+              <span
+                className={`inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit ${
+                  selectedSubject.color === "yellow"
+                    ? "bg-amber-100 text-amber-800"
+                    : selectedSubject.color === "blue"
+                    ? "bg-blue-100 text-blue-800"
+                    : !selectedSubject.color || selectedSubject.color.startsWith("#")
+                    ? ""
+                    : "bg-zinc-200 text-zinc-800"
+                }`}
+                style={
+                  selectedSubject.color && selectedSubject.color.startsWith("#")
+                    ? {
+                        backgroundColor: `${selectedSubject.color}15`,
+                        color: selectedSubject.color,
+                        border: `1px solid ${selectedSubject.color}30`
+                      }
+                    : {}
+                }
+              >
+                {selectedSubject.room || "Room Online"}
               </span>
-              <div className="flex flex-col gap-1.5">
-                {selectedSubject.schedules.map((sch, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl"
-                  >
-                    <span>{sch.day}</span>
-                    <span className="text-zinc-500 text-[11px]">{sch.startTime} - {sch.endTime}</span>
-                  </div>
-                ))}
+              <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
+                {selectedSubject.name}
+              </h2>
+              <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
+                <GraduationCap className="w-4 h-4" />
+                <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
               </div>
             </div>
-          )}
 
-          {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
-            <Link
-              href={`/dashboard/subject/${selectedSubject.id}/manage`}
-              className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
-            >
-              <span>Manage Subject</span>
-            </Link>
-          )}
+            {selectedSubject.description && (
+              <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                {selectedSubject.description}
+              </p>
+            )}
 
+            {/* Class Schedules */}
+            {selectedSubject.schedules && selectedSubject.schedules.length > 0 && (
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                  Class Schedule
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  {selectedSubject.schedules.map((sch, i) => (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl"
+                    >
+                      <span>{sch.day}</span>
+                      <span className="text-zinc-500 text-[11px]">{sch.startTime} - {sch.endTime}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
+              <Link
+                href={`/dashboard/subject/${selectedSubject.id}/manage`}
+                className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
+              >
+                <span>Manage Subject</span>
+              </Link>
+            )}
+          </div>
+
+          {(() => {
+            interface CourseMember {
+              userId: string;
+              name: string;
+              email: string;
+              role: "Owner" | "Lecturer" | "Participant";
+            }
+            const courseMembers: CourseMember[] = [];
+            if (selectedSubject.createdBy) {
+              courseMembers.push({
+                userId: selectedSubject.createdBy,
+                name: selectedSubject.creatorName || "Subject Owner",
+                email: selectedSubject.creatorEmail || "",
+                role: "Owner"
+              });
+            }
+            if (selectedSubject.lecturers) {
+              selectedSubject.lecturers.forEach((l) => {
+                if (l.userId !== selectedSubject.createdBy && !courseMembers.some(m => m.userId === l.userId)) {
+                  courseMembers.push({
+                    userId: l.userId,
+                    name: l.name,
+                    email: l.email || "",
+                    role: "Lecturer"
+                  });
+                }
+              });
+            }
+            if (selectedSubject.participants) {
+              selectedSubject.participants.forEach((p) => {
+                if (p.userId !== selectedSubject.createdBy && !courseMembers.some(m => m.userId === p.userId)) {
+                  courseMembers.push({
+                    userId: p.userId,
+                    name: p.name,
+                    email: p.email || "",
+                    role: "Participant"
+                  });
+                }
+              });
+            }
+
+            return (
+              <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-[#E5E1D8]/45 pb-2">
+                  <h3 className="text-[14px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
+                    <Users className="w-4.5 h-4.5 text-[#f25c88]" />
+                    Course Members
+                  </h3>
+                  <span className="bg-zinc-800 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                    {courseMembers.length}
+                  </span>
+                </div>
+
+                {courseMembers.length === 0 ? (
+                  <div className="text-center py-4">
+                    <span className="text-[11.5px] text-zinc-400 font-semibold">No members found.</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {courseMembers.map((member) => {
+                      const initials = member.name
+                        ? member.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+                        : "?";
+                      
+                      return (
+                        <div key={member.userId} className="flex items-center justify-between p-1 rounded-xl">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div
+                              className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-black border shrink-0"
+                              style={{
+                                backgroundColor: selectedSubject.color && selectedSubject.color.startsWith("#")
+                                  ? `${selectedSubject.color}15`
+                                  : "rgba(242, 92, 136, 0.08)",
+                                color: selectedSubject.color && selectedSubject.color.startsWith("#")
+                                  ? selectedSubject.color
+                                  : "#f25c88",
+                                borderColor: selectedSubject.color && selectedSubject.color.startsWith("#")
+                                  ? `${selectedSubject.color}20`
+                                  : "rgba(242, 92, 136, 0.12)"
+                              }}
+                            >
+                              {initials}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[12.5px] font-bold text-zinc-950 truncate">
+                                {member.name}
+                              </span>
+                              {member.email && (
+                                <span className="text-[10px] text-zinc-400 font-semibold truncate -mt-0.5">
+                                  {member.email}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="shrink-0 pl-2">
+                            {member.role === "Owner" && (
+                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-[#f25c88]/10 text-[#f25c88] border border-[#f25c88]/15 uppercase tracking-wide">
+                                Owner
+                              </span>
+                            )}
+                            {member.role === "Lecturer" && (
+                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wide">
+                                Lecturer
+                              </span>
+                            )}
+                            {member.role === "Participant" && (
+                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/50 uppercase tracking-wide">
+                                Student
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Right Column: Modules and Lessons list */}

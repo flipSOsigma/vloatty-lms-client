@@ -36,6 +36,13 @@ export interface SubjectLecturer {
   email?: string;
 }
 
+export interface SubjectParticipant {
+  userId: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+}
+
 export interface Subject {
   id: string;
   name: string;
@@ -46,9 +53,15 @@ export interface Subject {
   modules: Module[];
   schedules?: SubjectSchedule[];
   createdBy: string;
+  creatorName?: string;
+  creatorEmail?: string;
+  creatorAvatar?: string;
   deletedBy: string | null;
-  createdAt: string; // ISO String
-  updatedAt: string; // ISO String
-  deletedAt: string | null; // ISO String or null
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  participants?: SubjectParticipant[];
+  isOpen?: boolean;
+  category?: string;
 }
 

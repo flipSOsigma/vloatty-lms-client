@@ -17,6 +17,7 @@ export default function Header() {
   const {
     searchQuery,
     setSearchQuery,
+    logout,
   } = useLms();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -234,7 +235,10 @@ export default function Header() {
               </div>
 
               {/* Logout Button */}
-              <button className="flex items-center gap-2 justify-center w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-xl text-[12px] font-bold transition-colors cursor-pointer border border-red-200/20 mt-1">
+              <button 
+                onClick={logout}
+                className="flex items-center gap-2 justify-center w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-xl text-[12px] font-bold transition-colors cursor-pointer border border-red-200/20 mt-1"
+              >
                 <LogOut className="w-4 h-4" />
                 Logout
               </button>

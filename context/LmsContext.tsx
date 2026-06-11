@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { LmsEvent, CalendarViewType, LmsState, Subject } from "../types/lms";
+import { Check, AlertTriangle } from "lucide-react";
 
 export interface UserProfile {
   id: string;
@@ -29,6 +30,9 @@ interface LmsContextType extends LmsState {
   addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => void;
   deleteSubject: (id: string) => void;
   updateSubject: (subject: Subject) => void;
+  isLoadingUser: boolean;
+  logout: () => void;
+  showToast: (message: string, type?: "success" | "error") => void;
 }
 
 const LmsContext = createContext<LmsContextType | undefined>(undefined);
@@ -39,6 +43,22 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [events, setEvents] = useState<LmsEvent[]>([]);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+
+  const [toasts, setToasts] = useState<{ message: string; type: "success" | "error"; id: string }[]>([]);
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { message, type, id }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setCurrentUser(null);
+    window.location.href = "/login";
+  };
   const [selectedView, setSelectedView] = useState<CalendarViewType>("week");
   const [activeDayIndex, setActiveDayIndex] = useState<number>(3); // default Thursday (THU 14/05)
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -47,8 +67,41 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<LmsEvent | null>(null);
 
-  // Fetch subjects from the backend API on mount
   useEffect(() => {
+    const processSubjects = (data: Subject[]) => {
+      setSubjects(data);
+      const dayMap: { [key: string]: number } = {
+        Monday: 0,
+        Tuesday: 1,
+        Wednesday: 2,
+        Thursday: 3,
+        Friday: 4,
+        Saturday: 5,
+        Sunday: 6
+      };
+      const loadedEvents: LmsEvent[] = [];
+      data.forEach((subj) => {
+        if (subj.schedules) {
+          subj.schedules.forEach((sch, idx) => {
+            loadedEvents.push({
+              id: `${subj.id}-${sch.day}-${idx}`,
+              title: subj.name,
+              subtitle: sch.room || subj.room || "",
+              timeStart: sch.startTime,
+              timeEnd: sch.endTime,
+              dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
+              color: subj.color || "cream",
+              subjectId: subj.id,
+              createdAt: subj.createdAt,
+              updatedAt: subj.updatedAt,
+              deletedAt: null
+            });
+          });
+        }
+      });
+      setEvents(loadedEvents);
+    };
+
     fetch(`${API_BASE_URL}/subjects`, { cache: "no-store" })
       .then((res) => {
         if (!res.ok) {
@@ -57,43 +110,23 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return res.json();
       })
       .then((data: Subject[]) => {
-        setSubjects(data);
-
-        // Derive calendar events from loaded subject schedules
-        const dayMap: { [key: string]: number } = {
-          "Monday": 0,
-          "Tuesday": 1,
-          "Wednesday": 2,
-          "Thursday": 3,
-          "Friday": 4,
-          "Saturday": 5,
-          "Sunday": 6
-        };
-
-        const loadedEvents: LmsEvent[] = [];
-        data.forEach((subj) => {
-          if (subj.schedules) {
-            subj.schedules.forEach((sch, idx) => {
-              loadedEvents.push({
-                id: `${subj.id}-${sch.day}-${idx}`,
-                title: subj.name,
-                subtitle: sch.room || subj.room || "",
-                timeStart: sch.startTime,
-                timeEnd: sch.endTime,
-                dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
-                color: subj.color || "cream",
-                subjectId: subj.id,
-                createdAt: subj.createdAt,
-                updatedAt: subj.updatedAt,
-                deletedAt: null
-              });
-            });
-          }
-        });
-        setEvents(loadedEvents);
+        processSubjects(data);
       })
       .catch((err) => {
-        console.error("Error fetching subjects data:", err);
+        console.error(err);
+        fetch(`/data/subjects.json?t=${Date.now()}`, { cache: "no-store" })
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error("Failed to fetch subjects fallback");
+            }
+            return res.json();
+          })
+          .then((localData: Subject[]) => {
+            processSubjects(localData);
+          })
+          .catch((localErr) => {
+            console.error(localErr);
+          });
       });
   }, []);
 
@@ -103,7 +136,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     
     const fetchUser = (tokenToUse: string | null) => {
-      fetch(`${API_BASE_URL}/users/c9c15c47-469a-412f-8431-21568eaf35d4`, {
+      fetch(`${API_BASE_URL}/auth/me`, {
         cache: "no-store",
         headers: tokenToUse ? { "Authorization": `Bearer ${tokenToUse}` } : {}
       })
@@ -115,6 +148,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (data) {
             setCurrentUser(data);
           }
+          setIsLoadingUser(false);
         })
         .catch((err) => {
           console.error("Error fetching user data in LMS Context, falling back to local mock data:", err);
@@ -125,25 +159,20 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               if (localData.user) {
                 setCurrentUser(localData.user);
               }
+              setIsLoadingUser(false);
             })
-            .catch((localErr) => console.error("Error fetching fallback user data:", localErr));
+            .catch((localErr) => {
+              console.error("Error fetching fallback user data:", localErr);
+              setIsLoadingUser(false);
+            });
         });
     };
 
     if (currentToken) {
       fetchUser(currentToken);
     } else {
-      fetch(`/data/user.json?t=${Date.now()}`, { cache: "no-store" })
-        .then((res) => res.json())
-        .then((localData) => {
-          if (localData.jwt?.accessToken) {
-            localStorage.setItem("token", localData.jwt.accessToken);
-            fetchUser(localData.jwt.accessToken);
-          } else {
-            fetchUser(null);
-          }
-        })
-        .catch(() => fetchUser(null));
+      setCurrentUser(null);
+      setIsLoadingUser(false);
     }
   }, []);
 
@@ -207,13 +236,13 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add subject on the server");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to add subject on the server");
       }
 
       const newSubject: Subject = await response.json();
       setSubjects((prev) => [...prev, newSubject]);
 
-      // Derive calendar events from new schedules
       if (newSubject.schedules) {
         const dayMap: { [key: string]: number } = {
           "Monday": 0,
@@ -241,8 +270,10 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         setEvents((prev) => [...prev, ...newEvents]);
       }
-    } catch (err) {
-      console.error("Error adding subject to server:", err);
+      showToast("Subject added successfully!", "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to add subject", "error");
     }
   };
 
@@ -255,7 +286,8 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete subject on the server");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to delete subject on the server");
       }
 
       const now = new Date().toISOString();
@@ -265,8 +297,10 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setEvents((prev) =>
         prev.map((e) => (e.subjectId === id ? { ...e, deletedAt: now } : e))
       );
-    } catch (err) {
-      console.error("Error deleting subject from server:", err);
+      showToast("Subject deleted successfully!", "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to delete subject", "error");
     }
   };
 
@@ -291,7 +325,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         prev.map((s) => (s.id === savedSubject.id ? savedSubject : s))
       );
 
-      // Re-derive calendar events for this subject
       setEvents((prev) => {
         const remainingEvents = prev.filter((e) => e.subjectId !== savedSubject.id);
         if (savedSubject.schedules) {
@@ -323,8 +356,10 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         return remainingEvents;
       });
-    } catch (err) {
-      console.error("Error updating subject on server:", err);
+      showToast("Subject details updated successfully!", "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to update subject", "error");
     }
   };
 
@@ -363,9 +398,35 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addSubject,
         deleteSubject,
         updateSubject,
+        isLoadingUser,
+        logout,
+        showToast,
       }}
     >
       {children}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className={`pointer-events-auto flex items-center gap-2.5 px-4.5 py-3.5 bg-white rounded-2xl shadow-xl border text-[13px] font-medium animate-in slide-in-from-top-4 fade-in duration-300 ${
+              t.type === "success"
+                ? "border-emerald-100/60 text-emerald-800"
+                : "border-rose-100/60 text-rose-800"
+            }`}
+          >
+            {t.type === "success" ? (
+              <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                <Check className="w-3.5 h-3.5" />
+              </div>
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+                <AlertTriangle className="w-3.5 h-3.5" />
+              </div>
+            )}
+            <span className="flex-1">{t.message}</span>
+          </div>
+        ))}
+      </div>
     </LmsContext.Provider>
   );
 };

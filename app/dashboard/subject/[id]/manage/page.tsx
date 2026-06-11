@@ -5,6 +5,7 @@ import Header from "../../../../../components/views/Header";
 import { useLms } from "../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 import {
   ArrowLeft,
   Plus,
@@ -19,6 +20,9 @@ import {
   Settings,
   Search,
   X,
+  Link as LinkIcon,
+  Mail,
+  Globe,
 } from "lucide-react";
 import facultyMockRaw from "../../../../../public/data/users.json";
 const facultyMock = facultyMockRaw as Record<string, string>;
@@ -43,8 +47,29 @@ interface FormSchedule {
 
 export default function ManageSubjectPage({ params }: PageProps) {
   const { id } = React.use(params);
-  const { subjects, currentUser, updateSubject } = useLms();
+  const { subjects, currentUser, updateSubject, deleteSubject, showToast } = useLms();
   const router = useRouter();
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [category, setCategory] = useState("Lecture");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+
+  const handleDeleteSubject = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteSubject(id);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
+  };
 
   const hexToRgba = (hex: string, opacity: number) => {
     try {
@@ -115,6 +140,8 @@ export default function ManageSubjectPage({ params }: PageProps) {
       setSubjectSchedules(
         subject.schedules ? subject.schedules.map((s) => ({ ...s, room: s.room || "" })) : []
       );
+      setIsOpen(subject.isOpen ?? false);
+      setCategory(subject.category ?? "Lecture");
     }
   }, [subject]);
 
@@ -252,6 +279,8 @@ export default function ManageSubjectPage({ params }: PageProps) {
       color: subjectColor,
       lecturers: mappedLecturers,
       schedules: mappedSchedules,
+      isOpen,
+      category,
     };
 
     setTimeout(() => {
@@ -299,10 +328,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSaveDetails} className="flex flex-col gap-8 w-full">
-          {/* Section 1: Basic Parameters */}
-          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
-            <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
+        <form onSubmit={handleSaveDetails} className="flex flex-col gap-6 w-full">
+          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
+            <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 pb-3 border-b border-zinc-100 tracking-tight">
               <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
               Basic Parameters
             </h3>
@@ -370,10 +398,138 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Section 2: Lecturers Table */}
-          <div className="flex flex-col gap-4 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
+            <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 pb-3 border-b border-zinc-100 tracking-tight">
+              <Sparkles className="w-4.5 h-4.5 text-[#f25c88]" />
+              Visibility & Invite Settings
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+              <div className="flex flex-col gap-5 border-r border-zinc-100/50 pr-0 md:pr-6">
+                <div className="flex items-center justify-between bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[13px] font-extrabold text-zinc-800 flex items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-zinc-500" />
+                      Open Class Visibility
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-bold leading-normal">
+                      Allow any authenticated user to search and join this class
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                      isOpen ? "bg-[#f25c88]" : "bg-zinc-200"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        isOpen ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-bold text-zinc-600">Class Category</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-3 rounded-2xl border border-zinc-200 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 cursor-pointer"
+                  >
+                    <option value="Lecture">Lecture</option>
+                    <option value="Lab">Lab</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Clinical">Clinical</option>
+                    <option value="Workshop">Workshop</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[12px] font-bold text-zinc-600 flex items-center gap-1.5">
+                    <LinkIcon className="w-4 h-4 text-zinc-500" />
+                    Invite via Link
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={typeof window !== "undefined" ? `${window.location.origin}/dashboard/subject/${subject.id}/join` : ""}
+                      className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-[#FAF7F2]/50 text-zinc-500 font-semibold outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const link = typeof window !== "undefined" ? `${window.location.origin}/dashboard/subject/${subject.id}/join` : "";
+                        navigator.clipboard.writeText(link);
+                        setCopied(true);
+                        showToast("Invite link copied to clipboard!", "success");
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="px-4 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white text-[12px] font-bold rounded-2xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
+                    >
+                      {copied ? "Copied!" : "Copy Link"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[12px] font-bold text-zinc-600 flex items-center gap-1.5">
+                    <Mail className="w-4 h-4 text-zinc-500" />
+                    Invite via Email (Mock)
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="academic-email@institution.edu"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
+                          showToast("Please enter a valid email address.", "error");
+                          return;
+                        }
+                        setInvitedEmails((prev) => [...prev, inviteEmail.trim()]);
+                        setInviteEmail("");
+                        showToast(`Invitation sent to ${inviteEmail}!`, "success");
+                      }}
+                      className="px-5 py-2.5 bg-[#f25c88] hover:bg-[#d84b72] text-white text-[12px] font-bold rounded-2xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
+                    >
+                      Send Invite
+                    </button>
+                  </div>
+
+                  {invitedEmails.length > 0 && (
+                    <div className="mt-2.5 flex flex-col gap-1.5 bg-[#FAF7F2]/30 border border-[#E5E1D8]/20 p-3 rounded-2xl max-h-[120px] overflow-y-auto no-scrollbar">
+                      <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                        Invited Members
+                      </span>
+                      {invitedEmails.map((email, index) => (
+                        <div key={index} className="flex justify-between items-center text-[12px] font-medium text-zinc-600 bg-white border border-[#E5E1D8]/20 px-3 py-1.5 rounded-xl">
+                          <span className="truncate">{email}</span>
+                          <span className="text-[9px] bg-amber-50 border border-amber-100 text-amber-700 font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+                            Pending
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
                 <Users className="w-4.5 h-4.5 text-[#f25c88]" />
                 Lecturers *
               </h3>
@@ -473,10 +629,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Section 3: Class Schedules Table */}
-          <div className="flex flex-col gap-4 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
                 <Calendar className="w-4.5 h-4.5 text-[#f25c88]" />
                 Schedules
               </h3>
@@ -586,7 +741,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Bottom Actions Row */}
           <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4">
             <Link
               href={`/dashboard/subject/${subject.id}`}
@@ -608,7 +762,37 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </button>
           </div>
         </form>
+
+        <div className="border border-red-200/30 bg-red-50/10 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6">
+          <div className="flex flex-col gap-1">
+            <h4 className="text-[14.5px] font-extrabold text-red-600 flex items-center gap-2">
+              <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
+              Danger Zone
+            </h4>
+            <p className="text-[12px] text-zinc-500 font-medium">
+              Deleting this subject is permanent and cannot be undone. All classes, events, and resources will be removed.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="px-6 py-3 bg-red-50 hover:bg-red-100/80 border border-red-200 text-red-600 hover:text-red-700 font-extrabold rounded-full text-[12px] transition-all cursor-pointer shadow-sm active:scale-[0.98] self-start md:self-center"
+          >
+            Delete Subject
+          </button>
+        </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteSubject}
+        title="Delete Subject"
+        message={`Are you sure you want to delete "${subjectName}"? This action is permanent and cannot be undone.`}
+        confirmText="Delete"
+        isDanger={true}
+        isLoading={isDeleting}
+      />
 
       {isLecturerModalOpen && (
         <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">

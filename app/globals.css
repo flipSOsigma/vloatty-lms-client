@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #FAF7F2;
   --foreground: #121212;
+  --font-poppins: 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
 @theme inline {
