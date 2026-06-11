@@ -19,6 +19,7 @@ import { usePathname } from "next/navigation";
 export default function Sidebar() {
   const pathname = usePathname();
   const [isMinimized, setIsMinimized] = useState(false);
+  const { logout } = useLms();
 
   // Sync state with localStorage on client mount
   useEffect(() => {
@@ -138,6 +139,7 @@ export default function Sidebar() {
       {/* Log Out at bottom */}
       <div className="mt-auto pt-6 border-t border-zinc-800/50">
         <button
+          onClick={logout}
           className={`w-full flex items-center rounded-xl text-[14px] font-medium hover:text-red-400 hover:bg-red-500/[0.02] transition-all duration-200 cursor-pointer text-zinc-500 ${
             isMinimized ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
           }`}

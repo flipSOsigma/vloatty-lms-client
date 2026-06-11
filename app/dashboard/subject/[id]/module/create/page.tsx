@@ -27,23 +27,20 @@ export default function CreateModulePage({ params }: PageProps) {
   const { subjects, currentUser, updateSubject } = useLms();
   const router = useRouter();
 
-  // Find the subject
   const subject = subjects.find((s) => s.id === id);
 
-  // Form states
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [date, setDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split("T")[0]; // YYYY-MM-DD
+    return today.toISOString().split("T")[0]; 
   });
 
-  // UI States
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const isOwner = subject && currentUser && subject.createdBy === currentUser.id;
+  const isOwner = subject && currentUser && (subject.createdBy === currentUser.id || subject.lecturers.some((l) => l.userId === currentUser.id));
 
   if (!subject) {
     return (
@@ -70,7 +67,7 @@ export default function CreateModulePage({ params }: PageProps) {
           <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
           <span className="text-[14px] text-red-600 font-bold">Access Denied.</span>
           <span className="text-[12px] text-zinc-500 font-medium mt-1">
-            Only the subject creator has permissions to create new modules.
+            Only the subject creator or lecturer has permissions to create new modules.
           </span>
           <Link
             href={`/dashboard/subject/${subject.id}`}
@@ -130,9 +127,9 @@ export default function CreateModulePage({ params }: PageProps) {
     <>
       <Header />
 
-      {/* Main Wrapper covering full width */}
+      {}
       <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 text-left select-none w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-        {/* Navigation back */}
+        {}
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/subject/${subject.id}`}
@@ -150,7 +147,7 @@ export default function CreateModulePage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Success Toast */}
+        {}
         {successMessage && (
           <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] font-bold px-4 py-3 rounded-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Check className="w-4 h-4 text-emerald-600" />
@@ -159,7 +156,7 @@ export default function CreateModulePage({ params }: PageProps) {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
-          {/* Column 1: Subject Info Context Card */}
+          {}
           <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
             <div className="flex flex-col gap-1 border-b border-[#E5E1D8]/40 pb-3">
               <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
@@ -198,7 +195,7 @@ export default function CreateModulePage({ params }: PageProps) {
               </p>
             )}
 
-            {/* Schedules list */}
+            {}
             {subject.schedules && subject.schedules.length > 0 && (
               <div className="flex flex-col gap-2 pt-1">
                 <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider mb-0.5">
@@ -222,7 +219,7 @@ export default function CreateModulePage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Column 2: Module Details Form */}
+          {}
           <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-5">
             <h3 className="text-[14px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
               <BookOpen className="w-4 h-4 text-[#f25c88]" />
@@ -230,7 +227,7 @@ export default function CreateModulePage({ params }: PageProps) {
             </h3>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Title */}
+              {}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-zinc-600">Module Title *</label>
                 <input
@@ -247,7 +244,7 @@ export default function CreateModulePage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Description */}
+              {}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-zinc-600">Module Description</label>
                 <textarea
@@ -259,7 +256,7 @@ export default function CreateModulePage({ params }: PageProps) {
                 />
               </div>
 
-              {/* Date */}
+              {}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-zinc-600">Start / Release Date</label>
                 <input
@@ -293,7 +290,7 @@ export default function CreateModulePage({ params }: PageProps) {
             </form>
           </div>
 
-          {/* Column 3: Guidelines Card */}
+          {}
           <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-4">
             <h3 className="text-[14px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
               <Info className="w-4 h-4 text-[#f25c88]" />

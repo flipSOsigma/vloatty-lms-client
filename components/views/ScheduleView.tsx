@@ -5,7 +5,6 @@ import { useLms } from "../../context/LmsContext";
 import { LmsEvent } from "../../types/lms";
 import ScheduleCard from "../ui/ScheduleCard";
 
-// Helper to get week number of a date
 const getWeekNumber = (d: Date): number => {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = date.getUTCDay() || 7;
@@ -14,11 +13,10 @@ const getWeekNumber = (d: Date): number => {
   return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 };
 
-// Helper to generate the 7 days of the current week (Mon-Sun)
-const getWeekDates = (): { label: string; date: string; isPink?: boolean }[] => {
+const getWeekDates = (): { label: string; date: string; fullDate: string; isPink?: boolean }[] => {
   const today = new Date();
-  const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday...
-  const dayOffset = currentDay === 0 ? -6 : 1 - currentDay; // offset to Monday
+  const currentDay = today.getDay();
+  const dayOffset = currentDay === 0 ? -6 : 1 - currentDay;
   
   const monday = new Date(today);
   monday.setDate(today.getDate() + dayOffset);
@@ -28,14 +26,18 @@ const getWeekDates = (): { label: string; date: string; isPink?: boolean }[] => 
     const d = new Date(monday);
     d.setDate(monday.getDate() + idx);
     const dateStr = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const dateVal = String(d.getDate()).padStart(2, "0");
+    const fullDate = `${year}-${month}-${dateVal}`;
     return {
       label: labels[idx],
       date: dateStr,
+      fullDate,
       isPink: idx === 6,
     };
   });
 };
-
 
 const HOURS = [
   "07:00",
@@ -56,11 +58,10 @@ const HOURS = [
 ];
 
 const START_HOUR = 7;
-const ROW_HEIGHT = 100; // height for 1 hour in px
+const ROW_HEIGHT = 100;
 const HOUR_HEIGHT = ROW_HEIGHT;
-const MINUTE_HEIGHT = HOUR_HEIGHT / 60; // 1.667px per minute
+const MINUTE_HEIGHT = HOUR_HEIGHT / 60;
 
-// Helper to convert "HH:MM" to minutes from 07:00
 const getMinutesFromStart = (timeStr: string): number => {
   const [h, m] = timeStr.split(":").map(Number);
   const totalMins = h * 60 + m;
@@ -81,21 +82,28 @@ export default function ScheduleView() {
   } = useLms();
 
   const [mounted, setMounted] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
+    setIsMobile(window.innerWidth < 640);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const DAYS = React.useMemo(() => {
     if (!mounted) {
       return [
-        { label: "MON", date: "11/05" },
-        { label: "TUE", date: "12/05" },
-        { label: "WED", date: "13/05" },
-        { label: "THU", date: "14/05" },
-        { label: "FRI", date: "15/05" },
-        { label: "SAT", date: "16/05" },
-        { label: "SUN", date: "17/05", isPink: true },
+        { label: "MON", date: "11/05", fullDate: "2026-05-11" },
+        { label: "TUE", date: "12/05", fullDate: "2026-05-12" },
+        { label: "WED", date: "13/05", fullDate: "2026-05-13" },
+        { label: "THU", date: "14/05", fullDate: "2026-05-14" },
+        { label: "FRI", date: "15/05", fullDate: "2026-05-15" },
+        { label: "SAT", date: "16/05", fullDate: "2026-05-16" },
+        { label: "SUN", date: "17/05", fullDate: "2026-05-17", isPink: true },
       ];
     }
     return getWeekDates();
@@ -106,35 +114,62 @@ export default function ScheduleView() {
     return getWeekNumber(new Date());
   }, [mounted]);
 
-  // Filter events based on search query and category tags
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (event.subtitle && event.subtitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    if (selectedCategories.length === 0) return matchesSearch;
-    
-    const eventCategory = event.tag?.text || "";
-    const isMatchedCat = selectedCategories.some((cat) => {
-      const titleLower = event.title.toLowerCase();
-      if (cat === "Lectures" && titleLower.includes("lecture")) return true;
-      if (cat === "Labs" && titleLower.includes("lab")) return true;
-      if (cat === "Seminars" && (titleLower.includes("seminar") || titleLower.includes("office hours"))) return true;
-      if (cat === "Quizzes" && (titleLower.includes("quiz") || titleLower.includes("exam") || titleLower.includes("test"))) return true;
-      return eventCategory.toLowerCase().includes(cat.toLowerCase());
+  const filteredEvents = React.useMemo(() => {
+    const mapped = events.map((event) => {
+      if (event.dateStr) {
+        const dayIdx = DAYS.findIndex((d) => d.fullDate === event.dateStr);
+        if (dayIdx !== -1) {
+          return { ...event, dayIndex: dayIdx };
+        }
+        return { ...event, dayIndex: -1 };
+      }
+      return event;
     });
 
-    return matchesSearch && isMatchedCat;
-  });
+    return mapped.filter((event) => {
+      if (event.dateStr && event.dayIndex === -1) {
+        return false;
+      }
+
+      const matchesSearch =
+        searchQuery === "" ||
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.subtitle && event.subtitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      if (selectedCategories.length === 0) return matchesSearch;
+      
+      const eventCategory = event.tag?.text || "";
+      const isMatchedCat = selectedCategories.some((cat) => {
+        const titleLower = event.title.toLowerCase();
+        if (cat === "Lectures" && titleLower.includes("lecture")) return true;
+        if (cat === "Labs" && titleLower.includes("lab")) return true;
+        if (cat === "Seminars" && (titleLower.includes("seminar") || titleLower.includes("office hours"))) return true;
+        if (cat === "Quizzes" && (titleLower.includes("quiz") || titleLower.includes("exam") || titleLower.includes("test"))) return true;
+        return eventCategory.toLowerCase().includes(cat.toLowerCase());
+      });
+
+      return matchesSearch && isMatchedCat;
+    });
+  }, [events, DAYS, searchQuery, selectedCategories]);
+
+  const displayEvents = React.useMemo(() => {
+    if (isMobile) {
+      return filteredEvents.filter((e) => e.dayIndex === activeDayIndex);
+    }
+    return filteredEvents.filter((e) => {
+      if (e.dateStr) {
+        return e.dayIndex === activeDayIndex;
+      }
+      return true;
+    });
+  }, [filteredEvents, isMobile, activeDayIndex]);
 
   const curMins = getMinutesFromStart(currentTime);
   const timeLineTop = curMins * MINUTE_HEIGHT;
 
   return (
     <div className="flex flex-col flex-1 bg-[#FAF7F2] p-6 rounded-3xl overflow-y-auto select-none border border-[#EFECE6] relative max-h-[calc(100vh-180px)]">
-      {/* Week Day Headers */}
       <div className="grid grid-cols-[60px_repeat(7,1fr)] w-full border-b border-[#E5E1D8]/60 pb-4 mb-4">
         <div className="flex items-center justify-center text-[11px] font-bold text-zinc-400">
           {"W" + currentWeekNumber}
@@ -180,7 +215,6 @@ export default function ScheduleView() {
 
       <div className="relative flex flex-row w-full" style={{ height: `${(HOURS.length - 1) * ROW_HEIGHT}px` }}>
         
-        {/* Hours Column */}
         <div className="w-[60px] flex flex-col justify-between text-[11px] font-bold text-zinc-400 py-1 pr-4 relative">
           {HOURS.map((hour, idx) => (
             <div
@@ -193,10 +227,8 @@ export default function ScheduleView() {
           ))}
         </div>
 
-        {/* Calendar Grid Lines & Days Columns */}
-        <div className="flex-1 grid grid-cols-7 relative h-full border-l border-[#E5E1D8]/40">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-7 relative h-full border-l border-[#E5E1D8]/40">
           
-          {/* Horizontal Grid Lines */}
           {HOURS.map((hour, idx) => (
             <div
               key={`line-${hour}`}
@@ -205,22 +237,19 @@ export default function ScheduleView() {
             />
           ))}
 
-          {/* Vertical Columns Lines */}
           {Array.from({ length: 7 }).map((_, idx) => (
             <div
               key={`col-${idx}`}
-              className="absolute top-0 bottom-0 border-r border-[#E5E1D8]/20 pointer-events-none"
+              className="absolute top-0 bottom-0 border-r border-[#E5E1D8]/20 pointer-events-none hidden sm:block"
               style={{ left: `${(idx + 1) * 14.285}%` }}
             />
           ))}
 
-          {/* Current Time Line Indicator */}
           {timeLineTop >= 0 && timeLineTop <= (HOURS.length - 1) * ROW_HEIGHT && (
             <div
               className="absolute left-0 right-0 border-t-2 border-dashed border-[#f25c88] z-20 flex items-center pointer-events-none transition-all duration-500"
               style={{ top: `${timeLineTop}px` }}
             >
-              {/* Glowing Pulse Dot Indicator */}
               <div
                 className="absolute w-2 h-2 bg-[#f25c88] rounded-full z-30 transition-all duration-500"
                 style={{ left: "0px", transform: "translate(-50%, -50%)" }}
@@ -228,7 +257,6 @@ export default function ScheduleView() {
                 <div className="absolute w-full h-full bg-[#f25c88] rounded-full animate-ping opacity-75" />
               </div>
 
-              {/* Time display bubble */}
               <div
                 className="absolute bg-[#f25c88] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-30 transition-all duration-500"
                 style={{ left: "-60px", transform: "translateY(-50%)" }}
@@ -238,19 +266,24 @@ export default function ScheduleView() {
             </div>
           )}
 
-          {/* Events placement */}
-          {filteredEvents.map((event) => {
+          {displayEvents.map((event) => {
             const startMins = getMinutesFromStart(event.timeStart);
             const endMins = getMinutesFromStart(event.timeEnd);
             const duration = endMins - startMins;
 
             const top = startMins * MINUTE_HEIGHT;
             const height = duration * MINUTE_HEIGHT;
-            const leftPercent = event.dayIndex * 14.285 + 0.5;
-            const widthPercent = 14.285 - 1.0;
+            const leftPercent = isMobile ? 0.5 : event.dayIndex * 14.285 + 0.5;
+            const widthPercent = isMobile ? 99 : 14.285 - 1.0;
 
             const subject = subjects.find((s) => s.id === event.subjectId);
             const lecturerName = subject ? subject.lecturers.map((l) => l.name).join(", ") : undefined;
+
+            const sameTimeEvents = displayEvents
+              .filter((e) => e.dayIndex === event.dayIndex && e.timeStart === event.timeStart)
+              .sort((a, b) => a.id.localeCompare(b.id));
+            const stackIndex = sameTimeEvents.findIndex((e) => e.id === event.id);
+            const groupSize = sameTimeEvents.length;
 
             return (
               <ScheduleCard
@@ -258,6 +291,8 @@ export default function ScheduleView() {
                 event={event}
                 lecturerName={lecturerName}
                 onClick={() => setSelectedEvent(event)}
+                stackIndex={stackIndex}
+                groupSize={groupSize}
                 style={{
                   top: `${top}px`,
                   height: `${height}px`,

@@ -30,37 +30,44 @@ export default function CreateLessonPage({ params }: PageProps) {
   const { subjects, currentUser, updateSubject } = useLms();
   const router = useRouter();
 
-  // Find the subject
   const subject = subjects.find((s) => s.id === id);
 
-  // Form states
   const [selectedModuleId, setSelectedModuleId] = useState("");
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [openDate, setOpenDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const hours = String(today.getHours()).padStart(2, "0");
+    const minutes = String(today.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   });
   const [closeDate, setCloseDate] = useState(() => {
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
-    return nextWeek.toISOString().split("T")[0];
+    const year = nextWeek.getFullYear();
+    const month = String(nextWeek.getMonth() + 1).padStart(2, "0");
+    const day = String(nextWeek.getDate()).padStart(2, "0");
+    const hours = String(nextWeek.getHours()).padStart(2, "0");
+    const minutes = String(nextWeek.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   });
   const [closeType, setCloseType] = useState<"restrict" | "open">("open");
+  const [type, setType] = useState<"assignment" | "learning" | "quizzes">("learning");
 
-  // UI States
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Initialize selected module id once modules are loaded
   React.useEffect(() => {
     if (subject && subject.modules && subject.modules.length > 0 && !selectedModuleId) {
       setSelectedModuleId(subject.modules[0].id);
     }
   }, [subject, selectedModuleId]);
 
-  const isOwner = subject && currentUser && subject.createdBy === currentUser.id;
+  const isOwner = subject && currentUser && (subject.createdBy === currentUser.id || subject.lecturers.some((l) => l.userId === currentUser.id));
 
   if (!subject) {
     return (
@@ -87,7 +94,7 @@ export default function CreateLessonPage({ params }: PageProps) {
           <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
           <span className="text-[14px] text-red-600 font-bold">Access Denied.</span>
           <span className="text-[12px] text-zinc-500 font-medium mt-1">
-            Only the subject creator has permissions to create lessons.
+            Only the subject creator or lecturer has permissions to create lessons.
           </span>
           <Link
             href={`/dashboard/subject/${subject.id}`}
@@ -100,7 +107,6 @@ export default function CreateLessonPage({ params }: PageProps) {
     );
   }
 
-  // Handle case where no modules exist
   if (!subject.modules || subject.modules.length === 0) {
     return (
       <div className="flex flex-col gap-6 text-left animate-in fade-in duration-300">
@@ -149,7 +155,7 @@ export default function CreateLessonPage({ params }: PageProps) {
     if (!title.trim()) {
       errors.title = "Lesson title is required.";
     }
-    if (openDate && closeDate && openDate > closeDate) {
+    if (type !== "learning" && openDate && closeDate && openDate > closeDate) {
       errors.dates = "Open date cannot be later than close date.";
     }
 
@@ -169,9 +175,10 @@ export default function CreateLessonPage({ params }: PageProps) {
       id: newId,
       title: title.trim(),
       desc: desc.trim(),
-      openDate: new Date(openDate).toISOString(),
-      closeDate: new Date(closeDate).toISOString(),
-      closeType,
+      type,
+      openDate: type !== "learning" ? new Date(openDate).toISOString() : now,
+      closeDate: type !== "learning" ? new Date(closeDate).toISOString() : now,
+      closeType: type !== "learning" ? closeType : "open",
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
@@ -207,9 +214,9 @@ export default function CreateLessonPage({ params }: PageProps) {
     <>
       <Header />
 
-      {/* Main Wrapper covering full width */}
+      {}
       <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 text-left select-none w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-        {/* Navigation back */}
+        {}
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/subject/${subject.id}`}
@@ -227,7 +234,7 @@ export default function CreateLessonPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Success Toast */}
+        {}
         {successMessage && (
           <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] font-bold px-4 py-3 rounded-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Check className="w-4 h-4 text-emerald-600" />
@@ -236,7 +243,7 @@ export default function CreateLessonPage({ params }: PageProps) {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
-          {/* Column 1: Subject Info Context Card */}
+          {}
           <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
             <div className="flex flex-col gap-1 border-b border-[#E5E1D8]/40 pb-3">
               <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
@@ -275,7 +282,7 @@ export default function CreateLessonPage({ params }: PageProps) {
               </p>
             )}
 
-            {/* Current Modules list */}
+            {}
             {subject.modules && subject.modules.length > 0 && (
               <div className="flex flex-col gap-2 pt-1 border-t border-[#E5E1D8]/40 mt-1">
                 <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider mb-0.5">
@@ -298,7 +305,7 @@ export default function CreateLessonPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Column 2: Lesson Details Form */}
+          {}
           <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-5">
             <h3 className="text-[14px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
               <BookOpen className="w-4 h-4 text-[#f25c88]" />
@@ -306,7 +313,7 @@ export default function CreateLessonPage({ params }: PageProps) {
             </h3>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Target Module Dropdown */}
+              {}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-zinc-600">Select Target Module *</label>
                 <select
@@ -325,7 +332,47 @@ export default function CreateLessonPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Lesson Title */}
+              {}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-bold text-zinc-600">Lesson Type *</label>
+                <div className="grid grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setType("learning")}
+                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                      type === "learning"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 animate-in fade-in duration-200"
+                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 hover:border-zinc-300"
+                    }`}
+                  >
+                    Learning
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setType("assignment")}
+                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                      type === "assignment"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 animate-in fade-in duration-200"
+                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 hover:border-zinc-300"
+                    }`}
+                  >
+                    Assignment
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setType("quizzes")}
+                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                      type === "quizzes"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 animate-in fade-in duration-200"
+                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 hover:border-zinc-300"
+                    }`}
+                  >
+                    Quizzes
+                  </button>
+                </div>
+              </div>
+
+              {}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-zinc-600">Lesson Title *</label>
                 <input
@@ -342,7 +389,7 @@ export default function CreateLessonPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Description */}
+              {}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-zinc-600">Lesson Description</label>
                 <textarea
@@ -354,69 +401,73 @@ export default function CreateLessonPage({ params }: PageProps) {
                 />
               </div>
 
-              {/* Date Segment */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Open Date</label>
-                  <input
-                    type="date"
-                    value={openDate}
-                    onChange={(e) => setOpenDate(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
-                  />
-                </div>
+              {type !== "learning" && (
+                <>
+                  {}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[12px] font-bold text-zinc-600">Open Date</label>
+                      <input
+                        type="datetime-local"
+                        value={openDate}
+                        onChange={(e) => setOpenDate(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
+                      />
+                    </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Close Date</label>
-                  <input
-                    type="date"
-                    value={closeDate}
-                    onChange={(e) => setCloseDate(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
-                  />
-                </div>
-              </div>
-              {errorFields.dates && (
-                <span className="text-[11px] text-red-500 font-bold">{errorFields.dates}</span>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[12px] font-bold text-zinc-600">Close Date</label>
+                      <input
+                        type="datetime-local"
+                        value={closeDate}
+                        onChange={(e) => setCloseDate(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                  {errorFields.dates && (
+                    <span className="text-[11px] text-red-500 font-bold">{errorFields.dates}</span>
+                  )}
+
+                  {}
+                  <div className="flex flex-col gap-2 pt-2">
+                    <label className="text-[12px] font-bold text-zinc-600">Submission Restriction</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setCloseType("open")}
+                        className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                          closeType === "open"
+                            ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
+                            : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 font-semibold"
+                        }`}
+                      >
+                        <Unlock className="w-4.5 h-4.5" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-[11px]">Open Submission</span>
+                          <span className="text-[8.5px] text-zinc-400 font-semibold mt-0.5 text-center leading-tight">Allows late uploads</span>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCloseType("restrict")}
+                        className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                          closeType === "restrict"
+                            ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
+                            : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 font-semibold"
+                        }`}
+                      >
+                        <Lock className="w-4.5 h-4.5" />
+                        <div className="flex flex-col items-center">
+                          <span className="text-[11px]">Restricted</span>
+                          <span className="text-[8.5px] text-zinc-400 font-semibold mt-0.5 text-center leading-tight">Locks after close date</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
-
-              {/* Access Restriction Toggle */}
-              <div className="flex flex-col gap-2 pt-2">
-                <label className="text-[12px] font-bold text-zinc-600">Submission Restriction</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCloseType("open")}
-                    className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
-                      closeType === "open"
-                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
-                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 font-semibold"
-                    }`}
-                  >
-                    <Unlock className="w-4.5 h-4.5" />
-                    <div className="flex flex-col items-center">
-                      <span className="text-[11px]">Open Submission</span>
-                      <span className="text-[8.5px] text-zinc-400 font-semibold mt-0.5 text-center leading-tight">Allows late uploads</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setCloseType("restrict")}
-                    className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
-                      closeType === "restrict"
-                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
-                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 font-semibold"
-                    }`}
-                  >
-                    <Lock className="w-4.5 h-4.5" />
-                    <div className="flex flex-col items-center">
-                      <span className="text-[11px]">Restricted</span>
-                      <span className="text-[8.5px] text-zinc-400 font-semibold mt-0.5 text-center leading-tight">Locks after close date</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
 
               <div className="flex items-center gap-3 justify-end pt-4 border-t border-zinc-100 mt-2">
                 <Link
@@ -441,7 +492,7 @@ export default function CreateLessonPage({ params }: PageProps) {
             </form>
           </div>
 
-          {/* Column 3: Guidelines Card */}
+          {}
           <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-4">
             <h3 className="text-[14px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
               <Info className="w-4 h-4 text-[#f25c88]" />

@@ -9,9 +9,19 @@ interface ScheduleCardProps {
   lecturerName?: string;
   onClick?: () => void;
   style?: React.CSSProperties;
+  stackIndex?: number;
+  groupSize?: number;
 }
 
-export default function ScheduleCard({ event, lecturerName, onClick, style }: ScheduleCardProps) {
+export default function ScheduleCard({
+  event,
+  lecturerName,
+  onClick,
+  style,
+  stackIndex,
+  groupSize,
+}: ScheduleCardProps) {
+  const [isHovered, setIsHovered] = React.useState(false);
   const isHexColor = event.color && event.color.startsWith("#");
 
   const hexToRgba = (hex: string | undefined, opacity: number) => {
@@ -30,7 +40,6 @@ export default function ScheduleCard({ event, lecturerName, onClick, style }: Sc
     }
   };
 
-  // Color mappings matching SubjectCard palettes
   let colorTheme = {
     bg: "bg-[#ECE8E0] hover:bg-[#E5E1D8]",
     border: "border border-zinc-200/50 border-l-[4px] border-l-zinc-400/40",
@@ -48,48 +57,84 @@ export default function ScheduleCard({ event, lecturerName, onClick, style }: Sc
     };
   } else if (event.color === "image-text") {
     colorTheme = {
-      bg: "bg-[#F3F0EA]/70 hover:bg-[#ECE8E0]/90",
+      bg: "bg-[#F3F0EA] hover:bg-[#ECE8E0]",
       border: "border border-[#E5E1D8]/80 border-l-[4px] border-l-zinc-400/40",
     };
   }
 
-  const cardStyle = isHexColor
-    ? {
-        ...style,
-        backgroundColor: hexToRgba(event.color, 0.25),
-        borderLeft: `4px solid ${event.color}`,
-        borderColor: hexToRgba(event.color, 0.15),
+  const isDarkBg = isHexColor && (() => {
+    try {
+      let c = event.color!.substring(1);
+      if (c.length === 3) {
+        c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
       }
-    : style;
+      const r = parseInt(c.substring(0, 2), 16);
+      const g = parseInt(c.substring(2, 4), 16);
+      const b = parseInt(c.substring(4, 6), 16);
+      const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+      return yiq < 128;
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  const titleColor = isDarkBg ? "text-white" : "text-zinc-950";
+  const metaColor = isDarkBg ? "text-white/80" : "text-zinc-500";
+  const iconColor = isDarkBg ? "text-white/60" : "text-zinc-400";
+
+  const sIndex = stackIndex || 0;
+  const stackOffset = 20;
+  const hoverExtra = 20;
+
+  const baseTop = style?.top ? parseFloat(style.top as string) : 0;
+  const computedTop = baseTop + sIndex * stackOffset;
+
+  const computedZIndex = 10 + sIndex;
+
+  const transformStyle = isHovered
+    ? `translateY(-${sIndex * stackOffset + hoverExtra}px) scale(1.015)`
+    : "translateY(0px) scale(1)";
+
+  const cardStyle = {
+    ...style,
+    top: `${computedTop}px`,
+    zIndex: computedZIndex,
+    transform: transformStyle,
+    ...(isHexColor
+      ? {
+          backgroundColor: event.color,
+          borderLeft: `4px solid ${isDarkBg ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.2)"}`,
+          borderColor: isDarkBg ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+        }
+      : {}),
+  };
 
   return (
     <div
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={cardStyle}
-      className={`absolute p-3.5 rounded-2xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.015] hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer overflow-hidden select-none ${
+      className={`absolute p-3.5 rounded-2xl flex flex-col justify-between transition-all duration-300 hover:shadow-[0_8px_20px_rgba(0,0,0,0.03)] cursor-pointer overflow-hidden select-none ${
         isHexColor ? "border" : `${colorTheme.bg} ${colorTheme.border}`
       }`}
     >
       <div className="flex flex-col gap-1.5 h-full text-left justify-between">
-        {/* Title */}
-        <h3 className="text-[12.5px] font-extrabold text-zinc-950 leading-tight line-clamp-2">
+        <h3 className={`text-[12.5px] font-extrabold leading-tight line-clamp-2 ${titleColor}`}>
           {event.title}
         </h3>
 
-        {/* Metadata Section: Lecturer & Room */}
         <div className="flex flex-col gap-1 mt-auto">
-          {/* Lecturer */}
           {lecturerName && (
-            <div className="flex items-center gap-1 text-[9.5px] text-zinc-500 font-semibold truncate">
-              <GraduationCap className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+            <div className={`flex items-center gap-1 text-[9.5px] font-semibold truncate ${metaColor}`}>
+              <GraduationCap className={`w-3.5 h-3.5 flex-shrink-0 ${iconColor}`} />
               <span className="truncate">{lecturerName}</span>
             </div>
           )}
 
-          {/* Room / Location */}
           {event.subtitle && (
-            <div className="flex items-center gap-1 text-[9.5px] text-zinc-500 font-bold truncate">
-              <MapPin className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+            <div className={`flex items-center gap-1 text-[9.5px] font-bold truncate ${metaColor}`}>
+              <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${iconColor}`} />
               <span className="truncate">{event.subtitle}</span>
             </div>
           )}

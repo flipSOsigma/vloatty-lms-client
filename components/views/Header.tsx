@@ -17,7 +17,16 @@ export default function Header() {
   const {
     searchQuery,
     setSearchQuery,
+    logout,
+    currentUser,
   } = useLms();
+
+  const getUserInitials = () => {
+    if (!currentUser?.name) return "U";
+    const parts = currentUser.name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -82,15 +91,15 @@ export default function Header() {
 
   return (
     <header className="flex flex-col gap-6 w-full select-none">
-      {/* Top Bar */}
+      {}
       <div className="flex items-center justify-between w-full">
-        {/* Polish: Bigger Search Bar Container */}
+        {}
         <div className="flex items-center flex-1 max-w-[760px] bg-transparent border border-[#E5E1D8] rounded-full p-1.5 pl-3 gap-3.5 shadow-sm">
-          {/* Bigger search icon */}
+          {}
           <div className="w-10 h-10 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center flex-shrink-0">
             <Search className="w-4.5 h-4.5" />
           </div>
-          {/* Input field */}
+          {}
           <input
             type="text"
             placeholder="Search"
@@ -100,9 +109,9 @@ export default function Header() {
           />
         </div>
 
-        {/* Polish: Separate profile and bell circle buttons with dropdown bubbles */}
+        {}
         <div className="flex items-center gap-3.5">
-          {/* Notification Bell Circle Wrapper */}
+          {}
           <div ref={notifRef} className="relative">
             <button
               onClick={handleNotifClick}
@@ -112,7 +121,7 @@ export default function Header() {
               <span className="absolute top-3.5 right-3.5 w-1.5 h-1.5 bg-[#f25c88] rounded-full"></span>
             </button>
 
-            {/* Click Bubble Halo Expansion */}
+            {}
             {notifClicks.map((id) => (
               <span
                 key={id}
@@ -123,7 +132,7 @@ export default function Header() {
               />
             ))}
 
-            {/* Notification Popover Bubble */}
+            {}
             <div
               className={`absolute right-0 mt-3.5 w-[320px] bg-[#FAF7F2] border border-[#E5E1D8] rounded-3xl p-5 shadow-2xl z-50 origin-top-right flex flex-col gap-4 text-left transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                 showNotifications
@@ -131,7 +140,7 @@ export default function Header() {
                   : "opacity-0 scale-90 -translate-y-2 pointer-events-none"
               }`}
             >
-              {/* Arrow pointer */}
+              {}
               <div className="absolute right-4 -top-2 w-4 h-4 bg-[#FAF7F2] border-t border-l border-[#E5E1D8] rotate-45"></div>
 
               <div className="flex items-center justify-between border-b border-[#E5E1D8]/60 pb-2">
@@ -164,7 +173,7 @@ export default function Header() {
             </div>
           </div>
 
-          {/* User Profile Circle Wrapper */}
+          {}
           <div ref={profileRef} className="relative">
             <button
               onClick={handleProfileClick}
@@ -173,7 +182,7 @@ export default function Header() {
               <User className="w-5 h-5" />
             </button>
 
-            {/* Click Bubble Halo Expansion */}
+            {}
             {profileClicks.map((id) => (
               <span
                 key={id}
@@ -184,7 +193,7 @@ export default function Header() {
               />
             ))}
 
-            {/* Profile Popover Bubble */}
+            {}
             <div
               className={`absolute right-0 mt-3.5 w-64 bg-[#FAF7F2] border border-[#E5E1D8] rounded-3xl p-5 shadow-2xl z-50 origin-top-right flex flex-col gap-4 text-left transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
                 showProfile
@@ -192,21 +201,25 @@ export default function Header() {
                   : "opacity-0 scale-90 -translate-y-2 pointer-events-none"
               }`}
             >
-              {/* Arrow pointer */}
+              {}
               <div className="absolute right-4 -top-2 w-4 h-4 bg-[#FAF7F2] border-t border-l border-[#E5E1D8] rotate-45"></div>
 
-              {/* Profile Header */}
+              {}
               <div className="flex items-center gap-3 pb-3 border-b border-[#E5E1D8]/60">
                 <div className="w-10 h-10 rounded-full bg-[#121212] text-white flex items-center justify-center font-bold text-[14px] flex-shrink-0 shadow-sm border border-zinc-700">
-                  TY
+                  {getUserInitials()}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[13.5px] font-extrabold text-zinc-950 truncate">Turing Yeager</span>
-                  <span className="text-[9.5px] text-zinc-400 font-bold truncate">turing.y@vloatty.edu</span>
+                  <span className="text-[13.5px] font-extrabold text-zinc-950 truncate">
+                    {currentUser?.name || "User"}
+                  </span>
+                  <span className="text-[9.5px] text-zinc-400 font-bold truncate">
+                    {currentUser?.email || "user@vloatty.edu"}
+                  </span>
                 </div>
               </div>
 
-              {/* Menu Options */}
+              {}
               <div className="flex flex-col gap-1 py-1">
                 <Link
                   href="/dashboard/profile"
@@ -233,8 +246,11 @@ export default function Header() {
                 </button>
               </div>
 
-              {/* Logout Button */}
-              <button className="flex items-center gap-2 justify-center w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-xl text-[12px] font-bold transition-colors cursor-pointer border border-red-200/20 mt-1">
+              {}
+              <button 
+                onClick={logout}
+                className="flex items-center gap-2 justify-center w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-xl text-[12px] font-bold transition-colors cursor-pointer border border-red-200/20 mt-1"
+              >
                 <LogOut className="w-4 h-4" />
                 Logout
               </button>
