@@ -60,44 +60,91 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     window.location.href = "/login";
   };
   const [selectedView, setSelectedView] = useState<CalendarViewType>("week");
-  const [activeDayIndex, setActiveDayIndex] = useState<number>(3); // default Thursday (THU 14/05)
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(3);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [currentTime, setCurrentTime] = useState<string>("07:21");
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [selectedEvent, setSelectedEvent] = useState<LmsEvent | null>(null);
 
+  const generateSubjectEvents = (subj: Subject): LmsEvent[] => {
+    const dayMap: { [key: string]: number } = {
+      Monday: 0,
+      Tuesday: 1,
+      Wednesday: 2,
+      Thursday: 3,
+      Friday: 4,
+      Saturday: 5,
+      Sunday: 6
+    };
+    const loadedEvents: LmsEvent[] = [];
+    if (subj.schedules) {
+      subj.schedules.forEach((sch, idx) => {
+        loadedEvents.push({
+          id: `${subj.id}-${sch.day}-${idx}`,
+          title: subj.name,
+          subtitle: sch.room || subj.room || "",
+          timeStart: sch.startTime,
+          timeEnd: sch.endTime,
+          dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
+          color: subj.color || "cream",
+          subjectId: subj.id,
+          createdAt: subj.createdAt,
+          updatedAt: subj.updatedAt,
+          deletedAt: null
+        });
+      });
+    }
+    if (subj.modules) {
+      subj.modules.forEach((mod) => {
+        if (mod.lessons) {
+          mod.lessons.forEach((lesson) => {
+            if (lesson.type !== "learning" && lesson.closeDate) {
+              const d = new Date(lesson.closeDate);
+              if (!isNaN(d.getTime())) {
+                let h = d.getHours();
+                if (h < 7) h = 7;
+                if (h >= 21) h = 20;
+                const timeStart = `${String(h).padStart(2, "0")}:00`;
+                const timeEnd = `${String(h + 1).padStart(2, "0")}:00`;
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const dateVal = String(d.getDate()).padStart(2, "0");
+                const dateStr = `${year}-${month}-${dateVal}`;
+                loadedEvents.push({
+                  id: `deadline-${lesson.id}`,
+                  title: `[Deadline] ${lesson.title}`,
+                  subtitle: subj.name,
+                  timeStart,
+                  timeEnd,
+                  dayIndex: -1,
+                  color: "pink",
+                  tag: {
+                    text: "Deadline",
+                    type: "pink"
+                  },
+                  description: lesson.desc,
+                  subjectId: subj.id,
+                  createdAt: lesson.createdAt || subj.createdAt,
+                  updatedAt: lesson.updatedAt || subj.updatedAt,
+                  deletedAt: null,
+                  dateStr
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+    return loadedEvents;
+  };
+
   useEffect(() => {
     const processSubjects = (data: Subject[]) => {
       setSubjects(data);
-      const dayMap: { [key: string]: number } = {
-        Monday: 0,
-        Tuesday: 1,
-        Wednesday: 2,
-        Thursday: 3,
-        Friday: 4,
-        Saturday: 5,
-        Sunday: 6
-      };
       const loadedEvents: LmsEvent[] = [];
       data.forEach((subj) => {
-        if (subj.schedules) {
-          subj.schedules.forEach((sch, idx) => {
-            loadedEvents.push({
-              id: `${subj.id}-${sch.day}-${idx}`,
-              title: subj.name,
-              subtitle: sch.room || subj.room || "",
-              timeStart: sch.startTime,
-              timeEnd: sch.endTime,
-              dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
-              color: subj.color || "cream",
-              subjectId: subj.id,
-              createdAt: subj.createdAt,
-              updatedAt: subj.updatedAt,
-              deletedAt: null
-            });
-          });
-        }
+        loadedEvents.push(...generateSubjectEvents(subj));
       });
       setEvents(loadedEvents);
     };
@@ -130,9 +177,9 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
   }, []);
 
-  // Fetch current user details on mount from the backend API
+
   useEffect(() => {
-    // Check if token is in localStorage, if not load default mock JWT from user.json
+
     let currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     
     const fetchUser = (tokenToUse: string | null) => {
@@ -152,7 +199,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         })
         .catch((err) => {
           console.error("Error fetching user data in LMS Context, falling back to local mock data:", err);
-          // Graceful fallback to static JSON if server is down or user is not found
+
           fetch(`/data/user.json?t=${Date.now()}`, { cache: "no-store" })
             .then((res) => res.json())
             .then((localData) => {
@@ -176,7 +223,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  // Sync with real date and time once mounted on the client to avoid SSR hydration mismatch
+
   useEffect(() => {
     const updateRealTimeAndDay = () => {
       const now = new Date();
@@ -184,7 +231,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCurrentTime(currentHourMin);
 
       const day = now.getDay();
-      const todayIndex = day === 0 ? 6 : day - 1; // Sunday is 6, Monday is 0...
+      const todayIndex = day === 0 ? 6 : day - 1;
       setActiveDayIndex(todayIndex);
     };
 
@@ -213,7 +260,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteEvent = (id: string) => {
-    // Soft deletion: update deletedAt instead of removing
+
     const now = new Date().toISOString();
     setEvents((prev) =>
       prev.map((e) => (e.id === id ? { ...e, deletedAt: now } : e))
@@ -243,33 +290,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const newSubject: Subject = await response.json();
       setSubjects((prev) => [...prev, newSubject]);
 
-      if (newSubject.schedules) {
-        const dayMap: { [key: string]: number } = {
-          "Monday": 0,
-          "Tuesday": 1,
-          "Wednesday": 2,
-          "Thursday": 3,
-          "Friday": 4,
-          "Saturday": 5,
-          "Sunday": 6
-        };
-
-        const newEvents: LmsEvent[] = newSubject.schedules.map((sch, idx) => ({
-          id: `${newSubject.id}-${sch.day}-${idx}`,
-          title: newSubject.name,
-          subtitle: newSubject.room || "",
-          timeStart: sch.startTime,
-          timeEnd: sch.endTime,
-          dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
-          color: newSubject.color || "cream",
-          subjectId: newSubject.id,
-          createdAt: newSubject.createdAt,
-          updatedAt: newSubject.updatedAt,
-          deletedAt: null
-        }));
-
-        setEvents((prev) => [...prev, ...newEvents]);
-      }
+      setEvents((prev) => [...prev, ...generateSubjectEvents(newSubject)]);
       showToast("Subject added successfully!", "success");
     } catch (err: any) {
       console.error(err);
@@ -327,34 +348,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       setEvents((prev) => {
         const remainingEvents = prev.filter((e) => e.subjectId !== savedSubject.id);
-        if (savedSubject.schedules) {
-          const dayMap: { [key: string]: number } = {
-            "Monday": 0,
-            "Tuesday": 1,
-            "Wednesday": 2,
-            "Thursday": 3,
-            "Friday": 4,
-            "Saturday": 5,
-            "Sunday": 6
-          };
-
-          const newEvents = savedSubject.schedules.map((sch, idx) => ({
-            id: `${savedSubject.id}-${sch.day}-${idx}`,
-            title: savedSubject.name,
-            subtitle: sch.room || savedSubject.room || "",
-            timeStart: sch.startTime,
-            timeEnd: sch.endTime,
-            dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
-            color: savedSubject.color || "cream",
-            subjectId: savedSubject.id,
-            createdAt: savedSubject.createdAt,
-            updatedAt: savedSubject.updatedAt,
-            deletedAt: null
-          }));
-
-          return [...remainingEvents, ...newEvents];
-        }
-        return remainingEvents;
+        return [...remainingEvents, ...generateSubjectEvents(savedSubject)];
       });
       showToast("Subject details updated successfully!", "success");
     } catch (err: any) {
@@ -363,7 +357,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Expose active (non-soft-deleted) items only
+
   const activeSubjects = subjects.filter((s) => !s.deletedAt);
   const activeEvents = events.filter((e) => {
     if (e.deletedAt) return false;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../../../components/views/Header";
 import { useLms } from "../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
@@ -75,8 +75,33 @@ export default function CreateSubjectPage() {
     }
   };
 
-  const filteredSuggestions = Object.entries(facultyMock)
-    .map(([email, name]) => ({ email, name }))
+  const [availableUsers, setAvailableUsers] = useState<{ name: string; email: string }[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/users`, {
+          headers: {
+            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = data.map((u: any) => ({ name: u.name, email: u.email }));
+          setAvailableUsers(mapped);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+      setAvailableUsers(Object.entries(facultyMock).map(([email, name]) => ({ email, name })));
+    };
+    fetchUsers();
+  }, []);
+
+  const allFiltered = availableUsers
     .filter((faculty) => {
       const isAlreadyAdded = lecturers.some(
         (l) => l.email.toLowerCase() === faculty.email.toLowerCase()
@@ -90,6 +115,10 @@ export default function CreateSubjectPage() {
         faculty.email.toLowerCase().includes(q)
       );
     });
+
+  const filteredSuggestions = lecturerSearchQuery.toLowerCase().trim()
+    ? allFiltered
+    : allFiltered.slice(0, 5);
 
   const handleSelectLecturer = (selected: { name: string; email: string }) => {
     setLecturers((prev) => {
@@ -108,7 +137,10 @@ export default function CreateSubjectPage() {
       copy[index].email = emailValue;
 
       const cleanEmail = emailValue.trim().toLowerCase();
-      if (facultyMock[cleanEmail]) {
+      const dbUser = availableUsers.find((u) => u.email.toLowerCase() === cleanEmail);
+      if (dbUser) {
+        copy[index].name = dbUser.name;
+      } else if (facultyMock[cleanEmail]) {
         copy[index].name = facultyMock[cleanEmail];
       } else if (cleanEmail.includes("@")) {
         const partBeforeAt = cleanEmail.split("@")[0];

@@ -86,10 +86,10 @@ export default function ManageSubjectPage({ params }: PageProps) {
     }
   };
 
-  // Find the subject
+
   const subject = subjects.find((s) => s.id === id);
 
-  // Form states: Edit Subject Details
+
   const [subjectName, setSubjectName] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
   const [subjectRoom, setSubjectRoom] = useState("");
@@ -97,19 +97,41 @@ export default function ManageSubjectPage({ params }: PageProps) {
   const [subjectLecturers, setSubjectLecturers] = useState<FormLecturer[]>([]);
   const [subjectSchedules, setSubjectSchedules] = useState<FormSchedule[]>([]);
 
-  // UI States
+
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Modal states for finding lecturer
   const [isLecturerModalOpen, setIsLecturerModalOpen] = useState(false);
   const [lecturerSearchQuery, setLecturerSearchQuery] = useState("");
+  const [availableUsers, setAvailableUsers] = useState<{ name: string; email: string }[]>([]);
 
-  const filteredSuggestions = Object.entries(facultyMock)
-    .map(([email, name]) => ({ email, name }))
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/users`, {
+          headers: {
+            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = data.map((u: any) => ({ name: u.name, email: u.email }));
+          setAvailableUsers(mapped);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+      setAvailableUsers(Object.entries(facultyMock).map(([email, name]) => ({ email, name })));
+    };
+    fetchUsers();
+  }, []);
+
+  const allFiltered = availableUsers
     .filter((faculty) => {
-      // Check if already added
       const isAlreadyAdded = subjectLecturers.some(
         (l) => l.email.toLowerCase() === faculty.email.toLowerCase()
       );
@@ -123,13 +145,17 @@ export default function ManageSubjectPage({ params }: PageProps) {
       );
     });
 
+  const filteredSuggestions = lecturerSearchQuery.toLowerCase().trim()
+    ? allFiltered
+    : allFiltered.slice(0, 5);
+
   const handleSelectLecturer = (selected: { name: string; email: string }) => {
     setSubjectLecturers((prev) => [...prev, selected]);
     setIsLecturerModalOpen(false);
     setLecturerSearchQuery("");
   };
 
-  // Initialize form details when subject is loaded
+
   useEffect(() => {
     if (subject) {
       setSubjectName(subject.name);
@@ -185,14 +211,17 @@ export default function ManageSubjectPage({ params }: PageProps) {
     );
   }
 
-  // Lecturer Change Handlers
+
   const handleLecturerEmailChange = (index: number, emailValue: string) => {
     setSubjectLecturers((prev) => {
       const copy = [...prev];
       copy[index].email = emailValue;
 
       const cleanEmail = emailValue.trim().toLowerCase();
-      if (facultyMock[cleanEmail]) {
+      const dbUser = availableUsers.find((u) => u.email.toLowerCase() === cleanEmail);
+      if (dbUser) {
+        copy[index].name = dbUser.name;
+      } else if (facultyMock[cleanEmail]) {
         copy[index].name = facultyMock[cleanEmail];
       } else if (cleanEmail.includes("@")) {
         const partBeforeAt = cleanEmail.split("@")[0];
@@ -216,7 +245,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
     });
   };
 
-  // Schedule Change Handlers
+
   const handleScheduleChange = (index: number, field: keyof FormSchedule, value: string) => {
     setSubjectSchedules((prev) => {
       const copy = [...prev];
@@ -225,7 +254,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
     });
   };
 
-  // Handle Save Details
+
   const handleSaveDetails = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorFields({});
@@ -300,9 +329,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
     <>
       <Header />
 
-      {/* Main Wrapper covering full width */}
       <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 text-left select-none w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-        {/* Navigation back */}
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/subject/${subject.id}`}
@@ -320,7 +347,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Success Toast */}
         {successMessage && (
           <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] font-bold px-4 py-3 rounded-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Check className="w-4 h-4 text-emerald-600" />
@@ -328,15 +354,14 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSaveDetails} className="flex flex-col gap-6 w-full">
-          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
-            <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 pb-3 border-b border-zinc-100 tracking-tight">
+        <form onSubmit={handleSaveDetails} className="flex flex-col gap-8 w-full">
+          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
+            <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
               <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
               Basic Parameters
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              {/* Left Side: Name & Description */}
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[12px] font-bold text-zinc-600">Subject Name *</label>
@@ -364,7 +389,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* Right Side: Location & Theme Color */}
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[12px] font-bold text-zinc-600">Default Classroom Location</label>
@@ -398,8 +422,8 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
-            <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 pb-3 border-b border-zinc-100 tracking-tight">
+          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
+            <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
               <Sparkles className="w-4.5 h-4.5 text-[#f25c88]" />
               Visibility & Invite Settings
             </h3>
@@ -527,9 +551,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-              <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
+          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
+            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
+              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
                 <Users className="w-4.5 h-4.5 text-[#f25c88]" />
                 Lecturers *
               </h3>
@@ -629,9 +653,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="bg-white border border-[#E5E1D8]/30 rounded-3xl p-6 md:p-8 flex flex-col gap-5 w-full shadow-[0_4px_16px_rgba(0,0,0,0.004)]">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-              <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
+          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
+            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
+              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
                 <Calendar className="w-4.5 h-4.5 text-[#f25c88]" />
                 Schedules
               </h3>
@@ -741,7 +765,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4">
+          <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4 pl-12">
             <Link
               href={`/dashboard/subject/${subject.id}`}
               className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
@@ -763,7 +787,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </div>
         </form>
 
-        <div className="border border-red-200/30 bg-red-50/10 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6">
+        <div className="border border-red-200/30 bg-red-50/10 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6 ml-12 animate-in fade-in duration-200">
           <div className="flex flex-col gap-1">
             <h4 className="text-[14.5px] font-extrabold text-red-600 flex items-center gap-2">
               <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
@@ -797,7 +821,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
       {isLecturerModalOpen && (
         <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl border border-[#E5E1D8] shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
+            {}
             <div className="p-5 border-b border-zinc-100 flex items-center justify-between">
               <div>
                 <h3 className="text-[15px] font-extrabold text-[#121212] tracking-tight">Add Lecturer</h3>
@@ -815,7 +839,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
               </button>
             </div>
 
-            {/* Search Input Section */}
+            {}
             <div className="p-4 border-b border-zinc-100 bg-zinc-50/30">
               <div className="relative">
                 <input
@@ -830,7 +854,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Suggestions List */}
+            {}
             <div className="flex-1 overflow-y-auto p-3 min-h-[220px] max-h-[380px] flex flex-col gap-1.5 no-scrollbar">
               {filteredSuggestions.length > 0 ? (
                 filteredSuggestions.map((faculty) => {

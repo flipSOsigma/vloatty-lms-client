@@ -2,24 +2,25 @@ export interface Lesson {
   id: string;
   title: string;
   desc: string;
+  type: "assignment" | "learning" | "quizzes";
   homeworkFile?: string;
-  openDate: string; // ISO String
-  closeDate: string; // ISO String
+  openDate: string;
+  closeDate: string;
   closeType: "restrict" | "open";
-  createdAt: string; // ISO String
-  updatedAt: string; // ISO String
-  deletedAt: string | null; // ISO String or null
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface Module {
   id: string;
   title: string;
   desc: string;
-  date: string; // ISO String
+  date: string;
   lessons: Lesson[];
-  createdAt: string; // ISO String
-  updatedAt: string; // ISO String
-  deletedAt: string | null; // ISO String or null
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface SubjectSchedule {

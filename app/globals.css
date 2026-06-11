@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Imperial+Script&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -23,12 +23,12 @@ body {
   overflow: hidden;
 }
 
-/* Base Headings style to inherit default font but keep weight and size features */
+
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
 }
 
-/* Custom fine-grained scrollbars */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -47,13 +47,13 @@ h1, h2, h3, h4, h5, h6 {
   background: #D5D1C8;
 }
 
-/* Selection color matching the pink theme */
+
 ::selection {
   background-color: rgba(242, 92, 136, 0.2);
   color: #f25c88;
 }
 
-/* Custom utility for active day animations */
+
 @keyframes pulse-slow {
   0%, 100% {
     opacity: 1;
@@ -67,7 +67,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Click bubble halo animation */
+
 @keyframes click-bubble-expand {
   0% {
     transform: scale(1);
@@ -83,12 +83,12 @@ h1, h2, h3, h4, h5, h6 {
   animation: click-bubble-expand 0.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
 }
 
-/* Hide scrollbar utility */
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
 }
 
