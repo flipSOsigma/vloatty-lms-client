@@ -55,9 +55,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string; email: string; role: string } | null>(null);
 
   const [editingModule, setEditingModule] = useState<any | null>(null);
-  const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lesson: any } | null>(null);
   const [showEditModuleModal, setShowEditModuleModal] = useState(false);
-  const [showEditLessonModal, setShowEditLessonModal] = useState(false);
 
   const selectedSubject = subjects.find((s) => s.id === id);
 
@@ -92,66 +90,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
     await updateSubject(updatedSubject);
   };
 
-  const handleEditLesson = (moduleId: string, lesson: any) => {
-    let openD = lesson.openDate;
-    let closeD = lesson.closeDate;
-    try {
-      const openDateObj = new Date(lesson.openDate);
-      const closeDateObj = new Date(lesson.closeDate);
-      
-      const formatToDateTimeLocal = (d: Date) => {
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const hours = String(d.getHours()).padStart(2, "0");
-        const minutes = String(d.getMinutes()).padStart(2, "0");
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-      };
-      
-      openD = formatToDateTimeLocal(openDateObj);
-      closeD = formatToDateTimeLocal(closeDateObj);
-    } catch (e) {}
 
-    setEditingLesson({
-      moduleId,
-      lesson: {
-        id: lesson.id,
-        title: lesson.title,
-        desc: lesson.desc,
-        type: lesson.type,
-        openDate: openD,
-        closeDate: closeD,
-        closeType: lesson.closeType || "open"
-      }
-    });
-    setShowEditLessonModal(true);
-  };
-
-  const handleSaveLesson = async () => {
-    if (!selectedSubject || !editingLesson || !editingLesson.lesson.title.trim()) return;
-    const { moduleId, lesson } = editingLesson;
-    const updatedModules = selectedSubject.modules.map((m) => {
-      if (m.id === moduleId) {
-        const updatedLessons = m.lessons.map((l) =>
-          l.id === lesson.id ? {
-            ...l,
-            title: lesson.title.trim(),
-            desc: lesson.desc.trim(),
-            type: lesson.type,
-            openDate: new Date(lesson.openDate).toISOString(),
-            closeDate: new Date(lesson.closeDate).toISOString(),
-            closeType: lesson.closeType
-          } : l
-        );
-        return { ...m, lessons: updatedLessons };
-      }
-      return m;
-    });
-    const updatedSubject = { ...selectedSubject, modules: updatedModules };
-    await updateSubject(updatedSubject);
-    setShowEditLessonModal(false);
-    setEditingLesson(null);
-  };
 
   const handleDeleteLesson = async (moduleId: string, lessonId: string) => {
     if (!selectedSubject) return;
@@ -248,6 +187,15 @@ export default function SubjectDetailPage({ params }: PageProps) {
         {}
         <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0">
           <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
+            {selectedSubject.thumbnail && (
+              <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0">
+                <img
+                  src={selectedSubject.thumbnail}
+                  alt={selectedSubject.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               <span
                 className={`inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit ${
@@ -556,12 +504,12 @@ export default function SubjectDetailPage({ params }: PageProps) {
                               </div>
                               {hasEditPermission && (
                                 <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => handleEditLesson(mod.id, lesson)}
+                                  <Link
+                                    href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}?edit=true`}
                                     className="p-1 rounded-lg hover:bg-[#FAF7F2] text-zinc-400 hover:text-zinc-700 cursor-pointer"
                                   >
                                     <Edit className="w-3.5 h-3.5" />
-                                  </button>
+                                  </Link>
                                   <button
                                     onClick={() => handleDeleteLesson(mod.id, lesson.id)}
                                     className="p-1 rounded-lg hover:bg-[#FAF7F2] text-zinc-400 hover:text-red-500 cursor-pointer"
@@ -821,106 +769,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {showEditLessonModal && editingLesson && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left">
-            <div className="flex justify-between items-center pb-2 border-b border-[#E5E1D8]/50">
-              <h3 className="text-[16px] font-black text-[#121212]">Edit Lesson</h3>
-              <button
-                onClick={() => {
-                  setShowEditLessonModal(false);
-                  setEditingLesson(null);
-                }}
-                className="p-1.5 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-zinc-700 transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Title</label>
-                <input
-                  type="text"
-                  value={editingLesson.lesson.title}
-                  onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, title: e.target.value } })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Description</label>
-                <textarea
-                  value={editingLesson.lesson.desc}
-                  onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, desc: e.target.value } })}
-                  rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all resize-none"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Type</label>
-                <select
-                  value={editingLesson.lesson.type}
-                  onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, type: e.target.value } })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all cursor-pointer"
-                >
-                  <option value="learning">Learning Material</option>
-                  <option value="assignment">Assignment</option>
-                  <option value="quizzes">Quiz</option>
-                </select>
-              </div>
-              {editingLesson.lesson.type !== "learning" && (
-                <>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-500 uppercase">Open Date</label>
-                    <input
-                      type="datetime-local"
-                      value={editingLesson.lesson.openDate}
-                      onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, openDate: e.target.value } })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-500 uppercase">Close Date</label>
-                    <input
-                      type="datetime-local"
-                      value={editingLesson.lesson.closeDate}
-                      onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, closeDate: e.target.value } })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-500 uppercase">Submission Restriction</label>
-                    <select
-                      value={editingLesson.lesson.closeType}
-                      onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, closeType: e.target.value } })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all cursor-pointer"
-                    >
-                      <option value="open">Open (Accept Late Submissions)</option>
-                      <option value="restrict">Strict (Block Late Submissions)</option>
-                    </select>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-[#E5E1D8]/50">
-              <button
-                onClick={() => {
-                  setShowEditLessonModal(false);
-                  setEditingLesson(null);
-                }}
-                className="px-4 py-2 bg-zinc-150 hover:bg-zinc-200 text-zinc-700 font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveLesson}
-                className="px-4 py-2 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }

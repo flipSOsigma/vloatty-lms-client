@@ -64,5 +64,7 @@ export interface Subject {
   participants?: SubjectParticipant[];
   isOpen?: boolean;
   category?: string;
+  institutionId?: string | null;
+  thumbnail?: string | null;
 }
 

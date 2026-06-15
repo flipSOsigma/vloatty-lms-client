@@ -5,6 +5,7 @@ import Header from "../../../../components/views/Header";
 import { useLms } from "../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ImageCropModal from "../../../../components/ui/ImageCropModal";
 import {
   ArrowLeft,
   Plus,
@@ -47,6 +48,47 @@ export default function CreateSubjectPage() {
   const [description, setDescription] = useState("");
   const [room, setRoom] = useState("");
   const [color, setColor] = useState("#f25c88");
+  const [thumbnail, setThumbnail] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropFileName, setCropFileName] = useState("");
+  const [subjectId] = useState(() => {
+    return typeof window !== "undefined" && window.crypto && window.crypto.randomUUID
+      ? window.crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  });
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    setCropImageSrc(null);
+    const file = new File([croppedImageBlob], cropFileName || "thumbnail.jpg", { type: "image/jpeg" });
+    await handleUpload(file);
+  };
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/upload?subjectId=${subjectId}`, {
+        method: "POST",
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+      const data = await res.json();
+      setThumbnail(data.url);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const [lecturers, setLecturers] = useState<FormLecturer[]>([{ email: "", name: "" }]);
   const [schedules, setSchedules] = useState<FormSchedule[]>([
@@ -264,10 +306,12 @@ export default function CreateSubjectPage() {
 
     setTimeout(() => {
       addSubject({
+        id: subjectId,
         name: name.trim(),
         description: description.trim(),
         room: room.trim() || "Online Classroom",
         color,
+        thumbnail,
         lecturers: mappedLecturers,
         schedules: mappedSchedules,
         modules: mappedModules,
@@ -370,6 +414,59 @@ export default function CreateSubjectPage() {
                       <span className="text-[9px] text-zinc-400 font-bold leading-tight">Click block to pick color</span>
                     </div>
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-bold text-zinc-600">Subject Thumbnail</label>
+                  {thumbnail ? (
+                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-zinc-200 group">
+                      <img
+                        src={thumbnail}
+                        alt="Thumbnail preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setThumbnail("")}
+                          className="p-2 bg-white rounded-full text-rose-600 hover:scale-105 transition-transform cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-32 rounded-2xl border border-dashed border-zinc-200 flex flex-col items-center justify-center bg-white hover:border-[#f25c88] transition-colors relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setCropFileName(file.name);
+                            const reader = new FileReader();
+                            reader.addEventListener("load", () => {
+                              setCropImageSrc(reader.result as string);
+                            });
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                      {isUploading ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-6 h-6 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                          <span className="text-[10px] text-zinc-400 font-bold">Uploading...</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-1">
+                          <Plus className="w-5 h-5 text-zinc-400" />
+                          <span className="text-[11px] text-zinc-400 font-bold">Upload image</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -779,6 +876,14 @@ export default function CreateSubjectPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setCropImageSrc(null)}
+        />
       )}
     </>
   );

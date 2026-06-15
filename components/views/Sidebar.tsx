@@ -40,6 +40,7 @@ export default function Sidebar() {
 
   const generalItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Institutions", icon: Users, href: "/dashboard/institutions" },
     { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
     { name: "Create Subject", icon: Plus, href: "/dashboard/subject/create" },
     { name: "Statistics & reports", icon: BarChart3, href: "#" },

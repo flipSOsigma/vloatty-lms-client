@@ -27,7 +27,7 @@ interface LmsContextType extends LmsState {
   setShowAddModal: (show: boolean) => void;
   selectedEvent: LmsEvent | null;
   setSelectedEvent: (event: LmsEvent | null) => void;
-  addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => void;
+  addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => void;
   deleteSubject: (id: string) => void;
   updateSubject: (subject: Subject) => void;
   isLoadingUser: boolean;
@@ -270,7 +270,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addSubject = async (subjectData: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => {
+  const addSubject = async (subjectData: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => {
     try {
       const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const response = await fetch(`${API_BASE_URL}/subjects`, {
