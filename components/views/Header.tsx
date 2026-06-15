@@ -177,9 +177,17 @@ export default function Header() {
           <div ref={profileRef} className="relative">
             <button
               onClick={handleProfileClick}
-              className="w-12 h-12 rounded-full bg-[#121212] text-zinc-300 hover:text-white flex items-center justify-center hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer shadow-md z-10"
+              className="w-12 h-12 rounded-full overflow-hidden border border-[#E5E1D8]/20 bg-[#121212] text-zinc-300 hover:text-white flex items-center justify-center hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer shadow-md z-10"
             >
-              <User className="w-5 h-5" />
+              {currentUser?.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-5 h-5" />
+              )}
             </button>
 
             {}
@@ -206,9 +214,17 @@ export default function Header() {
 
               {}
               <div className="flex items-center gap-3 pb-3 border-b border-[#E5E1D8]/60">
-                <div className="w-10 h-10 rounded-full bg-[#121212] text-white flex items-center justify-center font-bold text-[14px] flex-shrink-0 shadow-sm border border-zinc-700">
-                  {getUserInitials()}
-                </div>
+                {currentUser?.avatar ? (
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.name}
+                    className="w-10 h-10 rounded-full object-cover shadow-sm border border-zinc-200/50"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-[#121212] text-white flex items-center justify-center font-bold text-[14px] flex-shrink-0 shadow-sm border border-zinc-700">
+                    {getUserInitials()}
+                  </div>
+                )}
                 <div className="flex flex-col min-w-0">
                   <span className="text-[13.5px] font-extrabold text-zinc-950 truncate">
                     {currentUser?.name || "User"}

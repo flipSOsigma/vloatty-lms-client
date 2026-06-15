@@ -207,13 +207,21 @@ export default function ProfilePage() {
         <div className="lg:col-span-1 bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-6 shadow-sm">
           {/* Avatar and Info */}
           <div className="flex flex-col items-center gap-4 text-center pb-5 border-b border-[#E5E1D8]/60">
-            <div className="w-20 h-20 rounded-full bg-[#121212] text-white flex items-center justify-center font-bold text-3xl shadow-md border-4 border-[#FAF7F2]">
-              {profile.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()}
-            </div>
+            {profile.avatar ? (
+              <img
+                src={profile.avatar}
+                alt={profile.name}
+                className="w-20 h-20 rounded-full object-cover shadow-md border-4 border-[#FAF7F2]"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-[#121212] text-white flex items-center justify-center font-bold text-3xl shadow-md border-4 border-[#FAF7F2]">
+                {profile.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()}
+              </div>
+            )}
             
             <div className="flex flex-col gap-1">
               <h2 className="text-[18px] font-black text-[#121212] tracking-tight">

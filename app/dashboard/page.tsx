@@ -176,19 +176,18 @@ export default function DashboardPage() {
                 </h2>
               </div>
             </div>
-            <div className="bg-white border border-[#E5E1D8] h-34 mt-3 rounded-3xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.005)] select-none w-full flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(242,92,136,0.04)] hover:scale-[1.005] transition-all duration-300">
-              <div className="flex flex-col gap-0.5 text-left">
-                <span className="text-[22px] text-[#f25c88] leading-none" style={{ fontFamily: "'Imperial Script', cursive" }}>
+            <div className="bg-white border border-[#E5E1D8] h-34 mt-3 rounded-3xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.005)] select-none w-full flex flex-col justify-center hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(242,92,136,0.04)] hover:scale-[1.005] transition-all duration-300">
+              <div className="flex flex-col gap-1 text-left">
+                <span className="text-[10px] font-extrabold text-[#f25c88] uppercase tracking-wider">
                   Welcome Back
                 </span>
-                <h3 className="text-[24px] -mt-2 font-black text-[#121212] tracking-tight leading-tight line-clamp-1">
+                <h3 className="text-[22px] font-black text-[#121212] tracking-tight leading-tight line-clamp-1">
                   {currentUser?.name || "User"}
                 </h3>
-                <p className="text-[10px] text-zinc-400 font-semibold leading-normal mt-1">
+                <p className="text-[11px] text-zinc-400 font-semibold leading-normal mt-0.5">
                   Ready to manage your subjects today?
                 </p>
               </div>
-              
             </div>
           </div>
 
@@ -269,13 +268,7 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-3 flex-1">
                 {todayClasses.map((cl, idx) => {
                   const isActive = isClassActive(cl.startTime, cl.endTime);
-                  const color = cl.subject.color && cl.subject.color.startsWith("#")
-                    ? cl.subject.color
-                    : cl.subject.color === "yellow"
-                    ? "#FAD56B"
-                    : cl.subject.color === "blue"
-                    ? "#BFD3F7"
-                    : "#121212";
+                  const color = "#f25c88";
 
                   return (
                     <div
@@ -355,13 +348,7 @@ export default function DashboardPage() {
             ) : (
               <div className={getGridColsClass(3)}>
                 {filteredDiscoverable.map((subject) => {
-                  const color = subject.color && subject.color.startsWith("#")
-                    ? subject.color
-                    : subject.color === "yellow"
-                    ? "#FAD56B"
-                    : subject.color === "blue"
-                    ? "#BFD3F7"
-                    : "#f25c88";
+                  const color = "#f25c88";
 
                   return (
                     <div

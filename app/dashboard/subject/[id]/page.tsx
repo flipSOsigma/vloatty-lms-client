@@ -21,6 +21,7 @@ import {
   UserMinus,
   Edit,
   Trash2,
+  Trophy,
 } from "lucide-react";
 import ContextMenu from "../../../../components/ui/ContextMenu";
 
@@ -42,6 +43,8 @@ const formatDate = (isoString: string) => {
   }
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 export default function SubjectDetailPage({ params }: PageProps) {
 
   const { id } = React.use(params);
@@ -55,11 +58,57 @@ export default function SubjectDetailPage({ params }: PageProps) {
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string; email: string; role: string } | null>(null);
 
   const [editingModule, setEditingModule] = useState<any | null>(null);
-  const [editingLesson, setEditingLesson] = useState<{ moduleId: string; lesson: any } | null>(null);
   const [showEditModuleModal, setShowEditModuleModal] = useState(false);
-  const [showEditLessonModal, setShowEditLessonModal] = useState(false);
 
   const selectedSubject = subjects.find((s) => s.id === id);
+
+  const [quizzesData, setQuizzesData] = useState<{ [lessonId: string]: { settings: any, attempts: any[] } }>({});
+
+  React.useEffect(() => {
+    if (!selectedSubject) return;
+    const quizLessons = selectedSubject.modules.flatMap(m => m.lessons).filter(l => l.type === "quizzes");
+    if (quizLessons.length === 0) return;
+
+    const fetchAll = async () => {
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+      const dataMap: any = {};
+
+      await Promise.all(quizLessons.map(async (lesson) => {
+        try {
+          const quizRes = await fetch(`${API_BASE_URL}/lessons/${lesson.id}/quiz`, { headers });
+          if (quizRes.ok) {
+            const quiz = await quizRes.json();
+            
+            let attempts: any[] = [];
+            const isCreator = selectedSubject.createdBy === currentUser?.id;
+            const isLecturer = selectedSubject.lecturers?.some((l: any) => l.userId === currentUser?.id);
+            const canEdit = isCreator || isLecturer;
+
+            if (quiz.showLeaderboard || canEdit) {
+              const attemptsRes = await fetch(`${API_BASE_URL}/lessons/${lesson.id}/quiz/attempts`, { headers });
+              if (attemptsRes.ok) {
+                attempts = await attemptsRes.json();
+              }
+            }
+            dataMap[lesson.id] = { settings: quiz, attempts };
+          }
+        } catch (e) {
+          console.error(`Error fetching quiz data for lesson ${lesson.id}:`, e);
+        }
+      }));
+
+      setQuizzesData(dataMap);
+    };
+
+    fetchAll();
+  }, [selectedSubject, currentUser]);
+
+  React.useEffect(() => {
+    if (selectedSubject) {
+      document.title = `${selectedSubject.name} - VLOATTY Learning Management System`;
+    }
+  }, [selectedSubject]);
 
   const hasEditPermission = selectedSubject && currentUser && (selectedSubject.createdBy === currentUser.id || selectedSubject.lecturers.some((l) => l.userId === currentUser.id));
 
@@ -92,66 +141,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
     await updateSubject(updatedSubject);
   };
 
-  const handleEditLesson = (moduleId: string, lesson: any) => {
-    let openD = lesson.openDate;
-    let closeD = lesson.closeDate;
-    try {
-      const openDateObj = new Date(lesson.openDate);
-      const closeDateObj = new Date(lesson.closeDate);
-      
-      const formatToDateTimeLocal = (d: Date) => {
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const hours = String(d.getHours()).padStart(2, "0");
-        const minutes = String(d.getMinutes()).padStart(2, "0");
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-      };
-      
-      openD = formatToDateTimeLocal(openDateObj);
-      closeD = formatToDateTimeLocal(closeDateObj);
-    } catch (e) {}
 
-    setEditingLesson({
-      moduleId,
-      lesson: {
-        id: lesson.id,
-        title: lesson.title,
-        desc: lesson.desc,
-        type: lesson.type,
-        openDate: openD,
-        closeDate: closeD,
-        closeType: lesson.closeType || "open"
-      }
-    });
-    setShowEditLessonModal(true);
-  };
-
-  const handleSaveLesson = async () => {
-    if (!selectedSubject || !editingLesson || !editingLesson.lesson.title.trim()) return;
-    const { moduleId, lesson } = editingLesson;
-    const updatedModules = selectedSubject.modules.map((m) => {
-      if (m.id === moduleId) {
-        const updatedLessons = m.lessons.map((l) =>
-          l.id === lesson.id ? {
-            ...l,
-            title: lesson.title.trim(),
-            desc: lesson.desc.trim(),
-            type: lesson.type,
-            openDate: new Date(lesson.openDate).toISOString(),
-            closeDate: new Date(lesson.closeDate).toISOString(),
-            closeType: lesson.closeType
-          } : l
-        );
-        return { ...m, lessons: updatedLessons };
-      }
-      return m;
-    });
-    const updatedSubject = { ...selectedSubject, modules: updatedModules };
-    await updateSubject(updatedSubject);
-    setShowEditLessonModal(false);
-    setEditingLesson(null);
-  };
 
   const handleDeleteLesson = async (moduleId: string, lessonId: string) => {
     if (!selectedSubject) return;
@@ -246,28 +236,25 @@ export default function SubjectDetailPage({ params }: PageProps) {
       {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
         {}
-        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0">
-          <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
+        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 pl-13">
+          <div className="flex flex-col gap-5 w-full">
+            {selectedSubject.thumbnail && (
+              <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0">
+                <img
+                  src={selectedSubject.thumbnail}
+                  alt={selectedSubject.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-1">
               <span
-                className={`inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit ${
-                  selectedSubject.color === "yellow"
-                    ? "bg-amber-100 text-amber-800"
-                    : selectedSubject.color === "blue"
-                    ? "bg-blue-100 text-blue-800"
-                    : !selectedSubject.color || selectedSubject.color.startsWith("#")
-                    ? ""
-                    : "bg-zinc-200 text-zinc-800"
-                }`}
-                style={
-                  selectedSubject.color && selectedSubject.color.startsWith("#")
-                    ? {
-                        backgroundColor: `${selectedSubject.color}15`,
-                        color: selectedSubject.color,
-                        border: `1px solid ${selectedSubject.color}30`
-                      }
-                    : {}
-                }
+                className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit"
+                style={{
+                  backgroundColor: "#f25c8815",
+                  color: "#f25c88",
+                  border: "1px solid #f25c8830"
+                }}
               >
                 {selectedSubject.room || "Room Online"}
               </span>
@@ -304,15 +291,6 @@ export default function SubjectDetailPage({ params }: PageProps) {
                   ))}
                 </div>
               </div>
-            )}
-
-            {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
-              <Link
-                href={`/dashboard/subject/${selectedSubject.id}/manage`}
-                className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
-              >
-                <span>Manage Subject</span>
-              </Link>
             )}
           </div>
 
@@ -358,7 +336,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             }
 
             return (
-              <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-4 shadow-sm">
+              <div className="flex flex-col gap-4 w-full">
                 <div className="flex items-center justify-between border-b border-[#E5E1D8]/45 pb-2">
                   <h3 className="text-[14px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
                     <Users className="w-4.5 h-4.5 text-[#f25c88]" />
@@ -386,15 +364,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
                             <div
                               className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-black border shrink-0"
                               style={{
-                                backgroundColor: selectedSubject.color && selectedSubject.color.startsWith("#")
-                                  ? `${selectedSubject.color}15`
-                                  : "rgba(242, 92, 136, 0.08)",
-                                color: selectedSubject.color && selectedSubject.color.startsWith("#")
-                                  ? selectedSubject.color
-                                  : "#f25c88",
-                                borderColor: selectedSubject.color && selectedSubject.color.startsWith("#")
-                                  ? `${selectedSubject.color}20`
-                                  : "rgba(242, 92, 136, 0.12)"
+                                backgroundColor: "rgba(242, 92, 136, 0.08)",
+                                color: "#f25c88",
+                                borderColor: "rgba(242, 92, 136, 0.12)"
                               }}
                             >
                               {initials}
@@ -450,6 +422,15 @@ export default function SubjectDetailPage({ params }: PageProps) {
               </div>
             );
           })()}
+
+          {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
+            <Link
+              href={`/dashboard/subject/${selectedSubject.id}/manage`}
+              className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
+            >
+              <span>Manage Subject</span>
+            </Link>
+          )}
         </div>
 
         {}
@@ -487,10 +468,10 @@ export default function SubjectDetailPage({ params }: PageProps) {
               {selectedSubject.modules.map((mod) => (
                 <div
                   key={mod.id}
-                  className="bg-white/40 border border-[#E5E1D8]/50 rounded-3xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.01)] flex flex-col gap-4"
+                  className="rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] flex flex-col gap-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-[#E5E1D8]/40 pb-3">
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 max-w-xl md:max-w-2xl">
                       <Link
                         href={`/dashboard/subject/${selectedSubject.id}/module/${mod.id}`}
                         className="hover:text-[#f25c88] transition-colors"
@@ -556,12 +537,12 @@ export default function SubjectDetailPage({ params }: PageProps) {
                               </div>
                               {hasEditPermission && (
                                 <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => handleEditLesson(mod.id, lesson)}
+                                  <Link
+                                    href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}?edit=true`}
                                     className="p-1 rounded-lg hover:bg-[#FAF7F2] text-zinc-400 hover:text-zinc-700 cursor-pointer"
                                   >
                                     <Edit className="w-3.5 h-3.5" />
-                                  </button>
+                                  </Link>
                                   <button
                                     onClick={() => handleDeleteLesson(mod.id, lesson.id)}
                                     className="p-1 rounded-lg hover:bg-[#FAF7F2] text-zinc-400 hover:text-red-500 cursor-pointer"
@@ -574,6 +555,68 @@ export default function SubjectDetailPage({ params }: PageProps) {
                             <p className="text-[11.5px] text-zinc-500 leading-relaxed font-medium line-clamp-2">
                               {lesson.desc}
                             </p>
+
+                            {(() => {
+                              if (lesson.type !== "quizzes") return null;
+                              const quizData = quizzesData[lesson.id];
+                              if (!quizData) return null;
+
+                              const isOwnerOrLecturer = hasEditPermission;
+                              const showLboard = quizData.settings?.showLeaderboard || isOwnerOrLecturer;
+                              const top3 = (quizData.attempts || []).slice(0, 3);
+
+                              if (!showLboard || top3.length === 0) return null;
+
+                              return (
+                                <div className="flex flex-col gap-2 mt-4 bg-white/40 border border-zinc-200/50 rounded-2xl p-4 w-full animate-in fade-in duration-200 text-left">
+                                  <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                                    <Trophy className="w-3.5 h-3.5 text-[#f25c88]" /> Quiz Leaderboard (Top 3 Participants)
+                                  </span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {top3.map((att: any, idx: number) => {
+                                      const name = att.userId ? (att.user?.name || "Student") : att.guestName;
+                                      const medals = ["🏆 1st Place", "🥈 2nd Place", "🥉 3rd Place"];
+                                      const medalColors = [
+                                        "bg-amber-500/10 text-amber-800 border-amber-500/20",
+                                        "bg-zinc-500/10 text-zinc-800 border-zinc-500/20",
+                                        "bg-orange-500/10 text-orange-800 border-orange-500/20"
+                                      ];
+                                      const pct = Math.round((att.score / att.totalPoints) * 100);
+                                      const isMe = (currentUser && att.userId === currentUser.id) || (!currentUser && !att.userId && localStorage.getItem(`quiz_guestName_${lesson.id}`) === att.guestName);
+
+                                      return (
+                                        <div
+                                          key={att.id}
+                                          className={`flex flex-col gap-1.5 p-3 rounded-xl border transition-all ${
+                                            isMe
+                                              ? "bg-[#f25c88]/5 border-[#f25c88] shadow-sm"
+                                              : "bg-white/50 border-zinc-200/60"
+                                          }`}
+                                        >
+                                          <div className="flex justify-between items-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${medalColors[idx]}`}>
+                                              {medals[idx]}
+                                            </span>
+                                            <span className="text-[12px] font-black text-[#f25c88]">{pct}%</span>
+                                          </div>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            {!att.userId && (
+                                              <span className="bg-amber-100 text-amber-800 text-[8px] font-extrabold px-1 py-0.2 rounded border border-amber-200 uppercase shrink-0">Guest</span>
+                                            )}
+                                            <span className={`text-[12px] truncate ${isMe ? "font-bold text-zinc-950" : "font-semibold text-zinc-800"}`} title={name}>
+                                              {name}
+                                            </span>
+                                          </div>
+                                          <span className="text-[9.5px] text-zinc-400 font-bold">
+                                            Score: {att.score} / {att.totalPoints}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
 
                           <div className="w-full md:w-[260px] flex flex-col gap-2">
@@ -600,6 +643,43 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                 >
                                   <span>Open Quiz</span>
                                 </Link>
+
+                                {(() => {
+                                  const quizData = quizzesData[lesson.id];
+                                  if (!quizData) return null;
+
+                                  const isOwnerOrLecturer = hasEditPermission;
+                                  const showGrade = quizData.settings?.allowViewGrade && !isOwnerOrLecturer;
+                                  const showLboard = quizData.settings?.showLeaderboard || isOwnerOrLecturer;
+
+                                  let myAttemptObj: any = null;
+                                  const userIdSuffix = currentUser ? currentUser.id : "guest";
+                                  const localAttemptStr = typeof window !== "undefined" ? localStorage.getItem(`quiz_attempt_${lesson.id}_${userIdSuffix}`) : null;
+                                  if (localAttemptStr) {
+                                    try {
+                                      myAttemptObj = JSON.parse(localAttemptStr);
+                                    } catch (e) {}
+                                  }
+                                  if (!myAttemptObj && currentUser && quizData.attempts) {
+                                    const found = quizData.attempts.find((att: any) => att.userId === currentUser.id);
+                                    if (found) {
+                                      myAttemptObj = { score: found.score, totalPoints: found.totalPoints };
+                                    }
+                                  }
+
+                                  const top3 = (quizData.attempts || []).slice(0, 3);
+
+                                  return (
+                                    showGrade && myAttemptObj && (
+                                      <div className="flex justify-between items-center bg-emerald-500/[0.03] border border-emerald-500/15 rounded-xl px-3 py-1 mt-1 w-full animate-in fade-in duration-200">
+                                        <span className="text-[10px] font-bold text-zinc-650">Your Grade</span>
+                                        <span className="text-[10.5px] font-extrabold text-emerald-600">
+                                          {myAttemptObj.score} / {myAttemptObj.totalPoints}
+                                        </span>
+                                      </div>
+                                    )
+                                  );
+                                })()}
                               </>
                             ) : (
                               <>
@@ -821,106 +901,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {showEditLessonModal && editingLesson && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left">
-            <div className="flex justify-between items-center pb-2 border-b border-[#E5E1D8]/50">
-              <h3 className="text-[16px] font-black text-[#121212]">Edit Lesson</h3>
-              <button
-                onClick={() => {
-                  setShowEditLessonModal(false);
-                  setEditingLesson(null);
-                }}
-                className="p-1.5 hover:bg-zinc-100 rounded-full text-zinc-400 hover:text-zinc-700 transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto pr-1">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Title</label>
-                <input
-                  type="text"
-                  value={editingLesson.lesson.title}
-                  onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, title: e.target.value } })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Description</label>
-                <textarea
-                  value={editingLesson.lesson.desc}
-                  onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, desc: e.target.value } })}
-                  rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all resize-none"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Type</label>
-                <select
-                  value={editingLesson.lesson.type}
-                  onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, type: e.target.value } })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all cursor-pointer"
-                >
-                  <option value="learning">Learning Material</option>
-                  <option value="assignment">Assignment</option>
-                  <option value="quizzes">Quiz</option>
-                </select>
-              </div>
-              {editingLesson.lesson.type !== "learning" && (
-                <>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-500 uppercase">Open Date</label>
-                    <input
-                      type="datetime-local"
-                      value={editingLesson.lesson.openDate}
-                      onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, openDate: e.target.value } })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-500 uppercase">Close Date</label>
-                    <input
-                      type="datetime-local"
-                      value={editingLesson.lesson.closeDate}
-                      onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, closeDate: e.target.value } })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[11px] font-bold text-zinc-500 uppercase">Submission Restriction</label>
-                    <select
-                      value={editingLesson.lesson.closeType}
-                      onChange={(e) => setEditingLesson({ ...editingLesson, lesson: { ...editingLesson.lesson, closeType: e.target.value } })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all cursor-pointer"
-                    >
-                      <option value="open">Open (Accept Late Submissions)</option>
-                      <option value="restrict">Strict (Block Late Submissions)</option>
-                    </select>
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-[#E5E1D8]/50">
-              <button
-                onClick={() => {
-                  setShowEditLessonModal(false);
-                  setEditingLesson(null);
-                }}
-                className="px-4 py-2 bg-zinc-150 hover:bg-zinc-200 text-zinc-700 font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveLesson}
-                className="px-4 py-2 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { LmsEvent, CalendarViewType, LmsState, Subject } from "../types/lms";
 import { Check, AlertTriangle } from "lucide-react";
+import { ToastItem, ToastStyles } from "../components/ui/Toast";
 
 export interface UserProfile {
   id: string;
@@ -27,7 +28,7 @@ interface LmsContextType extends LmsState {
   setShowAddModal: (show: boolean) => void;
   selectedEvent: LmsEvent | null;
   setSelectedEvent: (event: LmsEvent | null) => void;
-  addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => void;
+  addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => void;
   deleteSubject: (id: string) => void;
   updateSubject: (subject: Subject) => void;
   isLoadingUser: boolean;
@@ -49,9 +50,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const showToast = (message: string, type: "success" | "error" = "success") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { message, type, id }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
   };
 
   const logout = () => {
@@ -87,7 +85,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           timeStart: sch.startTime,
           timeEnd: sch.endTime,
           dayIndex: dayMap[sch.day] !== undefined ? dayMap[sch.day] : 0,
-          color: subj.color || "cream",
+          color: "pink",
           subjectId: subj.id,
           createdAt: subj.createdAt,
           updatedAt: subj.updatedAt,
@@ -270,7 +268,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addSubject = async (subjectData: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt">) => {
+  const addSubject = async (subjectData: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => {
     try {
       const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const response = await fetch(`${API_BASE_URL}/subjects`, {
@@ -398,27 +396,16 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }}
     >
       {children}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none">
+      <ToastStyles />
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
         {toasts.map((t) => (
-          <div
+          <ToastItem
             key={t.id}
-            className={`pointer-events-auto flex items-center gap-2.5 px-4.5 py-3.5 bg-white rounded-2xl shadow-xl border text-[13px] font-medium animate-in slide-in-from-top-4 fade-in duration-300 ${
-              t.type === "success"
-                ? "border-emerald-100/60 text-emerald-800"
-                : "border-rose-100/60 text-rose-800"
-            }`}
-          >
-            {t.type === "success" ? (
-              <div className="w-5 h-5 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                <Check className="w-3.5 h-3.5" />
-              </div>
-            ) : (
-              <div className="w-5 h-5 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <span className="flex-1">{t.message}</span>
-          </div>
+            id={t.id}
+            message={t.message}
+            type={t.type}
+            onRemove={(id) => setToasts((prev) => prev.filter((to) => to.id !== id))}
+          />
         ))}
       </div>
     </LmsContext.Provider>

@@ -40,6 +40,7 @@ export default function Sidebar() {
 
   const generalItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Institutions", icon: Users, href: "/dashboard/institutions" },
     { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
     { name: "Create Subject", icon: Plus, href: "/dashboard/subject/create" },
     { name: "Statistics & reports", icon: BarChart3, href: "#" },
@@ -61,9 +62,11 @@ export default function Sidebar() {
               isMinimized ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
             }`}
           >
-            <span className="text-white text-3xl font-semibold tracking-tight font-sans">
-              Vloatty
-            </span>
+            <img
+              src="/vloatty - Logo Typeface.png"
+              alt="Vloatty"
+              className="w-26 object-contain"
+            />
           </div>
           <button
             onClick={handleToggle}

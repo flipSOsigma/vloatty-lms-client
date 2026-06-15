@@ -6,25 +6,26 @@ import { useLms } from "../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
+import ImageCropModal from "../../../../../components/ui/ImageCropModal";
 import {
   ArrowLeft,
-  Plus,
-  Trash2,
-  Sparkles,
   Check,
-  AlertTriangle,
   Calendar,
   Users,
-  MapPin,
-  Clock,
   Settings,
-  Search,
-  X,
-  Link as LinkIcon,
-  Mail,
-  Globe,
+  Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import facultyMockRaw from "../../../../../public/data/users.json";
+
+import BasicParametersSection from "./components/BasicParametersSection";
+import CategoryInviteSection from "./components/CategoryInviteSection";
+import LecturersSection from "./components/LecturersSection";
+import SchedulesSection from "./components/SchedulesSection";
+import DangerZoneSection from "./components/DangerZoneSection";
+import LecturerSearchModal from "./components/LecturerSearchModal";
+import UnsavedChangesModal from "./components/UnsavedChangesModal";
+
 const facultyMock = facultyMockRaw as Record<string, string>;
 
 interface PageProps {
@@ -43,8 +44,6 @@ interface FormSchedule {
   room: string;
 }
 
-
-
 export default function ManageSubjectPage({ params }: PageProps) {
   const { id } = React.use(params);
   const { subjects, currentUser, updateSubject, deleteSubject, showToast } = useLms();
@@ -58,6 +57,48 @@ export default function ManageSubjectPage({ params }: PageProps) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+  const [activeSection, setActiveSection] = useState("basic-parameters");
+
+  useEffect(() => {
+    const sections = ["basic-parameters", "category-invite", "lecturers", "schedules", "danger-zone"];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -60% 0px" }
+    );
+
+    sections.forEach((sid) => {
+      const el = document.getElementById(sid);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      sections.forEach((sid) => {
+        const el = document.getElementById(sid);
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const sidebarSections = [
+    { id: "basic-parameters", label: "Basic Parameters", icon: Settings },
+    { id: "category-invite", label: "Category & Invite", icon: Sparkles },
+    { id: "lecturers", label: "Lecturers", icon: Users },
+    { id: "schedules", label: "Schedules", icon: Calendar },
+    { id: "danger-zone", label: "Danger Zone", icon: AlertTriangle, isDanger: true },
+  ];
 
   const handleDeleteSubject = async () => {
     setIsDeleting(true);
@@ -86,17 +127,58 @@ export default function ManageSubjectPage({ params }: PageProps) {
     }
   };
 
-
   const subject = subjects.find((s) => s.id === id);
 
+  React.useEffect(() => {
+    if (subject) {
+      document.title = `${subject.name} - VLOATTY Learning Management System`;
+    }
+  }, [subject]);
 
   const [subjectName, setSubjectName] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
   const [subjectRoom, setSubjectRoom] = useState("");
-  const [subjectColor, setSubjectColor] = useState("#f25c88");
+  const subjectColor = "#f25c88";
   const [subjectLecturers, setSubjectLecturers] = useState<FormLecturer[]>([]);
   const [subjectSchedules, setSubjectSchedules] = useState<FormSchedule[]>([]);
+  const [subjectThumbnail, setSubjectThumbnail] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropFileName, setCropFileName] = useState("");
 
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    setCropImageSrc(null);
+    const file = new File([croppedImageBlob], cropFileName || "thumbnail.jpg", { type: "image/jpeg" });
+    await handleUpload(file);
+  };
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/upload?subjectId=${id}`, {
+        method: "POST",
+        headers: {
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+      const data = await res.json();
+      setSubjectThumbnail(data.url);
+      showToast("Thumbnail uploaded successfully!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Upload failed. Please try again.", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ [key: string]: string }>({});
@@ -155,13 +237,12 @@ export default function ManageSubjectPage({ params }: PageProps) {
     setLecturerSearchQuery("");
   };
 
-
   useEffect(() => {
     if (subject) {
       setSubjectName(subject.name);
       setSubjectDesc(subject.description || "");
       setSubjectRoom(subject.room || "");
-      setSubjectColor(subject.color && subject.color.startsWith("#") ? subject.color : "#f25c88");
+      setSubjectThumbnail(subject.thumbnail || "");
       setSubjectLecturers(subject.lecturers.map((l) => ({ email: l.email || "", name: l.name })));
       setSubjectSchedules(
         subject.schedules ? subject.schedules.map((s) => ({ ...s, room: s.room || "" })) : []
@@ -172,6 +253,84 @@ export default function ManageSubjectPage({ params }: PageProps) {
   }, [subject]);
 
   const isOwner = subject && currentUser && subject.createdBy === currentUser.id;
+
+  const [isUnsavedModalOpen, setIsUnsavedModalOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+
+  const hasChanges = React.useMemo(() => {
+    if (isSaving || isDeleting || !subject) return false;
+
+    if (subjectName !== subject.name) return true;
+    if (subjectDesc !== (subject.description || "")) return true;
+    if (subjectRoom !== (subject.room || "")) return true;
+    if (subjectThumbnail !== (subject.thumbnail || "")) return true;
+    if (isOpen !== (subject.isOpen ?? false)) return true;
+    if (category !== (subject.category ?? "Lecture")) return true;
+
+    const origLecturers = subject.lecturers.map((l) => ({ email: l.email || "", name: l.name }));
+    if (subjectLecturers.length !== origLecturers.length) return true;
+    for (let i = 0; i < subjectLecturers.length; i++) {
+      if (subjectLecturers[i].email !== origLecturers[i].email) return true;
+      if (subjectLecturers[i].name !== origLecturers[i].name) return true;
+    }
+
+    const origSchedules = subject.schedules ? subject.schedules.map((s) => ({ ...s, room: s.room || "" })) : [];
+    if (subjectSchedules.length !== origSchedules.length) return true;
+    for (let i = 0; i < subjectSchedules.length; i++) {
+      if (subjectSchedules[i].day !== origSchedules[i].day) return true;
+      if (subjectSchedules[i].startTime !== origSchedules[i].startTime) return true;
+      if (subjectSchedules[i].endTime !== origSchedules[i].endTime) return true;
+      if (subjectSchedules[i].room !== origSchedules[i].room) return true;
+    }
+
+    return false;
+  }, [
+    subject,
+    subjectName,
+    subjectDesc,
+    subjectRoom,
+    subjectColor,
+    subjectThumbnail,
+    subjectLecturers,
+    subjectSchedules,
+    isOpen,
+    category,
+    isSaving,
+    isDeleting,
+  ]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasChanges]);
+
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      if (!hasChanges) return;
+      const target = (e.target as HTMLElement).closest("a");
+      if (target && target.href) {
+        const currentUrl = new URL(window.location.href);
+        const targetUrl = new URL(target.href, window.location.href);
+        if (targetUrl.origin === currentUrl.origin && targetUrl.pathname !== currentUrl.pathname) {
+          e.preventDefault();
+          setPendingUrl(target.href);
+          setIsUnsavedModalOpen(true);
+        }
+      }
+    };
+    document.addEventListener("click", handleAnchorClick, true);
+    return () => {
+      document.removeEventListener("click", handleAnchorClick, true);
+    };
+  }, [hasChanges]);
 
   if (!subject) {
     return (
@@ -211,7 +370,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
     );
   }
 
-
   const handleLecturerEmailChange = (index: number, emailValue: string) => {
     setSubjectLecturers((prev) => {
       const copy = [...prev];
@@ -245,7 +403,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
     });
   };
 
-
   const handleScheduleChange = (index: number, field: keyof FormSchedule, value: string) => {
     setSubjectSchedules((prev) => {
       const copy = [...prev];
@@ -254,9 +411,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
     });
   };
 
-
-  const handleSaveDetails = (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveAndNavigate = async (destinationUrl?: string) => {
     setErrorFields({});
 
     const errors: { [key: string]: string } = {};
@@ -279,7 +434,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
 
     if (Object.keys(errors).length > 0) {
       setErrorFields(errors);
-      return;
+      return false;
     }
 
     setIsSaving(true);
@@ -305,22 +460,30 @@ export default function ManageSubjectPage({ params }: PageProps) {
       name: subjectName.trim(),
       description: subjectDesc.trim(),
       room: subjectRoom.trim() || "Online Classroom",
-      color: subjectColor,
+      thumbnail: subjectThumbnail,
       lecturers: mappedLecturers,
       schedules: mappedSchedules,
       isOpen,
       category,
     };
 
-    setTimeout(() => {
-      updateSubject(updatedSubject);
-      setIsSaving(false);
-      setSuccessMessage("Subject details updated successfully!");
+    return new Promise<boolean>((resolve) => {
       setTimeout(() => {
-        setSuccessMessage(null);
-        router.push(`/dashboard/subject/${subject.id}`);
-      }, 1000);
-    }, 600);
+        updateSubject(updatedSubject);
+        setIsSaving(false);
+        setSuccessMessage("Subject details updated successfully!");
+        setTimeout(() => {
+          setSuccessMessage(null);
+          router.push(destinationUrl || `/dashboard/subject/${subject.id}`);
+          resolve(true);
+        }, 1000);
+      }, 600);
+    });
+  };
+
+  const handleSaveDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveAndNavigate();
   };
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -339,9 +502,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </Link>
           <div>
             <h1 className="text-2xl font-extrabold text-[#121212] tracking-tight">
-              Edit Subject Details
+              Manage Subject
             </h1>
-            <p className="text-[12px] text-zinc-500 font-medium">
+            <p className="text-[12px] text-zinc-500 font-medium -mt-1">
               Update course parameters, classroom, theme colors, lecturers, and class schedules.
             </p>
           </div>
@@ -354,456 +517,150 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </div>
         )}
 
-        <form onSubmit={handleSaveDetails} className="flex flex-col gap-8 w-full">
-          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
-            <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
-              <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
-              Basic Parameters
-            </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
+          <div className="lg:col-span-9 flex flex-col gap-24 w-full lg:pr-20">
+            <form onSubmit={handleSaveDetails} className="flex flex-col gap-24 w-full">
+              <BasicParametersSection
+                subjectName={subjectName}
+                setSubjectName={setSubjectName}
+                subjectDesc={subjectDesc}
+                setSubjectDesc={setSubjectDesc}
+                subjectRoom={subjectRoom}
+                setSubjectRoom={setSubjectRoom}
+                subjectColor={subjectColor}
+                subjectThumbnail={subjectThumbnail}
+                setSubjectThumbnail={setSubjectThumbnail}
+                isUploading={isUploading}
+                setCropFileName={setCropFileName}
+                setCropImageSrc={setCropImageSrc}
+                errorFields={errorFields}
+              />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Subject Name *</label>
-                  <input
-                    type="text"
-                    value={subjectName}
-                    onChange={(e) => setSubjectName(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-2xl border text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 ${
-                      errorFields.subjectName ? "border-red-400" : "border-zinc-200"
-                    }`}
-                  />
-                  {errorFields.subjectName && (
-                    <span className="text-[11px] text-red-500 font-bold">{errorFields.subjectName}</span>
+              <CategoryInviteSection
+                category={category}
+                setCategory={setCategory}
+                subjectColor={subjectColor}
+                subjectId={subject.id}
+                inviteEmail={inviteEmail}
+                setInviteEmail={setInviteEmail}
+                invitedEmails={invitedEmails}
+                setInvitedEmails={setInvitedEmails}
+                copied={copied}
+                setCopied={setCopied}
+                showToast={showToast}
+              />
+
+              <LecturersSection
+                subjectLecturers={subjectLecturers}
+                setSubjectLecturers={setSubjectLecturers}
+                subjectColor={subjectColor}
+                setIsLecturerModalOpen={setIsLecturerModalOpen}
+                setLecturerSearchQuery={setLecturerSearchQuery}
+                handleLecturerEmailChange={handleLecturerEmailChange}
+                handleLecturerNameChange={handleLecturerNameChange}
+                hexToRgba={hexToRgba}
+                errorFields={errorFields}
+              />
+
+              <SchedulesSection
+                subjectSchedules={subjectSchedules}
+                setSubjectSchedules={setSubjectSchedules}
+                subjectColor={subjectColor}
+                handleScheduleChange={handleScheduleChange}
+                daysOfWeek={daysOfWeek}
+                errorFields={errorFields}
+              />
+
+              <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 pl-12">
+                <Link
+                  href={`/dashboard/subject/${subject.id}`}
+                  className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-8 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-[0.98]"
+                >
+                  {isSaving ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
                   )}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Course Description</label>
-                  <textarea
-                    value={subjectDesc}
-                    onChange={(e) => setSubjectDesc(e.target.value)}
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-2xl border border-zinc-200 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 resize-none"
-                  />
-                </div>
+                  Save Details
+                </button>
               </div>
+            </form>
 
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Default Classroom Location</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={subjectRoom}
-                      onChange={(e) => setSubjectRoom(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
-                    />
-                    <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Theme Color (Wheel Picker)</label>
-                  <div className="flex items-center gap-3 bg-white border border-zinc-200 p-3 rounded-2xl">
-                    <input
-                      type="color"
-                      value={subjectColor}
-                      onChange={(e) => setSubjectColor(e.target.value)}
-                      className="w-10 h-11 rounded-xl cursor-pointer overflow-hidden bg-transparent"
-                    />
-                    <div className="flex flex-col select-none min-w-0">
-                      <span className="text-[12.5px] font-extrabold text-zinc-800 uppercase tracking-wider">{subjectColor}</span>
-                      <span className="text-[9px] text-zinc-400 font-bold leading-tight">Click block to pick color</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <DangerZoneSection
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              setIsDeleteModalOpen={setIsDeleteModalOpen}
+            />
           </div>
 
-          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
-            <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
-              <Sparkles className="w-4.5 h-4.5 text-[#f25c88]" />
-              Visibility & Invite Settings
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              <div className="flex flex-col gap-5 border-r border-zinc-100/50 pr-0 md:pr-6">
-                <div className="flex items-center justify-between bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[13px] font-extrabold text-zinc-800 flex items-center gap-1.5">
-                      <Globe className="w-4 h-4 text-zinc-500" />
-                      Open Class Visibility
-                    </span>
-                    <span className="text-[10px] text-zinc-400 font-bold leading-normal">
-                      Allow any authenticated user to search and join this class
-                    </span>
-                  </div>
+          <div className="lg:col-span-3 hidden lg:flex flex-col gap-5 sticky top-6 text-left self-start pl-6">
+            {subjectThumbnail && subjectThumbnail.trim().length > 0 && (
+              <div className="w-32 h-20 rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0 mb-2">
+                <img
+                  src={subjectThumbnail}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <span className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider px-3">
+              On This Page
+            </span>
+            <div className="flex flex-col gap-1 w-full">
+              {sidebarSections.map((sec) => {
+                const Icon = sec.icon;
+                const isActive = activeSection === sec.id;
+                return (
                   <button
+                    key={sec.id}
                     type="button"
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                      isOpen ? "bg-[#f25c88]" : "bg-zinc-200"
+                    onClick={() => scrollToSection(sec.id)}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[12.5px] font-bold transition-all text-left w-full group active:scale-[0.98] ${
+                      isActive
+                        ? sec.isDanger
+                          ? "bg-red-50 text-red-600 border-l-2 border-red-500 rounded-l-none -ml-[25px] pl-[23px]"
+                          : "rounded-l-none -ml-[25px] pl-[23px]"
+                        : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50/80"
                     }`}
+                    style={
+                      isActive && !sec.isDanger
+                        ? {
+                            backgroundColor: hexToRgba(subjectColor, 0.05),
+                            color: subjectColor,
+                            borderLeft: `2px solid ${subjectColor}`,
+                          }
+                        : {}
+                    }
                   >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        isOpen ? "translate-x-5" : "translate-x-0"
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
+                        isActive
+                          ? sec.isDanger
+                            ? "text-red-500"
+                            : ""
+                          : "text-zinc-400 group-hover:text-zinc-600"
                       }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Class Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl border border-zinc-200 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 cursor-pointer"
-                  >
-                    <option value="Lecture">Lecture</option>
-                    <option value="Lab">Lab</option>
-                    <option value="Seminar">Seminar</option>
-                    <option value="Clinical">Clinical</option>
-                    <option value="Workshop">Workshop</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[12px] font-bold text-zinc-600 flex items-center gap-1.5">
-                    <LinkIcon className="w-4 h-4 text-zinc-500" />
-                    Invite via Link
-                  </span>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={typeof window !== "undefined" ? `${window.location.origin}/dashboard/subject/${subject.id}/join` : ""}
-                      className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-[#FAF7F2]/50 text-zinc-500 font-semibold outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const link = typeof window !== "undefined" ? `${window.location.origin}/dashboard/subject/${subject.id}/join` : "";
-                        navigator.clipboard.writeText(link);
-                        setCopied(true);
-                        showToast("Invite link copied to clipboard!", "success");
-                        setTimeout(() => setCopied(false), 2000);
-                      }}
-                      className="px-4 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white text-[12px] font-bold rounded-2xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
-                    >
-                      {copied ? "Copied!" : "Copy Link"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[12px] font-bold text-zinc-600 flex items-center gap-1.5">
-                    <Mail className="w-4 h-4 text-zinc-500" />
-                    Invite via Email (Mock)
-                  </span>
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      placeholder="academic-email@institution.edu"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (!inviteEmail.trim() || !inviteEmail.includes("@")) {
-                          showToast("Please enter a valid email address.", "error");
-                          return;
-                        }
-                        setInvitedEmails((prev) => [...prev, inviteEmail.trim()]);
-                        setInviteEmail("");
-                        showToast(`Invitation sent to ${inviteEmail}!`, "success");
-                      }}
-                      className="px-5 py-2.5 bg-[#f25c88] hover:bg-[#d84b72] text-white text-[12px] font-bold rounded-2xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
-                    >
-                      Send Invite
-                    </button>
-                  </div>
-
-                  {invitedEmails.length > 0 && (
-                    <div className="mt-2.5 flex flex-col gap-1.5 bg-[#FAF7F2]/30 border border-[#E5E1D8]/20 p-3 rounded-2xl max-h-[120px] overflow-y-auto no-scrollbar">
-                      <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
-                        Invited Members
-                      </span>
-                      {invitedEmails.map((email, index) => (
-                        <div key={index} className="flex justify-between items-center text-[12px] font-medium text-zinc-600 bg-white border border-[#E5E1D8]/20 px-3 py-1.5 rounded-xl">
-                          <span className="truncate">{email}</span>
-                          <span className="text-[9px] bg-amber-50 border border-amber-100 text-amber-700 font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
-                            Pending
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-                <Users className="w-4.5 h-4.5 text-[#f25c88]" />
-                Lecturers *
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setLecturerSearchQuery("");
-                  setIsLecturerModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add Lecturer
-              </button>
-            </div>
-
-            {errorFields.subjectLecturers && (
-              <span className="text-[11px] text-red-500 font-bold">{errorFields.subjectLecturers}</span>
-            )}
-
-            <div className="w-full overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">Avatar</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Email Address</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Display Name</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100/55">
-                  {subjectLecturers.map((lecturer, idx) => {
-                    const initials = lecturer.name
-                      ? lecturer.name.split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase()
-                      : "?";
-
-                    return (
-                      <tr key={idx} className="hover:bg-zinc-50/10 transition-colors">
-                        <td className="py-3 pr-2">
-                          <div
-                            className="flex items-center justify-center w-8.5 h-8.5 rounded-full text-[10.5px] font-black border"
-                            style={{
-                              backgroundColor: hexToRgba(subjectColor, 0.08),
+                      style={
+                        isActive && !sec.isDanger
+                          ? {
                               color: subjectColor,
-                              borderColor: hexToRgba(subjectColor, 0.12)
-                            }}
-                          >
-                            {initials}
-                          </div>
-                        </td>
-                        <td className="py-3 pr-4">
-                          <input
-                            type="email"
-                            placeholder="e.g. olivia@vloatty.edu"
-                            value={lecturer.email}
-                            onChange={(e) => handleLecturerEmailChange(idx, e.target.value)}
-                            className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
-                            onFocus={(e) => {
-                              e.target.style.borderColor = subjectColor;
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = "";
-                            }}
-                          />
-                        </td>
-                        <td className="py-3 pr-4">
-                          <input
-                            type="text"
-                            placeholder="Resolved name or custom"
-                            value={lecturer.name}
-                            onChange={(e) => handleLecturerNameChange(idx, e.target.value)}
-                            className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
-                            onFocus={(e) => {
-                              e.target.style.borderColor = subjectColor;
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = "";
-                            }}
-                          />
-                        </td>
-                        <td className="py-3 text-right">
-                          {subjectLecturers.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => setSubjectLecturers((prev) => prev.filter((_, i) => i !== idx))}
-                              className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                            }
+                          : {}
+                      }
+                    />
+                    <span className="truncate">{sec.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-
-          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-[#f25c88]" />
-                Schedules
-              </h3>
-              <button
-                type="button"
-                onClick={() => setSubjectSchedules((prev) => [...prev, { day: "Monday", startTime: "09:00", endTime: "10:40", room: "" }])}
-                className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add Time
-              </button>
-            </div>
-
-            {errorFields.subjectSchedules && (
-              <span className="text-[11px] text-red-500 font-bold">{errorFields.subjectSchedules}</span>
-            )}
-
-            <div className="w-full overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[700px]">
-                <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Day of Week</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Start Time</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">End Time</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Classroom Location</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100/55">
-                  {subjectSchedules.map((schedule, idx) => (
-                    <tr key={idx} className="hover:bg-zinc-50/10 transition-colors">
-                      <td className="py-3 pr-4 w-[200px]">
-                        <select
-                          value={schedule.day}
-                          onChange={(e) => handleScheduleChange(idx, "day", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = subjectColor;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        >
-                          {daysOfWeek.map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="py-3 pr-4 w-[130px]">
-                        <input
-                          type="time"
-                          value={schedule.startTime}
-                          onChange={(e) => handleScheduleChange(idx, "startTime", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = subjectColor;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        />
-                      </td>
-                      <td className="py-3 pr-4 w-[130px]">
-                        <input
-                          type="time"
-                          value={schedule.endTime}
-                          onChange={(e) => handleScheduleChange(idx, "endTime", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = subjectColor;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        />
-                      </td>
-                      <td className="py-3 pr-4">
-                        <input
-                          type="text"
-                          placeholder="Inherit default location"
-                          value={schedule.room}
-                          onChange={(e) => handleScheduleChange(idx, "room", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = subjectColor;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        />
-                      </td>
-                      <td className="py-3 text-right">
-                        {subjectSchedules.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setSubjectSchedules((prev) => prev.filter((_, i) => i !== idx))}
-                            className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4 pl-12">
-            <Link
-              href={`/dashboard/subject/${subject.id}`}
-              className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-8 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-[0.98]"
-            >
-              {isSaving ? (
-                <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )}
-              Save Details
-            </button>
-          </div>
-        </form>
-
-        <div className="border border-red-200/30 bg-red-50/10 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-6 ml-12 animate-in fade-in duration-200">
-          <div className="flex flex-col gap-1">
-            <h4 className="text-[14.5px] font-extrabold text-red-600 flex items-center gap-2">
-              <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
-              Danger Zone
-            </h4>
-            <p className="text-[12px] text-zinc-500 font-medium">
-              Deleting this subject is permanent and cannot be undone. All classes, events, and resources will be removed.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsDeleteModalOpen(true)}
-            className="px-6 py-3 bg-red-50 hover:bg-red-100/80 border border-red-200 text-red-600 hover:text-red-700 font-extrabold rounded-full text-[12px] transition-all cursor-pointer shadow-sm active:scale-[0.98] self-start md:self-center"
-          >
-            Delete Subject
-          </button>
         </div>
       </div>
 
@@ -818,115 +675,48 @@ export default function ManageSubjectPage({ params }: PageProps) {
         isLoading={isDeleting}
       />
 
-      {isLecturerModalOpen && (
-        <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-[#E5E1D8] shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
-            {}
-            <div className="p-5 border-b border-zinc-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-[15px] font-extrabold text-[#121212] tracking-tight">Add Lecturer</h3>
-                <p className="text-[11px] text-zinc-400 font-medium">Search faculty members by name or email</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLecturerModalOpen(false);
-                  setLecturerSearchQuery("");
-                }}
-                className="w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:bg-zinc-50 transition-all cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      <LecturerSearchModal
+        isOpen={isLecturerModalOpen}
+        onClose={() => {
+          setIsLecturerModalOpen(false);
+          setLecturerSearchQuery("");
+        }}
+        lecturerSearchQuery={lecturerSearchQuery}
+        setLecturerSearchQuery={setLecturerSearchQuery}
+        filteredSuggestions={filteredSuggestions}
+        onSelectLecturer={handleSelectLecturer}
+      />
 
-            {}
-            <div className="p-4 border-b border-zinc-100 bg-zinc-50/30">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by name or email..."
-                  value={lecturerSearchQuery}
-                  onChange={(e) => setLecturerSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 bg-white text-[13.5px] focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all"
-                  autoFocus
-                />
-                <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
-              </div>
-            </div>
-
-            {}
-            <div className="flex-1 overflow-y-auto p-3 min-h-[220px] max-h-[380px] flex flex-col gap-1.5 no-scrollbar">
-              {filteredSuggestions.length > 0 ? (
-                filteredSuggestions.map((faculty) => {
-                  const initials = faculty.name
-                    ? faculty.name
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")
-                        .substring(0, 2)
-                        .toUpperCase()
-                    : "?";
-                  return (
-                    <button
-                      key={faculty.email}
-                      type="button"
-                      onClick={() => handleSelectLecturer(faculty)}
-                      className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-zinc-50 text-left transition-all group active:scale-[0.99] cursor-pointer"
-                    >
-                      <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#f25c88]/10 border border-[#f25c88]/15 text-[#f25c88] text-[11px] font-black group-hover:bg-[#f25c88]/20 transition-colors">
-                        {initials}
-                      </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span className="text-[13px] font-bold text-zinc-800 group-hover:text-[#121212] truncate">
-                          {faculty.name}
-                        </span>
-                        <span className="text-[11px] text-zinc-400 font-medium truncate">
-                          {faculty.email}
-                        </span>
-                      </div>
-                      <Plus className="w-4 h-4 text-zinc-300 group-hover:text-[#f25c88] transition-colors mr-1" />
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center py-8 text-center px-4">
-                  <Search className="w-8 h-8 text-zinc-300 mb-2" />
-                  <span className="text-[12.5px] font-bold text-zinc-600">No suggestions found</span>
-                  <p className="text-[11px] text-zinc-400 mt-1 max-w-[240px] font-medium">
-                    No faculty matches "{lecturerSearchQuery}".
-                  </p>
-                  {lecturerSearchQuery.trim().length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const query = lecturerSearchQuery.trim();
-                        let email = "";
-                        let name = "";
-                        if (query.includes("@")) {
-                          email = query;
-                          const partBeforeAt = query.split("@")[0];
-                          name = partBeforeAt
-                            .split(".")
-                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(" ");
-                        } else {
-                          name = query;
-                          email = `${query.toLowerCase().replace(/\s+/g, ".")}@vloatty.edu`;
-                        }
-                        handleSelectLecturer({ name, email });
-                      }}
-                      className="mt-4 px-4 py-2 border border-dashed border-[#f25c88]/40 hover:border-[#f25c88] text-[#f25c88] rounded-full text-[11px] font-bold bg-[#f25c88]/5 hover:bg-[#f25c88]/10 transition-all cursor-pointer flex items-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add "{lecturerSearchQuery.trim()}" custom
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={() => setCropImageSrc(null)}
+        />
       )}
+
+      <UnsavedChangesModal
+        isOpen={isUnsavedModalOpen}
+        onClose={() => {
+          setIsUnsavedModalOpen(false);
+          setPendingUrl(null);
+        }}
+        isSaving={isSaving}
+        onSave={async () => {
+          if (pendingUrl) {
+            const saved = await saveAndNavigate(pendingUrl);
+            if (saved) {
+              setIsUnsavedModalOpen(false);
+            }
+          }
+        }}
+        onDecline={() => {
+          setIsUnsavedModalOpen(false);
+          if (pendingUrl) {
+            router.push(pendingUrl);
+          }
+        }}
+      />
     </>
   );
 }

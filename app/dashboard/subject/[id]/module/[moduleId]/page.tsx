@@ -14,6 +14,7 @@ import {
   CheckCircle,
   FileText,
   HelpCircle,
+  Plus,
 } from "lucide-react";
 
 interface PageProps {
@@ -40,6 +41,10 @@ export default function ModuleDetailPage({ params }: PageProps) {
 
   const selectedSubject = subjects.find((s) => s.id === id);
   const selectedModule = selectedSubject?.modules.find((m) => m.id === moduleId);
+
+  const isCreator = selectedSubject && currentUser?.id === selectedSubject.createdBy;
+  const isLecturer = selectedSubject && selectedSubject.lecturers.some((l) => l.userId === currentUser?.id);
+  const canEdit = isCreator || isLecturer;
 
   if (!selectedSubject || !selectedModule) {
     return (
@@ -88,19 +93,11 @@ export default function ModuleDetailPage({ params }: PageProps) {
               <div className="flex flex-col gap-1">
                 <span
                   className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit"
-                  style={
-                    selectedSubject.color && selectedSubject.color.startsWith("#")
-                      ? {
-                          backgroundColor: `${selectedSubject.color}15`,
-                          color: selectedSubject.color,
-                          border: `1px solid ${selectedSubject.color}30`
-                        }
-                      : {
-                          backgroundColor: "#FAF7F2",
-                          color: "#121212",
-                          border: "1px solid #E5E1D8"
-                        }
-                  }
+                  style={{
+                    backgroundColor: "#f25c8815",
+                    color: "#f25c88",
+                    border: "1px solid #f25c8830"
+                  }}
                 >
                   {selectedSubject.name}
                 </span>
@@ -146,9 +143,20 @@ export default function ModuleDetailPage({ params }: PageProps) {
           </div>
 
           <div className="lg:col-span-2 flex flex-col gap-6">
-            <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
-              Lessons inside this Module
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
+                Lessons inside this Module
+              </h3>
+              {canEdit && (
+                <Link
+                  href={`/dashboard/subject/${selectedSubject.id}/lesson/create?moduleId=${selectedModule.id}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5E1D8] hover:bg-zinc-100 font-bold text-[11px] text-[#f25c88] cursor-pointer transition-colors shadow-sm bg-white/50"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Lesson</span>
+                </Link>
+              )}
+            </div>
 
             {!selectedModule.lessons || selectedModule.lessons.length === 0 ? (
               <div className="w-full h-48 flex items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl">

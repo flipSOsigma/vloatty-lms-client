@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Header from "../../../../../../components/views/Header";
 import { useLms } from "../../../../../../context/LmsContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -14,10 +14,11 @@ import {
   Unlock,
   GraduationCap,
   Calendar,
-  MapPin,
   Info,
   Lightbulb,
   FileCheck,
+  UploadCloud,
+  X,
 } from "lucide-react";
 import { Lesson } from "../../../../../../types/subject";
 
@@ -25,10 +26,14 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function CreateLessonPage({ params }: PageProps) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+export function CreateLessonInner({ params }: PageProps) {
   const { id } = React.use(params);
-  const { subjects, currentUser, updateSubject } = useLms();
+  const { subjects, currentUser, updateSubject, showToast } = useLms();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryModuleId = searchParams ? searchParams.get("moduleId") : null;
 
   const subject = subjects.find((s) => s.id === id);
 
@@ -57,15 +62,19 @@ export default function CreateLessonPage({ params }: PageProps) {
   const [closeType, setCloseType] = useState<"restrict" | "open">("open");
   const [type, setType] = useState<"assignment" | "learning" | "quizzes">("learning");
 
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorFields, setErrorFields] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
-    if (subject && subject.modules && subject.modules.length > 0 && !selectedModuleId) {
+    if (queryModuleId) {
+      setSelectedModuleId(queryModuleId);
+    } else if (subject && subject.modules && subject.modules.length > 0 && !selectedModuleId) {
       setSelectedModuleId(subject.modules[0].id);
     }
-  }, [subject, selectedModuleId]);
+  }, [subject, selectedModuleId, queryModuleId]);
 
   const isOwner = subject && currentUser && (subject.createdBy === currentUser.id || subject.lecturers.some((l) => l.userId === currentUser.id));
 
@@ -144,6 +153,26 @@ export default function CreateLessonPage({ params }: PageProps) {
     );
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const filesList = e.target.files;
+    if (!filesList) return;
+    const newFiles: File[] = [];
+    const allowedExtensions = [
+      "pdf", "doc", "docx", "xls", "xlsx", "csv", "ppt", "pptx",
+      "png", "jpg", "jpeg", "webp", "txt", "zip", "rar"
+    ];
+    for (let i = 0; i < filesList.length; i++) {
+      const file = filesList[i];
+      const ext = file.name.split(".").pop()?.toLowerCase() || "";
+      if (!allowedExtensions.includes(ext)) {
+        showToast(`Invalid file format: ${file.name}. Only PDF, Word, Excel, CSV, PowerPoint, Images, TXT, or ZIP/RAR files are allowed.`, "error");
+        continue;
+      }
+      newFiles.push(file);
+    }
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorFields({});
@@ -199,8 +228,34 @@ export default function CreateLessonPage({ params }: PageProps) {
       modules: updatedModules,
     };
 
-    setTimeout(() => {
-      updateSubject(updatedSubject);
+    setTimeout(async () => {
+      await updateSubject(updatedSubject);
+
+      if (selectedFiles.length > 0) {
+        try {
+          const token = localStorage.getItem("token");
+          await Promise.all(selectedFiles.map(async (file) => {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("category", "Attachment");
+            const res = await fetch(`${API_BASE_URL}/subjects/${subject.id}/lessons/${newId}/files`, {
+              method: "POST",
+              headers: token ? { "Authorization": `Bearer ${token}` } : {},
+              body: formData,
+            });
+            if (!res.ok) {
+              throw new Error(`Failed to upload ${file.name}`);
+            }
+          }));
+          showToast("Lesson created and files attached successfully!", "success");
+        } catch (uploadErr: any) {
+          console.error(uploadErr);
+          showToast(uploadErr.message || "Failed to upload files, but lesson was created", "error");
+        }
+      } else {
+        showToast("Lesson created successfully!", "success");
+      }
+
       setIsSaving(false);
       setSuccessMessage("Lesson created successfully!");
       setTimeout(() => {
@@ -214,9 +269,7 @@ export default function CreateLessonPage({ params }: PageProps) {
     <>
       <Header />
 
-      {}
       <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 text-left select-none w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-        {}
         <div className="flex items-center gap-3">
           <Link
             href={`/dashboard/subject/${subject.id}`}
@@ -228,13 +281,9 @@ export default function CreateLessonPage({ params }: PageProps) {
             <h1 className="text-2xl font-extrabold text-[#121212] tracking-tight">
               Create New Lesson
             </h1>
-            <p className="text-[12px] text-zinc-500 font-medium">
-              Create and structure learning content inside a designated module.
-            </p>
           </div>
         </div>
 
-        {}
         {successMessage && (
           <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] font-bold px-4 py-3 rounded-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Check className="w-4 h-4 text-emerald-600" />
@@ -242,84 +291,32 @@ export default function CreateLessonPage({ params }: PageProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
-          {}
-          <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
-            <div className="flex flex-col gap-1 border-b border-[#E5E1D8]/40 pb-3">
-              <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
-                Target Subject
-              </span>
-              <span
-                className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit mb-2"
-                style={
-                  subject.color && subject.color.startsWith("#")
-                    ? {
-                        backgroundColor: `${subject.color}15`,
-                        color: subject.color,
-                        border: `1px solid ${subject.color}30`,
-                      }
-                    : {
-                        backgroundColor: "#FAF7F2",
-                        color: "#121212",
-                        border: "1px solid #E5E1D8",
-                      }
-                }
-              >
-                {subject.room || "Room Online"}
-              </span>
-              <h2 className="text-[18px] font-black text-[#121212] tracking-tight leading-tight">
-                {subject.name}
-              </h2>
-              <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[11px] mt-1.5">
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Lecturers: {subject.lecturers.map((l) => l.name).join(", ")}</span>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+          {/* Left Column - Form Card */}
+          <div className="lg:col-span-8 flex flex-col gap-6 w-full pl-12">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2">
+                <BookOpen className="w-4.5 h-4.5 text-[#f25c88]" />
+                Lesson Details
+              </h3>
+              <p className="text-[12px] text-zinc-400 font-medium pl-6">
+                Create and structure learning content inside a designated module.
+              </p>
             </div>
 
-            {subject.description && (
-              <p className="text-[11px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-3.5 border border-[#E5E1D8]/30 rounded-2xl">
-                {subject.description}
-              </p>
-            )}
-
-            {}
-            {subject.modules && subject.modules.length > 0 && (
-              <div className="flex flex-col gap-2 pt-1 border-t border-[#E5E1D8]/40 mt-1">
-                <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider mb-0.5">
-                  Current Modules ({subject.modules.length})
-                </span>
-                <div className="flex flex-col gap-1">
-                  {subject.modules.map((mod) => (
-                    <div
-                      key={mod.id}
-                      className="flex justify-between items-center text-[10.5px] font-semibold text-zinc-700 bg-white/40 px-3 py-1.5 border border-[#E5E1D8]/20 rounded-xl"
-                    >
-                      <span className="truncate pr-2">{mod.title}</span>
-                      <span className="text-zinc-400 text-[9px] flex-shrink-0">
-                        {mod.lessons ? mod.lessons.length : 0} lessons
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {}
-          <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-5">
-            <h3 className="text-[14px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
-              <BookOpen className="w-4 h-4 text-[#f25c88]" />
-              Lesson Details
-            </h3>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5 pl-6">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-zinc-600">Select Target Module *</label>
+                <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Select Target Module *</label>
                 <select
                   value={selectedModuleId}
                   onChange={(e) => setSelectedModuleId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
+                  className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200"
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f25c88";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "";
+                  }}
                 >
                   {subject.modules.map((mod) => (
                     <option key={mod.id} value={mod.id}>
@@ -332,17 +329,16 @@ export default function CreateLessonPage({ params }: PageProps) {
                 )}
               </div>
 
-              {}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-zinc-600">Lesson Type *</label>
+                <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type *</label>
                 <div className="grid grid-cols-3 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setType("learning")}
                     className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                       type === "learning"
-                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 animate-in fade-in duration-200"
-                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 hover:border-zinc-300"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                        : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
                     Learning
@@ -352,8 +348,8 @@ export default function CreateLessonPage({ params }: PageProps) {
                     onClick={() => setType("assignment")}
                     className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                       type === "assignment"
-                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 animate-in fade-in duration-200"
-                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 hover:border-zinc-300"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                        : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
                     Assignment
@@ -363,8 +359,8 @@ export default function CreateLessonPage({ params }: PageProps) {
                     onClick={() => setType("quizzes")}
                     className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                       type === "quizzes"
-                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 animate-in fade-in duration-200"
-                        : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 hover:border-zinc-300"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                        : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
                     Quizzes
@@ -372,56 +368,125 @@ export default function CreateLessonPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-zinc-600">Lesson Title *</label>
+                <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Title *</label>
                 <input
                   type="text"
                   placeholder="e.g. Lesson 1.1: Velocity and Acceleration"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-2xl border text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 ${
-                    errorFields.title ? "border-red-400" : "border-[#E5E1D8]"
+                  className={`w-full px-1 py-2 bg-transparent border-b text-[14px] font-medium focus:outline-none transition-colors duration-200 ${
+                    errorFields.title ? "border-red-400" : "border-zinc-200"
                   }`}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f25c88";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "";
+                  }}
                 />
                 {errorFields.title && (
                   <span className="text-[11px] text-red-500 font-bold">{errorFields.title}</span>
                 )}
               </div>
 
-              {}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-zinc-600">Lesson Description</label>
+                <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Description</label>
                 <textarea
                   placeholder="Core topics covered, learning outcomes, or reading assignments..."
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 resize-none"
+                  className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none"
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f25c88";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "";
+                  }}
                 />
+              </div>
+
+              {/* Lesson Materials / Attachments Section */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  Lesson Materials / Attachments
+                </label>
+                {selectedFiles.length > 0 && (
+                  <div className="flex flex-col gap-2 mb-2">
+                    {selectedFiles.map((file, idx) => (
+                      <div key={idx} className="border border-[#E5E1D8] bg-[#FAF7F2]/40 rounded-xl p-3 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <BookOpen className="w-4 h-4 text-zinc-500 shrink-0" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[12px] font-bold text-zinc-800 truncate">
+                              {file.name}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 font-semibold">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFiles((prev) => prev.filter((_, i) => i !== idx))}
+                          className="p-1.5 rounded-full hover:bg-zinc-200 text-zinc-400 hover:text-rose-600 cursor-pointer transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <label className="border-2 border-dashed border-[#E5E1D8] hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group">
+                  <input
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <UploadCloud className="w-6 h-6 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+                  <div className="flex flex-col items-center">
+                    <span className="text-[11px] font-bold text-zinc-700">
+                      Attach slide decks, PDF, or resources
+                    </span>
+                    <span className="text-[9px] text-zinc-400 mt-0.5">Formats up to 50MB</span>
+                  </div>
+                </label>
               </div>
 
               {type !== "learning" && (
                 <>
-                  {}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[12px] font-bold text-zinc-600">Open Date</label>
+                      <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Open Date</label>
                       <input
                         type="datetime-local"
                         value={openDate}
                         onChange={(e) => setOpenDate(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
+                        className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200"
+                        onFocus={(e) => {
+                          e.target.style.borderColor = "#f25c88";
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = "";
+                        }}
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-[12px] font-bold text-zinc-600">Close Date</label>
+                      <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Close Date</label>
                       <input
                         type="datetime-local"
                         value={closeDate}
                         onChange={(e) => setCloseDate(e.target.value)}
-                        className="w-full px-4 py-3 rounded-2xl border border-[#E5E1D8] text-[14px] bg-[#FAF9F5] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
+                        className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200"
+                        onFocus={(e) => {
+                          e.target.style.borderColor = "#f25c88";
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = "";
+                        }}
                       />
                     </div>
                   </div>
@@ -429,9 +494,8 @@ export default function CreateLessonPage({ params }: PageProps) {
                     <span className="text-[11px] text-red-500 font-bold">{errorFields.dates}</span>
                   )}
 
-                  {}
                   <div className="flex flex-col gap-2 pt-2">
-                    <label className="text-[12px] font-bold text-zinc-600">Submission Restriction</label>
+                    <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Submission Restriction</label>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
@@ -439,7 +503,7 @@ export default function CreateLessonPage({ params }: PageProps) {
                         className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                           closeType === "open"
                             ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
-                            : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 font-semibold"
+                            : "border-[#E5E1D8] bg-transparent text-zinc-500 font-semibold hover:border-zinc-300"
                         }`}
                       >
                         <Unlock className="w-4.5 h-4.5" />
@@ -455,7 +519,7 @@ export default function CreateLessonPage({ params }: PageProps) {
                         className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                           closeType === "restrict"
                             ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
-                            : "border-[#E5E1D8] bg-[#FAF9F5] text-zinc-500 font-semibold"
+                            : "border-[#E5E1D8] bg-transparent text-zinc-500 font-semibold hover:border-zinc-300"
                         }`}
                       >
                         <Lock className="w-4.5 h-4.5" />
@@ -469,17 +533,17 @@ export default function CreateLessonPage({ params }: PageProps) {
                 </>
               )}
 
-              <div className="flex items-center gap-3 justify-end pt-4 border-t border-zinc-100 mt-2">
+              <div className="flex items-center gap-3 justify-end mt-2">
                 <Link
                   href={`/dashboard/subject/${subject.id}`}
-                  className="px-6 py-2.5 border border-[#E5E1D8] text-zinc-700 font-bold rounded-full text-[12px] hover:bg-[#FAF9F5] transition-all cursor-pointer"
+                  className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
                 >
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-8 py-2.5 bg-[#121212] text-white hover:bg-zinc-800 font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="px-8 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-[0.98]"
                 >
                   {isSaving ? (
                     <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
@@ -492,35 +556,89 @@ export default function CreateLessonPage({ params }: PageProps) {
             </form>
           </div>
 
-          {}
-          <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-4">
-            <h3 className="text-[14px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
-              <Info className="w-4 h-4 text-[#f25c88]" />
-              Lesson Guidelines
-            </h3>
-
-            <div className="flex flex-col gap-4 text-[12px] text-zinc-600 font-medium">
-              <div className="flex gap-2.5 items-start bg-[#f25c88]/5 p-3 rounded-2xl border border-[#f25c88]/10 text-zinc-800">
-                <Lightbulb className="w-4 h-4 text-[#f25c88] flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-extrabold text-[12px] block text-[#f25c88] mb-0.5">Lesson Placement</span>
-                  Lessons must reside inside a module segment. They act as actual lecture dates containing materials, notes, and file upload dropzones.
+          {/* Right Column - Info Cards */}
+          <div className="lg:col-span-4 flex flex-col gap-6 sticky top-6 text-left self-start w-full">
+            <div className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
+              <div className="flex flex-col gap-1 border-b border-[#E5E1D8]/40 pb-3">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                  Target Subject
+                </span>
+                <span
+                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit mb-2"
+                  style={{
+                    backgroundColor: "#f25c8815",
+                    color: "#f25c88",
+                    border: "1px solid #f25c8830",
+                  }}
+                >
+                  {subject.room || "Room Online"}
+                </span>
+                <h2 className="text-[18px] font-black text-[#121212] tracking-tight leading-tight">
+                  {subject.name}
+                </h2>
+                <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[11px] mt-1.5">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>Lecturers: {subject.lecturers.map((l) => l.name).join(", ")}</span>
                 </div>
               </div>
 
-              <div className="flex gap-2.5 items-start bg-zinc-50 p-3 rounded-2xl border border-zinc-100">
-                <Lock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold block text-zinc-950">Locking Policy</span>
-                  By enabling *Restricted Submission*, the submission slot locks down automatically on the close date, rejecting any late files from students.
-                </div>
-              </div>
+              {subject.description && (
+                <p className="text-[11px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-3.5 border border-[#E5E1D8]/30 rounded-2xl">
+                  {subject.description}
+                </p>
+              )}
 
-              <div className="flex gap-2.5 items-start bg-zinc-50 p-3 rounded-2xl border border-zinc-100">
-                <FileCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold block text-zinc-950">Submissions</span>
-                  Students can submit their assignments directly within the lesson row in the main syllabus detail view.
+              {subject.modules && subject.modules.length > 0 && (
+                <div className="flex flex-col gap-2 pt-1 border-t border-[#E5E1D8]/40 mt-1">
+                  <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-wider mb-0.5">
+                    Current Modules ({subject.modules.length})
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    {subject.modules.map((mod) => (
+                      <div
+                        key={mod.id}
+                        className="flex justify-between items-center text-[10.5px] font-semibold text-zinc-700 bg-[#FAF9F5] px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl"
+                      >
+                        <span className="truncate pr-2">{mod.title}</span>
+                        <span className="text-zinc-400 text-[9px] flex-shrink-0">
+                          {mod.lessons ? mod.lessons.length : 0} lessons
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white border border-[#E5E1D8]/60 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+              <h3 className="text-[13px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
+                <Info className="w-4.5 h-4.5 text-[#f25c88]" />
+                Lesson Guidelines
+              </h3>
+
+              <div className="flex flex-col gap-4 text-[12px] text-zinc-600 font-medium">
+                <div className="flex gap-2.5 items-start bg-[#f25c88]/5 p-3 rounded-2xl border border-[#f25c88]/10 text-zinc-800">
+                  <Lightbulb className="w-4 h-4 text-[#f25c88] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-extrabold text-[12px] block text-[#f25c88] mb-0.5">Lesson Placement</span>
+                    Lessons must reside inside a module segment. They act as actual lecture dates containing materials, notes, and file upload dropzones.
+                  </div>
+                </div>
+
+                <div className="flex gap-2.5 items-start bg-zinc-50 p-3 rounded-2xl border border-zinc-100">
+                  <Lock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block text-zinc-950">Locking Policy</span>
+                    By enabling *Restricted Submission*, the submission slot locks down automatically on the close date, rejecting any late files from students.
+                  </div>
+                </div>
+
+                <div className="flex gap-2.5 items-start bg-zinc-50 p-3 rounded-2xl border border-zinc-100">
+                  <FileCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block text-zinc-950">Submissions</span>
+                    Students can submit their assignments directly within the lesson row in the main syllabus detail view.
+                  </div>
                 </div>
               </div>
             </div>
@@ -528,5 +646,13 @@ export default function CreateLessonPage({ params }: PageProps) {
         </div>
       </div>
     </>
+  );
+}
+
+export default function CreateLessonPage({ params }: PageProps) {
+  return (
+    <Suspense fallback={<div className="p-8 text-[14px] text-zinc-500 font-bold">Loading lesson creation...</div>}>
+      <CreateLessonInner params={params} />
+    </Suspense>
   );
 }
