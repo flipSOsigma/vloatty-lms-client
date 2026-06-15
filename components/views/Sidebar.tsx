@@ -62,9 +62,11 @@ export default function Sidebar() {
               isMinimized ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
             }`}
           >
-            <span className="text-white text-3xl font-semibold tracking-tight font-sans">
-              Vloatty
-            </span>
+            <img
+              src="/vloatty - Logo Typeface.png"
+              alt="Vloatty"
+              className="w-26 object-contain"
+            />
           </div>
           <button
             onClick={handleToggle}

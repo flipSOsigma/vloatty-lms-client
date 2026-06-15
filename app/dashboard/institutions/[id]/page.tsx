@@ -21,7 +21,24 @@ interface Institution {
   thumbnail?: string;
   users?: any[];
   subjects?: any[];
+  inviteCode?: string;
+  createdAt?: string;
 }
+
+const formatDate = (isoString: string | undefined) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch (e) {
+    return "";
+  }
+};
 
 export default function InstitutionDetailPage({ params }: PageProps) {
   const router = useRouter();
@@ -36,6 +53,12 @@ export default function InstitutionDetailPage({ params }: PageProps) {
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [linkedCols, setLinkedCols] = useState(3);
   const [createdCols, setCreatedCols] = useState(3);
+
+  useEffect(() => {
+    if (institution) {
+      document.title = `${institution.name} - VLOATTY Learning Management System`;
+    }
+  }, [institution]);
 
   const getGridColsClass = (colCount: number) => {
     switch (colCount) {
@@ -171,71 +194,101 @@ export default function InstitutionDetailPage({ params }: PageProps) {
               <span className="text-[11px] font-bold text-zinc-400">View institution profile, users, and subjects</span>
             </div>
           </div>
-          <Link
-            href={`/dashboard/institutions/${id}/manage`}
-            className="flex items-center gap-1.5 px-4.5 py-2.5 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-          >
-            <Settings className="w-3.5 h-3.5 text-zinc-500" />
-            Manage Institution
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-0">
-            <div className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
-              <div className="flex flex-col items-center text-center gap-3 pb-4 border-b border-zinc-100">
-                {institution.thumbnail && institution.thumbnail.trim().length > 0 ? (
-                  <img
-                    src={institution.thumbnail}
-                    alt={institution.name}
-                    className="w-16 h-16 rounded-full object-cover shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
-                  />
-                ) : (
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center font-bold text-[24px] shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
-                    style={{ backgroundColor: theme.colorHex, color: "#ffffff" }}
-                  >
-                    {institution.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex flex-col items-center">
-                  <h3 className="text-[16.5px] font-black text-zinc-950 tracking-tight leading-tight">
-                    {institution.name}
-                  </h3>
-                  <span className={`text-[9.5px] font-extrabold uppercase px-2.5 py-0.5 rounded-md mt-1.5 tracking-wider w-fit block ${theme.tagBg}`}>
-                    {institution.subscriptionStatus} Plan
-                  </span>
-                </div>
+          <div className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-0 pl-13">
+            <div className="flex flex-col gap-5 w-full">
+
+
+              <div className="flex flex-col gap-1">
+                <span
+                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit uppercase tracking-wider"
+                  style={{
+                    backgroundColor: "#f25c8815",
+                    color: "#f25c88",
+                    border: "1px solid #f25c8830"
+                  }}
+                >
+                  {institution.subscriptionStatus} Plan
+                </span>
+                <h2 className="text-2xl font-black text-zinc-950 tracking-tight mt-2 leading-tight">
+                  {institution.name}
+                </h2>
               </div>
 
               {institution.description && (
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Description</span>
-                  <p className="text-[12px] text-zinc-600 leading-relaxed font-medium bg-[#FAF9F5] p-4 border border-[#E5E1D8]/45 rounded-2xl">
-                    {institution.description}
-                  </p>
+                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                  {institution.description}
+                </p>
+              )}
+
+              {institution.users && institution.users.length > 0 && (
+                <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
+                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                    Active Directory
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    {institution.users.slice(0, 5).map((user: any) => {
+                      const userInitials = user.name
+                        ? user.name
+                            .split(" ")
+                            .map((w: string) => w[0])
+                            .join("")
+                            .substring(0, 2)
+                            .toUpperCase()
+                        : "?";
+                      return (
+                        <div key={user.id} className="flex items-center justify-between bg-[#FAF7F2]/50 p-2.5 border border-[#E5E1D8]/30 rounded-xl">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {user.avatar ? (
+                              <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-[#f25c88]/10 border border-[#f25c88]/15 text-[#f25c88] flex items-center justify-center text-[10.5px] font-black shrink-0">
+                                {userInitials}
+                              </div>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[12.5px] font-bold text-zinc-950 truncate">{user.name}</span>
+                              <span className="text-[10px] text-zinc-400 font-semibold truncate capitalize">{user.institutionRole || "Lecturer"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {institution.users.length > 5 && (
+                      <span className="text-[11px] font-bold text-zinc-400 mt-1 pl-1">
+                        + {institution.users.length - 5} more members
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
 
-              <div className="flex flex-col gap-3 pt-2">
-                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Organization Stats</span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 bg-[#FAF9F5] p-3 rounded-2xl border border-[#E5E1D8]/30">
-                    <Users className="w-5 h-5 text-zinc-400" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase">Users</span>
-                      <span className="text-[13px] font-extrabold text-zinc-800">{institution.users ? institution.users.length : 0}</span>
-                    </div>
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                  Organization Info
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                    <span>Invite Code</span>
+                    <span className="text-zinc-500 text-[11px] select-all font-mono">{institution.inviteCode || "None"}</span>
                   </div>
-                  <div className="flex items-center gap-2 bg-[#FAF9F5] p-3 rounded-2xl border border-[#E5E1D8]/30">
-                    <BookOpen className="w-5 h-5 text-zinc-400" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-bold text-zinc-400 uppercase">Subjects</span>
-                      <span className="text-[13px] font-extrabold text-zinc-800">{linkedSubjects.length}</span>
+                  {institution.createdAt && (
+                    <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                      <span>Joined Date</span>
+                      <span className="text-zinc-500 text-[11px]">{formatDate(institution.createdAt)}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
+
+              <Link
+                href={`/dashboard/institutions/${institution.id}/manage`}
+                className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
+              >
+                <span>Manage Institution</span>
+              </Link>
             </div>
           </div>
 

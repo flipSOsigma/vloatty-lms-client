@@ -28,20 +28,25 @@ export default function SchedulesSection({
   errorFields,
 }: SchedulesSectionProps) {
   return (
-    <div id="schedules" className="flex flex-col gap-8 w-full mb-16 pl-12 scroll-mt-24">
-      <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-        <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-          <Calendar className="w-4.5 h-4.5 text-[#f25c88]" />
-          Schedules
-        </h3>
-        <button
-          type="button"
-          onClick={() => setSubjectSchedules((prev) => [...prev, { day: "Monday", startTime: "09:00", endTime: "10:40", room: "" }])}
-          className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add Time
-        </button>
+    <div id="schedules" className="flex flex-col gap-6 w-full mb-16 pl-12 scroll-mt-24">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+            <Calendar className="w-4.5 h-4.5" style={{ color: subjectColor }} />
+            Schedules
+          </h3>
+          <button
+            type="button"
+            onClick={() => setSubjectSchedules((prev) => [...prev, { day: "Monday", startTime: "09:00", endTime: "10:40", room: "" }])}
+            className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Time
+          </button>
+        </div>
+        <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
+          Define weekly timetables and set custom room overrides for individual lectures.
+        </p>
       </div>
 
       {errorFields.subjectSchedules && (

@@ -17,6 +17,9 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
 
+  const subjectColor = "#f25c88";
+  const isHexColor = true;
+
   let colorTheme = {
     bg: "bg-white",
     border: "border border-zinc-200/60",
@@ -24,34 +27,6 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
     logoBg: "bg-[#ECE8E0] text-zinc-800",
     tagBg: "bg-zinc-100/60 text-zinc-500",
   };
-
-  if (subject.color === "yellow") {
-    colorTheme = {
-      bg: "bg-white",
-      border: "border border-amber-200/60",
-      shadow: "hover:shadow-[0_20px_40px_rgba(250,213,107,0.14)]",
-      logoBg: "bg-[#FAD56B] text-amber-950",
-      tagBg: "bg-amber-50/70 text-amber-800",
-    };
-  } else if (subject.color === "blue") {
-    colorTheme = {
-      bg: "bg-white",
-      border: "border border-blue-200/60",
-      shadow: "hover:shadow-[0_20px_40px_rgba(191,211,247,0.22)]",
-      logoBg: "bg-[#BFD3F7] text-blue-950",
-      tagBg: "bg-blue-50/70 text-blue-800",
-    };
-  } else if (subject.color === "image-text") {
-    colorTheme = {
-      bg: "bg-white",
-      border: "border border-stone-200/60",
-      shadow: "hover:shadow-[0_20px_40px_rgba(18,18,18,0.04)]",
-      logoBg: "bg-[#121212] text-white",
-      tagBg: "bg-stone-50 text-stone-600",
-    };
-  }
-
-  const isHexColor = subject.color && subject.color.startsWith("#");
 
   const hexToRgba = (hex: string | undefined, opacity: number) => {
     if (!hex) return "";
@@ -99,20 +74,18 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
           isHexColor
             ? {
                 backgroundColor: "#ffffff",
-                border: `1px solid ${hexToRgba(subject.color, 0.15)}`,
-                boxShadow: `0 10px 30px ${hexToRgba(subject.color, 0.05)}`,
+                border: `1px solid ${hexToRgba(subjectColor, 0.15)}`,
+                boxShadow: `0 10px 30px ${hexToRgba(subjectColor, 0.05)}`,
               }
             : undefined
         }
       >
-        {subject.thumbnail && (
-          <div
-            className="absolute inset-0 w-full h-full bg-cover bg-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
-            style={{ backgroundImage: `url(${subject.thumbnail})` }}
-          >
-            <div className="absolute inset-0 bg-black/45" />
-          </div>
-        )}
+        <div
+          className="absolute inset-0 w-full h-full bg-cover bg-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
+          style={{ backgroundImage: `url("${subject.thumbnail || "/Subject%20Card%20-%20Thumbnail.png"}")` }}
+        >
+          <div className="absolute inset-0 bg-black/45" />
+        </div>
 
         <div className="flex flex-col justify-between h-full w-full gap-8 min-h-25 relative z-10">
           <div className="flex justify-end w-full">

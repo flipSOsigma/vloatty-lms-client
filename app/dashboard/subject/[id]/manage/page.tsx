@@ -129,10 +129,16 @@ export default function ManageSubjectPage({ params }: PageProps) {
 
   const subject = subjects.find((s) => s.id === id);
 
+  React.useEffect(() => {
+    if (subject) {
+      document.title = `${subject.name} - VLOATTY Learning Management System`;
+    }
+  }, [subject]);
+
   const [subjectName, setSubjectName] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
   const [subjectRoom, setSubjectRoom] = useState("");
-  const [subjectColor, setSubjectColor] = useState("#f25c88");
+  const subjectColor = "#f25c88";
   const [subjectLecturers, setSubjectLecturers] = useState<FormLecturer[]>([]);
   const [subjectSchedules, setSubjectSchedules] = useState<FormSchedule[]>([]);
   const [subjectThumbnail, setSubjectThumbnail] = useState("");
@@ -236,7 +242,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
       setSubjectName(subject.name);
       setSubjectDesc(subject.description || "");
       setSubjectRoom(subject.room || "");
-      setSubjectColor(subject.color && subject.color.startsWith("#") ? subject.color : "#f25c88");
       setSubjectThumbnail(subject.thumbnail || "");
       setSubjectLecturers(subject.lecturers.map((l) => ({ email: l.email || "", name: l.name })));
       setSubjectSchedules(
@@ -258,8 +263,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
     if (subjectName !== subject.name) return true;
     if (subjectDesc !== (subject.description || "")) return true;
     if (subjectRoom !== (subject.room || "")) return true;
-    const origColor = subject.color && subject.color.startsWith("#") ? subject.color : "#f25c88";
-    if (subjectColor !== origColor) return true;
     if (subjectThumbnail !== (subject.thumbnail || "")) return true;
     if (isOpen !== (subject.isOpen ?? false)) return true;
     if (category !== (subject.category ?? "Lecture")) return true;
@@ -457,7 +460,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
       name: subjectName.trim(),
       description: subjectDesc.trim(),
       room: subjectRoom.trim() || "Online Classroom",
-      color: subjectColor,
       thumbnail: subjectThumbnail,
       lecturers: mappedLecturers,
       schedules: mappedSchedules,
@@ -500,9 +502,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
           </Link>
           <div>
             <h1 className="text-2xl font-extrabold text-[#121212] tracking-tight">
-              Edit Subject Details
+              Manage Subject
             </h1>
-            <p className="text-[12px] text-zinc-500 font-medium">
+            <p className="text-[12px] text-zinc-500 font-medium -mt-1">
               Update course parameters, classroom, theme colors, lecturers, and class schedules.
             </p>
           </div>
@@ -516,7 +518,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
-          <div className="lg:col-span-9 flex flex-col gap-24 w-full">
+          <div className="lg:col-span-9 flex flex-col gap-24 w-full lg:pr-20">
             <form onSubmit={handleSaveDetails} className="flex flex-col gap-24 w-full">
               <BasicParametersSection
                 subjectName={subjectName}
@@ -526,7 +528,6 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 subjectRoom={subjectRoom}
                 setSubjectRoom={setSubjectRoom}
                 subjectColor={subjectColor}
-                setSubjectColor={setSubjectColor}
                 subjectThumbnail={subjectThumbnail}
                 setSubjectThumbnail={setSubjectThumbnail}
                 isUploading={isUploading}
@@ -599,9 +600,9 @@ export default function ManageSubjectPage({ params }: PageProps) {
             />
           </div>
 
-          <div className="lg:col-span-3 hidden lg:flex flex-col gap-4 sticky top-6 bg-white border border-[#E5E1D8]/60 p-5 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.005)] text-left self-start">
-            {subjectThumbnail && (
-              <div className="w-full aspect-video rounded-xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0">
+          <div className="lg:col-span-3 hidden lg:flex flex-col gap-5 sticky top-6 text-left self-start pl-6">
+            {subjectThumbnail && subjectThumbnail.trim().length > 0 && (
+              <div className="w-32 h-20 rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0 mb-2">
                 <img
                   src={subjectThumbnail}
                   alt="Thumbnail"
@@ -609,10 +610,10 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 />
               </div>
             )}
-            <span className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider">
+            <span className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider px-3">
               On This Page
             </span>
-            <div className="flex flex-col gap-1.5 w-full">
+            <div className="flex flex-col gap-1 w-full">
               {sidebarSections.map((sec) => {
                 const Icon = sec.icon;
                 const isActive = activeSection === sec.id;
@@ -621,17 +622,17 @@ export default function ManageSubjectPage({ params }: PageProps) {
                     key={sec.id}
                     type="button"
                     onClick={() => scrollToSection(sec.id)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[12.5px] font-bold transition-all text-left w-full group active:scale-[0.98] ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[12.5px] font-bold transition-all text-left w-full group active:scale-[0.98] ${
                       isActive
                         ? sec.isDanger
-                          ? "bg-red-50 text-red-600 border-l-2 border-red-500 rounded-l-none"
-                          : "rounded-l-none"
+                          ? "bg-red-50 text-red-600 border-l-2 border-red-500 rounded-l-none -ml-[25px] pl-[23px]"
+                          : "rounded-l-none -ml-[25px] pl-[23px]"
                         : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50/80"
                     }`}
                     style={
                       isActive && !sec.isDanger
                         ? {
-                            backgroundColor: hexToRgba(subjectColor, 0.08),
+                            backgroundColor: hexToRgba(subjectColor, 0.05),
                             color: subjectColor,
                             borderLeft: `2px solid ${subjectColor}`,
                           }

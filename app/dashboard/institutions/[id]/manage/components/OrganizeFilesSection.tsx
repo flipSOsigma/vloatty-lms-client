@@ -1,14 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
-import { FileText, HelpCircle, UploadCloud, Download, Trash2, File as FileIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import React from "react";
+import {
+  FileText,
+  HelpCircle,
+  UploadCloud,
+  Download,
+  Trash2,
+  File as FileIcon,
+} from "lucide-react";
+import { useTableControls } from "../hooks/useTableControls";
+import TableControls from "./TableControls";
+import TablePagination from "./TablePagination";
+import SortableHeader from "./SortableHeader";
 
-const PAGE_SIZE = 5;
+export interface InstitutionFile extends Record<string, unknown> {
+  id: string;
+  name: string;
+  size: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  uploaderRole: string;
+  downloads: number;
+  category: string;
+}
+
+interface CurrentUser {
+  id?: string;
+  name?: string;
+  email?: string;
+  premiumStatus?: string;
+}
 
 interface OrganizeFilesSectionProps {
-  files: any[];
-  setFiles: React.Dispatch<React.SetStateAction<any[]>>;
-  currentUser: any;
+  files: InstitutionFile[];
+  setFiles: React.Dispatch<React.SetStateAction<InstitutionFile[]>>;
+  currentUser: CurrentUser | null;
   showToast: (msg: string, type: "success" | "error") => void;
 }
 
@@ -18,9 +45,25 @@ export default function OrganizeFilesSection({
   currentUser,
   showToast,
 }: OrganizeFilesSectionProps) {
-  const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(files.length / PAGE_SIZE));
-  const paged = files.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const {
+    search,
+    setSearch,
+    sortKey,
+    sortDir,
+    toggleSort,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    paged,
+    totalPages,
+    totalFiltered,
+  } = useTableControls<InstitutionFile>({
+    data: files,
+    searchFields: ["name", "category", "uploadedBy"],
+    defaultSort: "name",
+    defaultPageSize: 5,
+  });
 
   return (
     <div id="organize-files" className="flex flex-col gap-8 w-full mb-16 pl-12 scroll-mt-24">
@@ -33,7 +76,12 @@ export default function OrganizeFilesSection({
             </h3>
             <button
               type="button"
-              onClick={() => showToast("Upload and organize documentation, media files, and campus assets.", "success")}
+              onClick={() =>
+                showToast(
+                  "Upload and organize documentation, media files, and campus assets.",
+                  "success"
+                )
+              }
               className="w-5 h-5 rounded-full bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-400 hover:text-zinc-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95 group/help relative"
             >
               <HelpCircle className="w-3 h-3" />
@@ -50,18 +98,18 @@ export default function OrganizeFilesSection({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  const newFile = {
+                  const newFile: InstitutionFile = {
                     id: Math.random().toString(36).substring(2, 9),
                     name: file.name,
                     size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
                     uploadedAt: new Date().toISOString().split("T")[0],
                     uploadedBy: currentUser?.name || "Unknown",
-                    uploaderRole: currentUser?.premiumStatus === "professional" ? "Owner" : "Admin",
+                    uploaderRole:
+                      currentUser?.premiumStatus === "professional" ? "Owner" : "Admin",
                     downloads: 0,
                     category: file.name.endsWith(".pdf") ? "Policy" : "Academic",
                   };
                   setFiles((prev) => [...prev, newFile]);
-                  setPage(Math.ceil((files.length + 1) / PAGE_SIZE));
                   showToast(`File "${file.name}" uploaded successfully!`, "success");
                 }
               }}
@@ -80,6 +128,18 @@ export default function OrganizeFilesSection({
         </p>
       </div>
 
+      {files.length > 0 && (
+        <TableControls
+          search={search}
+          onSearchChange={setSearch}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+          total={files.length}
+          filtered={totalFiltered}
+          searchPlaceholder="Search by file name, category, uploaded by..."
+        />
+      )}
+
       <div className="w-full overflow-x-auto">
         {files.length === 0 ? (
           <div className="w-full h-32 flex items-center justify-center border border-dashed border-[#E5E1D8] rounded-2xl bg-white/40">
@@ -89,13 +149,39 @@ export default function OrganizeFilesSection({
           <table className="w-full text-left border-collapse min-w-[750px]">
             <thead>
               <tr className="border-b border-zinc-200">
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">Format</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">File Name</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Size</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Uploaded By</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Downloads</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Upload Date</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">
+                  Format
+                </th>
+                <SortableHeader
+                  label="File Name"
+                  sortKey="name"
+                  currentSort={sortKey as string | null}
+                  sortDir={sortDir}
+                  onSort={(k) => toggleSort(k as keyof InstitutionFile)}
+                />
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  Size
+                </th>
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  Uploaded By
+                </th>
+                <SortableHeader
+                  label="Downloads"
+                  sortKey="downloads"
+                  currentSort={sortKey as string | null}
+                  sortDir={sortDir}
+                  onSort={(k) => toggleSort(k as keyof InstitutionFile)}
+                />
+                <SortableHeader
+                  label="Upload Date"
+                  sortKey="uploadedAt"
+                  currentSort={sortKey as string | null}
+                  sortDir={sortDir}
+                  onSort={(k) => toggleSort(k as keyof InstitutionFile)}
+                />
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100/55">
@@ -121,8 +207,12 @@ export default function OrganizeFilesSection({
                   </td>
                   <td className="py-3 pr-4">
                     <div className="flex flex-col">
-                      <span className="text-[12px] text-zinc-700 font-semibold">{file.uploadedBy}</span>
-                      <span className="text-[9.5px] text-zinc-400 font-bold">{file.uploaderRole}</span>
+                      <span className="text-[12px] text-zinc-700 font-semibold">
+                        {file.uploadedBy}
+                      </span>
+                      <span className="text-[9.5px] text-zinc-400 font-bold">
+                        {file.uploaderRole}
+                      </span>
                     </div>
                   </td>
                   <td className="py-3 pr-4">
@@ -145,7 +235,6 @@ export default function OrganizeFilesSection({
                       type="button"
                       onClick={() => {
                         setFiles((prev) => prev.filter((f) => f.id !== file.id));
-                        setPage(1);
                       }}
                       className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
                     >
@@ -154,50 +243,28 @@ export default function OrganizeFilesSection({
                   </td>
                 </tr>
               ))}
+              {paged.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center">
+                    <span className="text-[12px] text-zinc-400 font-semibold">
+                      No files found matching search criteria.
+                    </span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-100">
-          <span className="text-[11px] text-zinc-400 font-semibold">
-            {files.length} files &middot; page {page} of {totalPages}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 disabled:opacity-30 transition-all active:scale-90 cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPage(p)}
-                className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all active:scale-90 cursor-pointer ${
-                  p === page
-                    ? "bg-[#121212] text-white"
-                    : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 disabled:opacity-30 transition-all active:scale-90 cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        total={totalFiltered}
+        onPage={setPage}
+        label="files"
+      />
     </div>
   );
 }

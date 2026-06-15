@@ -1,3 +1,23 @@
+export interface SubjectFile {
+  id: string;
+  name: string;
+  url: string;
+  mimeType: string;
+  sizeBytes: number;
+  category: "Attachment" | "Submission";
+  uploadedById: string;
+  uploadedBy?: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  subjectId: string;
+  lessonId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
+}
+
 export interface Lesson {
   id: string;
   title: string;
@@ -10,6 +30,7 @@ export interface Lesson {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  files?: SubjectFile[];
 }
 
 export interface Module {
@@ -49,7 +70,6 @@ export interface Subject {
   name: string;
   lecturers: SubjectLecturer[];
   room?: string;
-  color?: string;
   description?: string;
   modules: Module[];
   schedules?: SubjectSchedule[];
@@ -66,5 +86,7 @@ export interface Subject {
   category?: string;
   institutionId?: string | null;
   thumbnail?: string | null;
+  files?: SubjectFile[];
 }
+
 

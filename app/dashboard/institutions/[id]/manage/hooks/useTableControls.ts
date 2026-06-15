@@ -27,7 +27,7 @@ interface TableControlsReturn<T> {
   debouncedSearch: string;
 }
 
-export function useTableControls<T extends Record<string, unknown>>({
+export function useTableControls<T>({
   data,
   searchFields,
   defaultSort,

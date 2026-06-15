@@ -31,11 +31,16 @@ export default function CategoryInviteSection({
   showToast,
 }: CategoryInviteSectionProps) {
   return (
-    <div id="category-invite" className="flex flex-col gap-8 w-full mb-16 pl-12 scroll-mt-24">
-      <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
-        <Sparkles className="w-4.5 h-4.5 text-[#f25c88]" />
-        Category & Invite Settings
-      </h3>
+    <div id="category-invite" className="flex flex-col gap-6 w-full mb-16 pl-12 scroll-mt-24">
+      <div className="flex flex-col">
+        <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+          <Sparkles className="w-4.5 h-4.5" style={{ color: subjectColor }} />
+          Category &amp; Invite Settings
+        </h3>
+        <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
+          Adjust the learning module category type and invite students or auditors via custom join links and email notifications.
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <div className="flex flex-col gap-5 border-r border-zinc-100/50 pr-0 md:pr-6">

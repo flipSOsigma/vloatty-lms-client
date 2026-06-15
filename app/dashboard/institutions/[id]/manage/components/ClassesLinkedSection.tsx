@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { BookOpen, HelpCircle, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
-
-const PAGE_SIZE = 5;
+import React from "react";
+import { BookOpen, HelpCircle, Plus, Trash2 } from "lucide-react";
+import { useTableControls } from "../hooks/useTableControls";
+import TableControls from "./TableControls";
+import TablePagination from "./TablePagination";
+import SortableHeader from "./SortableHeader";
+import { Subject } from "../../../../../../types/subject";
 
 interface ClassesLinkedSectionProps {
-  linkedSubjects: any[];
-  setLinkedSubjects: React.Dispatch<React.SetStateAction<any[]>>;
+  linkedSubjects: Subject[];
+  setLinkedSubjects: React.Dispatch<React.SetStateAction<Subject[]>>;
   setIsClassModalOpen: (val: boolean) => void;
   setClassSearchQuery: (val: string) => void;
   hexToRgba: (hex: string, opacity: number) => string;
@@ -22,9 +25,25 @@ export default function ClassesLinkedSection({
   hexToRgba,
   showToast,
 }: ClassesLinkedSectionProps) {
-  const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(linkedSubjects.length / PAGE_SIZE));
-  const paged = linkedSubjects.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const {
+    search,
+    setSearch,
+    sortKey,
+    sortDir,
+    toggleSort,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    paged,
+    totalPages,
+    totalFiltered,
+  } = useTableControls<Subject>({
+    data: linkedSubjects,
+    searchFields: ["name", "room", "category"],
+    defaultSort: "name",
+    defaultPageSize: 5,
+  });
 
   return (
     <div id="classes-linked" className="flex flex-col gap-8 w-full mb-16 pl-12 scroll-mt-24">
@@ -37,7 +56,12 @@ export default function ClassesLinkedSection({
             </h3>
             <button
               type="button"
-              onClick={() => showToast("Link academic subjects to make them accessible inside this institution's view.", "success")}
+              onClick={() =>
+                showToast(
+                  "Link academic subjects to make them accessible inside this institution's view.",
+                  "success"
+                )
+              }
               className="w-5 h-5 rounded-full bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 text-zinc-400 hover:text-zinc-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105 active:scale-95 group/help relative"
             >
               <HelpCircle className="w-3 h-3" />
@@ -63,43 +87,82 @@ export default function ClassesLinkedSection({
         </p>
       </div>
 
+      {linkedSubjects.length > 0 && (
+        <TableControls
+          search={search}
+          onSearchChange={setSearch}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
+          total={linkedSubjects.length}
+          filtered={totalFiltered}
+          searchPlaceholder="Search by name, room, category..."
+        />
+      )}
+
       <div className="w-full overflow-x-auto">
         {linkedSubjects.length === 0 ? (
           <div className="w-full h-32 flex items-center justify-center border border-dashed border-[#E5E1D8] rounded-2xl bg-white/40">
-            <span className="text-[12px] text-zinc-400 font-semibold">No classes linked to this institution.</span>
+            <span className="text-[12px] text-zinc-400 font-semibold">
+              No classes linked to this institution.
+            </span>
           </div>
         ) : (
           <table className="w-full text-left border-collapse min-w-[750px]">
             <thead>
               <tr className="border-b border-zinc-200">
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">Icon</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Class Name &amp; Room</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Lecturer</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Schedule Info</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Students</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Category</th>
-                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">
+                  Icon
+                </th>
+                <SortableHeader
+                  label="Class Name &amp; Room"
+                  sortKey="name"
+                  currentSort={sortKey as string | null}
+                  sortDir={sortDir}
+                  onSort={(k) => toggleSort(k as keyof Subject)}
+                />
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  Lecturer
+                </th>
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  Schedule Info
+                </th>
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                  Students
+                </th>
+                <SortableHeader
+                  label="Category"
+                  sortKey="category"
+                  currentSort={sortKey as string | null}
+                  sortDir={sortDir}
+                  onSort={(k) => toggleSort(k as keyof Subject)}
+                />
+                <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100/55">
               {paged.map((sub) => {
                 const initials = sub.name
-                  ? sub.name.split(" ").map((w: string) => w[0]).join("").substring(0, 2).toUpperCase()
+                  ? sub.name
+                      .split(" ")
+                      .map((w: string) => w[0])
+                      .join("")
+                      .substring(0, 2)
+                      .toUpperCase()
                   : "?";
 
-                let themeColor = "#ECE8E0";
-                if (sub.color === "yellow") themeColor = "#FAD56B";
-                else if (sub.color === "blue") themeColor = "#BFD3F7";
-                else if (sub.color === "image-text") themeColor = "#121212";
-                else if (sub.color && sub.color.startsWith("#")) themeColor = sub.color;
+                let themeColor = "#f25c88";
 
-                const schedulesText = sub.schedules && sub.schedules.length > 0
-                  ? `${sub.schedules[0].day} ${sub.schedules[0].startTime}-${sub.schedules[0].endTime}`
-                  : "No Schedule Set";
+                const schedulesText =
+                  sub.schedules && sub.schedules.length > 0
+                    ? `${sub.schedules[0].day} ${sub.schedules[0].startTime}-${sub.schedules[0].endTime}`
+                    : "No Schedule Set";
 
-                const lecturerName = sub.lecturers && sub.lecturers.length > 0
-                  ? sub.lecturers[0].name
-                  : "No Lecturer Assigned";
+                const lecturerName =
+                  sub.lecturers && sub.lecturers.length > 0
+                    ? sub.lecturers[0].name
+                    : "No Lecturer Assigned";
 
                 const participantCount = sub.participants ? sub.participants.length : 18;
 
@@ -118,7 +181,7 @@ export default function ClassesLinkedSection({
                           style={{
                             backgroundColor: hexToRgba(themeColor, 0.08),
                             color: themeColor === "#121212" ? "#121212" : themeColor,
-                            borderColor: hexToRgba(themeColor, 0.12)
+                            borderColor: hexToRgba(themeColor, 0.12),
                           }}
                         >
                           {initials}
@@ -128,14 +191,20 @@ export default function ClassesLinkedSection({
                     <td className="py-3 pr-4">
                       <div className="flex flex-col">
                         <span className="text-[13px] font-bold text-zinc-800">{sub.name}</span>
-                        <span className="text-[10px] text-zinc-400 font-medium">{sub.room || "Online Classroom"}</span>
+                        <span className="text-[10px] text-zinc-400 font-medium">
+                          {sub.room || "Online Classroom"}
+                        </span>
                       </div>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-[12px] text-zinc-600 font-semibold">{lecturerName}</span>
+                      <span className="text-[12px] text-zinc-600 font-semibold">
+                        {lecturerName}
+                      </span>
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-[12px] text-zinc-500 font-medium">{schedulesText}</span>
+                      <span className="text-[12px] text-zinc-500 font-medium">
+                        {schedulesText}
+                      </span>
                     </td>
                     <td className="py-3 pr-4">
                       <span className="text-[12px] text-zinc-600 font-bold bg-[#FAF9F5] px-2 py-0.5 border border-zinc-200/50 rounded-md">
@@ -159,50 +228,28 @@ export default function ClassesLinkedSection({
                   </tr>
                 );
               })}
+              {paged.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center">
+                    <span className="text-[12px] text-zinc-400 font-semibold">
+                      No classes found matching search criteria.
+                    </span>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-100">
-          <span className="text-[11px] text-zinc-400 font-semibold">
-            {linkedSubjects.length} classes &middot; page {page} of {totalPages}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 disabled:opacity-30 transition-all active:scale-90 cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPage(p)}
-                className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-all active:scale-90 cursor-pointer ${
-                  p === page
-                    ? "bg-[#121212] text-white"
-                    : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 disabled:opacity-30 transition-all active:scale-90 cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        total={totalFiltered}
+        onPage={setPage}
+        label="classes"
+      />
     </div>
   );
 }

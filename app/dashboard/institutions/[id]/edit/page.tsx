@@ -57,6 +57,12 @@ export default function EditInstitutionPage({ params }: PageProps) {
   }, [id, router]);
 
   useEffect(() => {
+    if (nameInput) {
+      document.title = `${nameInput} - VLOATTY Learning Management System`;
+    }
+  }, [nameInput]);
+
+  useEffect(() => {
     const sections = ["basic-parameters", "danger-zone"];
     const observer = new IntersectionObserver(
       (entries) => {

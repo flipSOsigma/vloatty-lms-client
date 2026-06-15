@@ -3,13 +3,15 @@
 import React from "react";
 import { Search, X, Plus } from "lucide-react";
 
+import { Subject } from "../../../../../../types/subject";
+
 interface LinkClassModalProps {
   isOpen: boolean;
   onClose: () => void;
   classSearchQuery: string;
   setClassSearchQuery: (val: string) => void;
-  availableSubjects: any[];
-  onLinkClass: (sub: any) => void;
+  availableSubjects: Subject[];
+  onLinkClass: (sub: Subject) => void;
 }
 
 export default function LinkClassModal({

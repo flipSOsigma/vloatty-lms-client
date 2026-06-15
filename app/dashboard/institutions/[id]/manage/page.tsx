@@ -19,11 +19,12 @@ import {
 
 import BasicParametersSection from "./components/BasicParametersSection";
 import ClassesLinkedSection from "./components/ClassesLinkedSection";
-import UserPermissionsSection from "./components/UserPermissionsSection";
-import OrganizeFilesSection from "./components/OrganizeFilesSection";
+import UserPermissionsSection, { UserPermission } from "./components/UserPermissionsSection";
+import OrganizeFilesSection, { InstitutionFile } from "./components/OrganizeFilesSection";
 import DangerZoneSection from "./components/DangerZoneSection";
 import LinkClassModal from "./components/LinkClassModal";
 import UnsavedChangesModal from "./components/UnsavedChangesModal";
+import { Subject } from "../../../../../types/subject";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -50,13 +51,13 @@ export default function ManageInstitutionPage({ params }: PageProps) {
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropFileName, setCropFileName] = useState("");
 
-  const [linkedSubjects, setLinkedSubjects] = useState<any[]>([]);
+  const [linkedSubjects, setLinkedSubjects] = useState<Subject[]>([]);
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [classSearchQuery, setClassSearchQuery] = useState("");
 
-  const [usersPermissions, setUsersPermissions] = useState<any[]>([]);
+  const [usersPermissions, setUsersPermissions] = useState<UserPermission[]>([]);
 
-  const [files, setFiles] = useState([
+  const [files, setFiles] = useState<InstitutionFile[]>([
     {
       id: "f1",
       name: "institution_handbook.pdf",
@@ -90,6 +91,12 @@ export default function ManageInstitutionPage({ params }: PageProps) {
   ]);
 
   const [initialData, setInitialData] = useState<any>(null);
+
+  useEffect(() => {
+    if (initialData) {
+      document.title = `${initialData.name} - VLOATTY Learning Management System`;
+    }
+  }, [initialData]);
 
   const hasChanges = React.useMemo(() => {
     if (isSaving || isDeleting || !initialData) return false;
@@ -502,6 +509,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
                   showToast={showToast}
                   inviteCode={inviteCode}
                   isOwner={isOwner}
+                  institutionId={id}
                 />
 
                 <OrganizeFilesSection

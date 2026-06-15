@@ -19,6 +19,7 @@ import {
   Search,
   X,
   BookOpen,
+  FileText,
 } from "lucide-react";
 import facultyMockRaw from "../../../../public/data/users.json";
 const facultyMock = facultyMockRaw as Record<string, string>;
@@ -47,7 +48,7 @@ export default function CreateSubjectPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [room, setRoom] = useState("");
-  const [color, setColor] = useState("#f25c88");
+  const color = "#f25c88";
   const [thumbnail, setThumbnail] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
@@ -101,6 +102,48 @@ export default function CreateSubjectPage() {
 
   const [isLecturerModalOpen, setIsLecturerModalOpen] = useState(false);
   const [lecturerSearchQuery, setLecturerSearchQuery] = useState("");
+
+  const [activeSection, setActiveSection] = useState("basic-parameters");
+
+  useEffect(() => {
+    const sections = ["basic-parameters", "lecturers", "schedules", "course-modules"];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -60% 0px" }
+    );
+
+    sections.forEach((sid) => {
+      const el = document.getElementById(sid);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      sections.forEach((sid) => {
+        const el = document.getElementById(sid);
+        if (el) observer.unobserve(el);
+      });
+    };
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const sidebarSections = [
+    { id: "basic-parameters", label: "Basic Parameters", icon: Settings },
+    { id: "lecturers", label: "Lecturers", icon: Users },
+    { id: "schedules", label: "Schedules", icon: Calendar },
+    { id: "course-modules", label: "Course Modules", icon: BookOpen },
+  ];
 
   const hexToRgba = (hex: string, opacity: number) => {
     try {
@@ -310,7 +353,6 @@ export default function CreateSubjectPage() {
         name: name.trim(),
         description: description.trim(),
         room: room.trim() || "Online Classroom",
-        color,
         thumbnail,
         lecturers: mappedLecturers,
         schedules: mappedSchedules,
@@ -342,324 +384,40 @@ export default function CreateSubjectPage() {
             <h1 className="text-2xl font-extrabold text-[#121212] tracking-tight">
               Create New Subject
             </h1>
-            <p className="text-[12px] text-zinc-500 font-medium">
+            <p className="text-[12px] text-zinc-500 font-medium -mt-1">
               Create a new educational course card, define schedules, and add modules.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full">
-          <div className="flex flex-col gap-5 w-full mb-8 pl-12">
-            <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
-              <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
-              Basic Parameters
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Subject Name *</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Artificial Intelligence & Neural Networks"
-                    className={`w-full px-4 py-3 rounded-2xl border text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 ${
-                      errors.name ? "border-red-400" : "border-zinc-200"
-                    }`}
-                  />
-                  {errors.name && (
-                    <span className="text-[11px] text-red-500 font-bold">{errors.name}</span>
-                  )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
+          <div className="lg:col-span-9 flex flex-col gap-24 w-full lg:pr-20">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-24 w-full">
+              <div id="basic-parameters" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+                <div className="flex flex-col">
+                  <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+                    <Settings className="w-4.5 h-4.5" style={{ color }} />
+                    Basic Parameters
+                  </h3>
+                  <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
+                    Configure the primary course details, default classroom location, and custom thumbnail image.
+                  </p>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Course Description</label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Write a brief overview of what this subject covers..."
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-2xl border border-zinc-200 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200 resize-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Default Classroom Location</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={room}
-                      onChange={(e) => setRoom(e.target.value)}
-                      placeholder="e.g. West Campus, Lab 402"
-                      className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all duration-200"
-                    />
-                    <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Theme Color (Wheel Picker)</label>
-                  <div className="flex items-center gap-3 bg-white border border-zinc-200 p-3 rounded-2xl">
-                    <input
-                      type="color"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      className="w-10 h-11 rounded-xl cursor-pointer overflow-hidden bg-transparent"
-                    />
-                    <div className="flex flex-col select-none min-w-0">
-                      <span className="text-[12.5px] font-extrabold text-zinc-800 uppercase tracking-wider">{color}</span>
-                      <span className="text-[9px] text-zinc-400 font-bold leading-tight">Click block to pick color</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-zinc-600">Subject Thumbnail</label>
-                  {thumbnail ? (
-                    <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-zinc-200 group">
-                      <img
-                        src={thumbnail}
-                        alt="Thumbnail preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setThumbnail("")}
-                          className="p-2 bg-white rounded-full text-rose-600 hover:scale-105 transition-transform cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-32 rounded-2xl border border-dashed border-zinc-200 flex flex-col items-center justify-center bg-white hover:border-[#f25c88] transition-colors relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={isUploading}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setCropFileName(file.name);
-                            const reader = new FileReader();
-                            reader.addEventListener("load", () => {
-                              setCropImageSrc(reader.result as string);
-                            });
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                      {isUploading ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="w-6 h-6 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
-                          <span className="text-[10px] text-zinc-400 font-bold">Uploading...</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-1">
-                          <Plus className="w-5 h-5 text-zinc-400" />
-                          <span className="text-[11px] text-zinc-400 font-bold">Upload image</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-                <Users className="w-4.5 h-4.5 text-[#f25c88]" />
-                Lecturers *
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setLecturerSearchQuery("");
-                  setIsLecturerModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add Lecturer
-              </button>
-            </div>
-
-            {errors.lecturers && (
-              <span className="text-[11px] text-red-500 font-bold">{errors.lecturers}</span>
-            )}
-
-            <div className="w-full overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">Avatar</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Email Address</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Display Name</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100/55">
-                  {lecturers.map((lecturer, idx) => {
-                    const initials = lecturer.name
-                      ? lecturer.name.split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase()
-                      : "?";
-
-                    return (
-                      <tr key={idx} className="hover:bg-zinc-50/10 transition-colors">
-                        <td className="py-3 pr-2">
-                          <div
-                            className="flex items-center justify-center w-8.5 h-8.5 rounded-full text-[10.5px] font-black border"
-                            style={{
-                              backgroundColor: hexToRgba(color, 0.08),
-                              color: color,
-                              borderColor: hexToRgba(color, 0.12)
-                            }}
-                          >
-                            {initials}
-                          </div>
-                        </td>
-                        <td className="py-3 pr-4">
-                          <input
-                            type="email"
-                            placeholder="e.g. olivia@vloatty.edu"
-                            value={lecturer.email}
-                            onChange={(e) => handleLecturerEmailChange(idx, e.target.value)}
-                            className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
-                            onFocus={(e) => {
-                              e.target.style.borderColor = color;
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = "";
-                            }}
-                          />
-                        </td>
-                        <td className="py-3 pr-4">
-                          <input
-                            type="text"
-                            placeholder="Resolved name or custom"
-                            value={lecturer.name}
-                            onChange={(e) => handleLecturerNameChange(idx, e.target.value)}
-                            className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
-                            onFocus={(e) => {
-                              e.target.style.borderColor = color;
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.borderColor = "";
-                            }}
-                          />
-                        </td>
-                        <td className="py-3 text-right">
-                          {lecturers.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => setLecturers((prev) => prev.filter((_, i) => i !== idx))}
-                              className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-[#f25c88]" />
-                Schedules
-              </h3>
-              <button
-                type="button"
-                onClick={() => setSchedules((prev) => [...prev, { day: "Monday", startTime: "09:00", endTime: "10:40", room: "" }])}
-                className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add Time
-              </button>
-            </div>
-
-            {errors.schedules && (
-              <span className="text-[11px] text-red-500 font-bold">{errors.schedules}</span>
-            )}
-
-            <div className="w-full overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[700px]">
-                <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Day of Week</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Start Time</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">End Time</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Classroom Location</th>
-                    <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100/55">
-                  {schedules.map((schedule, idx) => (
-                    <tr key={idx} className="hover:bg-zinc-50/10 transition-colors">
-                      <td className="py-3 pr-4 w-[200px]">
-                        <select
-                          value={schedule.day}
-                          onChange={(e) => handleScheduleChange(idx, "day", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = color;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        >
-                          {daysOfWeek.map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="py-3 pr-4 w-[130px]">
-                        <input
-                          type="time"
-                          value={schedule.startTime}
-                          onChange={(e) => handleScheduleChange(idx, "startTime", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = color;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        />
-                      </td>
-                      <td className="py-3 pr-4 w-[130px]">
-                        <input
-                          type="time"
-                          value={schedule.endTime}
-                          onChange={(e) => handleScheduleChange(idx, "endTime", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200"
-                          onFocus={(e) => {
-                            e.target.style.borderColor = color;
-                          }}
-                          onBlur={(e) => {
-                            e.target.style.borderColor = "";
-                          }}
-                        />
-                      </td>
-                      <td className="py-3 pr-4">
+                <div className="flex flex-col md:flex-row gap-8 items-start w-full">
+                  <div className="flex-1 flex flex-col gap-5 w-full">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[12px] font-bold text-zinc-600">Subject Name *</label>
+                      <div className="relative flex items-center w-full">
+                        <BookOpen className="absolute left-1 w-4 h-4 text-zinc-400" />
                         <input
                           type="text"
-                          placeholder="Inherit default location"
-                          value={schedule.room}
-                          onChange={(e) => handleScheduleChange(idx, "room", e.target.value)}
-                          className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. Artificial Intelligence & Neural Networks"
+                          className={`w-full pl-7 pr-1 py-2 bg-transparent border-b text-[14px] font-medium focus:outline-none transition-colors duration-200 ${
+                            errors.name ? "border-red-400" : "border-zinc-200"
+                          }`}
                           onFocus={(e) => {
                             e.target.style.borderColor = color;
                           }}
@@ -667,108 +425,489 @@ export default function CreateSubjectPage() {
                             e.target.style.borderColor = "";
                           }}
                         />
-                      </td>
-                      <td className="py-3 text-right">
-                        {schedules.length > 1 && (
+                      </div>
+                      {errors.name && (
+                        <span className="text-[11px] text-red-500 font-bold">{errors.name}</span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[12px] font-bold text-zinc-600">Course Description</label>
+                      <div className="relative flex items-start w-full">
+                        <FileText className="absolute left-1 top-2.5 w-4 h-4 text-zinc-400" />
+                        <textarea
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="Write a brief overview of what this subject covers..."
+                          rows={4}
+                          className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none"
+                          onFocus={(e) => {
+                            e.target.style.borderColor = color;
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = "";
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[12px] font-bold text-zinc-600">Default Classroom</label>
+                      <div className="relative flex items-center w-full">
+                        <MapPin className="absolute left-1 w-4 h-4 text-zinc-400" />
+                        <input
+                          type="text"
+                          value={room}
+                          onChange={(e) => setRoom(e.target.value)}
+                          placeholder="e.g. West Campus, Lab 402"
+                          className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200"
+                          onFocus={(e) => {
+                            e.target.style.borderColor = color;
+                          }}
+                          onBlur={(e) => {
+                            e.target.style.borderColor = "";
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 shrink-0 w-full md:w-52">
+                    <label className="text-[12px] font-bold text-zinc-600">Subject Thumbnail</label>
+                    {thumbnail ? (
+                      <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-zinc-200 group shadow-sm">
+                        <img
+                          src={thumbnail}
+                          alt="Thumbnail preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button
                             type="button"
-                            onClick={() => setSchedules((prev) => prev.filter((_, i) => i !== idx))}
-                            className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
+                            onClick={() => setThumbnail("")}
+                            className="p-2 bg-white rounded-full text-rose-600 hover:scale-105 transition-transform cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full h-32 rounded-2xl border border-dashed border-zinc-200 flex flex-col items-center justify-center bg-white hover:border-zinc-400 transition-colors relative overflow-hidden shadow-sm">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={isUploading}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setCropFileName(file.name);
+                              const reader = new FileReader();
+                              reader.addEventListener("load", () => {
+                                setCropImageSrc(reader.result as string);
+                              });
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        {isUploading ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-6 h-6 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: `${color}20`, borderTopColor: color }} />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1">
+                            <Plus className="w-5 h-5 text-zinc-400" />
+                            <span className="text-[10px] text-zinc-400 font-bold">Select image</span>
+                          </div>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 w-full mb-8 pl-12">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-              <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-                <BookOpen className="w-4.5 h-4.5 text-[#f25c88]" />
-                Course Modules (Optional)
-              </h3>
-              <button
-                type="button"
-                onClick={handleAddModule}
-                className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add Module
-              </button>
-            </div>
-
-            {modules.length === 0 ? (
-              <div className="text-center py-8 border border-dashed border-[#E5E1D8] rounded-2xl bg-white/40">
-                <p className="text-[12.5px] text-zinc-400 font-medium">No initial modules added. You can create them later.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="flex flex-col gap-4 w-full">
-                {modules.map((mod, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col gap-3 border border-zinc-200 p-5 rounded-2xl bg-white relative animate-in slide-in-from-top-2 duration-200"
-                  >
+
+              <div id="lecturers" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between w-full">
+                    <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+                      <Users className="w-4.5 h-4.5" style={{ color }} />
+                      Lecturers *
+                    </h3>
                     <button
                       type="button"
-                      onClick={() => handleRemoveModule(idx)}
-                      className="absolute top-4 right-4 w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:bg-zinc-50 transition-all cursor-pointer"
+                      onClick={() => {
+                        setLecturerSearchQuery("");
+                        setIsLecturerModalOpen(true);
+                      }}
+                      className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Lecturer
                     </button>
-
-                    <div className="flex flex-col gap-1.5 w-[92%]">
-                      <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Module Title</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Module 1: Foundations of Artificial Intelligence"
-                        value={mod.title}
-                        onChange={(e) => handleModuleChange(idx, "title", e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5 w-full">
-                      <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Module Summary</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Learning key terminology, basic heuristics search, and histories."
-                        value={mod.desc}
-                        onChange={(e) => handleModuleChange(idx, "desc", e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all"
-                      />
-                    </div>
                   </div>
-                ))}
+                  <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
+                    Assign teaching staff, customize faculty emails, and set display names.
+                  </p>
+                </div>
+
+                {errors.lecturers && (
+                  <span className="text-[11px] text-red-500 font-bold">{errors.lecturers}</span>
+                )}
+
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                      <tr className="border-b border-zinc-200">
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16">Avatar</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Email Address</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Display Name</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100/55">
+                      {lecturers.map((lecturer, idx) => {
+                        const initials = lecturer.name
+                          ? lecturer.name.split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase()
+                          : "?";
+
+                        return (
+                          <tr key={idx} className="hover:bg-zinc-50/10 transition-colors">
+                            <td className="py-3 pr-2">
+                              <div
+                                className="flex items-center justify-center w-8.5 h-8.5 rounded-full text-[10.5px] font-black border"
+                                style={{
+                                  backgroundColor: hexToRgba(color, 0.08),
+                                  color: color,
+                                  borderColor: hexToRgba(color, 0.12)
+                                }}
+                              >
+                                {initials}
+                              </div>
+                            </td>
+                            <td className="py-3 pr-4">
+                              <input
+                                type="email"
+                                placeholder="e.g. olivia@vloatty.edu"
+                                value={lecturer.email}
+                                onChange={(e) => handleLecturerEmailChange(idx, e.target.value)}
+                                className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
+                                onFocus={(e) => {
+                                  e.target.style.borderColor = color;
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.borderColor = "";
+                                }}
+                              />
+                            </td>
+                            <td className="py-3 pr-4">
+                              <input
+                                type="text"
+                                placeholder="Resolved name or custom"
+                                value={lecturer.name}
+                                onChange={(e) => handleLecturerNameChange(idx, e.target.value)}
+                                className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
+                                onFocus={(e) => {
+                                  e.target.style.borderColor = color;
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.borderColor = "";
+                                }}
+                              />
+                            </td>
+                            <td className="py-3 text-right">
+                              {lecturers.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setLecturers((prev) => prev.filter((_, i) => i !== idx))}
+                                  className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="schedules" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between w-full">
+                    <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+                      <Calendar className="w-4.5 h-4.5" style={{ color }} />
+                      Schedules
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setSchedules((prev) => [...prev, { day: "Monday", startTime: "09:00", endTime: "10:40", room: "" }])}
+                      className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Time
+                    </button>
+                  </div>
+                  <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
+                    Define weekly timetables and set custom room overrides for individual lectures.
+                  </p>
+                </div>
+
+                {errors.schedules && (
+                  <span className="text-[11px] text-red-500 font-bold">{errors.schedules}</span>
+                )}
+
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                      <tr className="border-b border-zinc-200">
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Day of Week</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Start Time</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">End Time</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Classroom Location</th>
+                        <th className="pb-3 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider w-16 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-100/55">
+                      {schedules.map((schedule, idx) => (
+                        <tr key={idx} className="hover:bg-zinc-50/10 transition-colors">
+                          <td className="py-3 pr-4 w-[200px]">
+                            <select
+                              value={schedule.day}
+                              onChange={(e) => handleScheduleChange(idx, "day", e.target.value)}
+                              className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200 cursor-pointer"
+                              onFocus={(e) => {
+                                e.target.style.borderColor = color;
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = "";
+                              }}
+                            >
+                              {daysOfWeek.map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="py-3 pr-4 w-[130px]">
+                            <input
+                              type="time"
+                              value={schedule.startTime}
+                              onChange={(e) => handleScheduleChange(idx, "startTime", e.target.value)}
+                              className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200"
+                              onFocus={(e) => {
+                                e.target.style.borderColor = color;
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = "";
+                              }}
+                            />
+                          </td>
+                          <td className="py-3 pr-4 w-[130px]">
+                            <input
+                              type="time"
+                              value={schedule.endTime}
+                              onChange={(e) => handleScheduleChange(idx, "endTime", e.target.value)}
+                              className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-semibold transition-colors duration-200"
+                              onFocus={(e) => {
+                                e.target.style.borderColor = color;
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = "";
+                              }}
+                            />
+                          </td>
+                          <td className="py-3 pr-4">
+                            <input
+                              type="text"
+                              placeholder="Inherit default location"
+                              value={schedule.room}
+                              onChange={(e) => handleScheduleChange(idx, "room", e.target.value)}
+                              className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 focus:outline-none text-[13px] font-medium placeholder-zinc-400/50 transition-colors duration-200"
+                              onFocus={(e) => {
+                                e.target.style.borderColor = color;
+                              }}
+                              onBlur={(e) => {
+                                e.target.style.borderColor = "";
+                              }}
+                            />
+                          </td>
+                          <td className="py-3 text-right">
+                            {schedules.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => setSchedules((prev) => prev.filter((_, i) => i !== idx))}
+                                className="p-2 text-zinc-400 hover:text-rose-600 transition-colors duration-200 cursor-pointer inline-flex items-center justify-center active:scale-95"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="course-modules" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between w-full">
+                    <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
+                      <BookOpen className="w-4.5 h-4.5" style={{ color }} />
+                      Course Modules (Optional)
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={handleAddModule}
+                      className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Module
+                    </button>
+                  </div>
+                  <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
+                    Define initial modules, lectures, and summaries for this subject.
+                  </p>
+                </div>
+
+                {modules.length === 0 ? (
+                  <div className="text-center py-8 border border-dashed border-[#E5E1D8] rounded-2xl bg-white/40">
+                    <p className="text-[12.5px] text-zinc-400 font-medium">No initial modules added. You can create them later.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-4 w-full">
+                    {modules.map((mod, idx) => (
+                      <div
+                        key={idx}
+                        className="flex flex-col gap-3 border border-zinc-200 p-5 rounded-2xl bg-white relative animate-in slide-in-from-top-2 duration-200 animate-in fade-in"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveModule(idx)}
+                          className="absolute top-4 right-4 w-8 h-8 rounded-full border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-rose-600 hover:bg-zinc-50 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <div className="flex flex-col gap-1.5 w-[92%]">
+                          <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Module Title</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Module 1: Foundations of Artificial Intelligence"
+                            value={mod.title}
+                            onChange={(e) => handleModuleChange(idx, "title", e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-zinc-200 transition-all"
+                            onFocus={(e) => {
+                              e.target.style.borderColor = color;
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = "";
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5 w-full">
+                          <label className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Module Summary</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Learning key terminology, basic heuristics search, and histories."
+                            value={mod.desc}
+                            onChange={(e) => handleModuleChange(idx, "desc", e.target.value)}
+                            className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-zinc-200 transition-all"
+                            onFocus={(e) => {
+                              e.target.style.borderColor = color;
+                            }}
+                            onBlur={(e) => {
+                              e.target.style.borderColor = "";
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4 pl-12">
+                <Link
+                  href="/dashboard"
+                  className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  Cancel
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-8 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-[0.98]"
+                >
+                  {isSubmitting ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  Create Subject
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="lg:col-span-3 hidden lg:flex flex-col gap-5 sticky top-6 text-left self-start pl-6">
+            {thumbnail && thumbnail.trim().length > 0 && (
+              <div className="w-32 h-20 rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0 mb-2">
+                <img
+                  src={thumbnail}
+                  alt="Thumbnail"
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
+            <span className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider px-3">
+              On This Page
+            </span>
+            <div className="flex flex-col gap-1 w-full">
+              {sidebarSections.map((sec) => {
+                const Icon = sec.icon;
+                const isActive = activeSection === sec.id;
+                return (
+                  <button
+                    key={sec.id}
+                    type="button"
+                    onClick={() => scrollToSection(sec.id)}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[12.5px] font-bold transition-all text-left w-full group active:scale-[0.98] ${
+                      isActive
+                        ? "rounded-l-none -ml-[25px] pl-[23px]"
+                        : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50/80"
+                    }`}
+                    style={
+                      isActive
+                        ? {
+                            backgroundColor: hexToRgba(color, 0.05),
+                            color: color,
+                            borderLeft: `2px solid ${color}`,
+                          }
+                        : {}
+                    }
+                  >
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
+                        isActive ? "" : "text-zinc-400 group-hover:text-zinc-600"
+                      }`}
+                      style={
+                        isActive
+                          ? {
+                              color: color,
+                            }
+                          : {}
+                      }
+                    />
+                    <span className="truncate">{sec.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-
-          <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4">
-            <Link
-              href="/dashboard"
-              className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-[0.98]"
-            >
-              {isSubmitting ? (
-                <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )}
-              Create Subject
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
 
       {isLecturerModalOpen && (
