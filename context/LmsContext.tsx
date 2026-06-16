@@ -95,9 +95,72 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     if (subj.modules) {
       subj.modules.forEach((mod) => {
+        if (mod.date) {
+          const d = new Date(mod.date);
+          if (!isNaN(d.getTime())) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const dateVal = String(d.getDate()).padStart(2, "0");
+            const dateStr = `${year}-${month}-${dateVal}`;
+            loadedEvents.push({
+              id: `release-${mod.id}`,
+              title: `[Release] ${mod.title}`,
+              subtitle: subj.name,
+              timeStart: "08:00",
+              timeEnd: "09:00",
+              dayIndex: -1,
+              color: "pink",
+              tag: {
+                text: "Release",
+                type: "pink"
+              },
+              description: mod.desc,
+              subjectId: subj.id,
+              createdAt: mod.createdAt || subj.createdAt,
+              updatedAt: mod.updatedAt || subj.updatedAt,
+              deletedAt: null,
+              dateStr
+            });
+          }
+        }
         if (mod.lessons) {
           mod.lessons.forEach((lesson) => {
-            if (lesson.type !== "learning" && lesson.closeDate) {
+            const now = new Date();
+            const closeD = new Date(lesson.closeDate);
+            const isPastDeadline = !isNaN(closeD.getTime()) && now > closeD;
+
+            // 1. Add Lesson Release/Open Event on openDate (if not past deadline)
+            if (lesson.openDate && !isPastDeadline) {
+              const openD = new Date(lesson.openDate);
+              if (!isNaN(openD.getTime())) {
+                const year = openD.getFullYear();
+                const month = String(openD.getMonth() + 1).padStart(2, "0");
+                const dateVal = String(openD.getDate()).padStart(2, "0");
+                const dateStr = `${year}-${month}-${dateVal}`;
+                loadedEvents.push({
+                  id: `open-${lesson.id}`,
+                  title: `[Open] ${lesson.title}`,
+                  subtitle: subj.name,
+                  timeStart: "09:00",
+                  timeEnd: "10:00",
+                  dayIndex: -1,
+                  color: "pink",
+                  tag: {
+                    text: "Lesson",
+                    type: "pink"
+                  },
+                  description: lesson.desc,
+                  subjectId: subj.id,
+                  createdAt: lesson.createdAt || subj.createdAt,
+                  updatedAt: lesson.updatedAt || subj.updatedAt,
+                  deletedAt: null,
+                  dateStr
+                });
+              }
+            }
+
+            // 2. Existing Deadline Event (if not past deadline)
+            if (lesson.type !== "learning" && lesson.closeDate && !isPastDeadline) {
               const d = new Date(lesson.closeDate);
               if (!isNaN(d.getTime())) {
                 let h = d.getHours();

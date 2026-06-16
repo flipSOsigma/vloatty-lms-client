@@ -48,7 +48,14 @@ export default function DashboardPage() {
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const currentDayName = dayNames[today.getDay()];
 
-  const todayClasses = subjects
+  const mySubjects = subjects.filter(
+    (subj) =>
+      subj.createdBy === currentUser?.id ||
+      subj.lecturers?.some((l) => l.userId === currentUser?.id) ||
+      subj.participants?.some((p) => p.userId === currentUser?.id)
+  );
+
+  const todayClasses = mySubjects
     .flatMap((subj) => {
       if (!subj.schedules) return [];
       return subj.schedules
@@ -77,12 +84,15 @@ export default function DashboardPage() {
   );
 
   const createdSubjects = filteredSubjects.filter(
-    (subject) => subject.createdBy === currentUser?.id
+    (subject) =>
+      subject.createdBy === currentUser?.id ||
+      subject.lecturers?.some((l) => l.userId === currentUser?.id)
   );
   
   const joinedSubjects = filteredSubjects.filter(
     (subject) =>
       subject.createdBy !== currentUser?.id &&
+      !subject.lecturers?.some((l) => l.userId === currentUser?.id) &&
       subject.participants?.some((p) => p.userId === currentUser?.id)
   );
 
@@ -90,6 +100,7 @@ export default function DashboardPage() {
     (subject) =>
       subject.isOpen &&
       subject.createdBy !== currentUser?.id &&
+      !subject.lecturers?.some((l) => l.userId === currentUser?.id) &&
       !subject.participants?.some((p) => p.userId === currentUser?.id)
   );
 
@@ -195,7 +206,7 @@ export default function DashboardPage() {
             <div className="flex items-stretch justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
-                  Classes Created by Me
+                  Classes Created or Taught by Me
                 </h2>
                 <span className="bg-[#f25c88]/10 text-[#f25c88] text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
                   {createdSubjects.length}

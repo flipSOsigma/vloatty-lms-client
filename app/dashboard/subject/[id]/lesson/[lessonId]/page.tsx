@@ -57,7 +57,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 function LessonDetailInner({ params }: PageProps) {
   const { id, lessonId } = React.use(params);
-  const { subjects, currentUser, updateSubject, showToast } = useLms();
+  const { subjects, currentUser, updateSubject, showToast, isLoadingUser } = useLms();
   const searchParams = useSearchParams();
   const shouldEdit = searchParams ? searchParams.get("edit") === "true" : false;
 
@@ -131,6 +131,15 @@ function LessonDetailInner({ params }: PageProps) {
       if (res.ok) {
         const data = await res.json();
         setQuiz(data);
+        if (data.userAttempt) {
+          setMyAttempt(data.userAttempt);
+          const userIdSuffix = currentUser ? currentUser.id : "guest";
+          localStorage.setItem(`quiz_attempt_${lessonId}_${userIdSuffix}`, JSON.stringify(data.userAttempt));
+        } else {
+          setMyAttempt(null);
+          const userIdSuffix = currentUser ? currentUser.id : "guest";
+          localStorage.removeItem(`quiz_attempt_${lessonId}_${userIdSuffix}`);
+        }
         if (data.showLeaderboard || canEdit) {
           fetchAttempts();
         }
@@ -161,6 +170,7 @@ function LessonDetailInner({ params }: PageProps) {
   };
 
   useEffect(() => {
+    if (isLoadingUser) return;
     if (selectedLesson?.type === "quizzes") {
       fetchQuiz();
       
@@ -183,7 +193,7 @@ function LessonDetailInner({ params }: PageProps) {
         setIsGuestStarted(true);
       }
     }
-  }, [lessonId, selectedLesson?.type, currentUser]);
+  }, [lessonId, selectedLesson?.type, currentUser, isLoadingUser]);
 
   const handleSaveQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -623,7 +633,7 @@ function LessonDetailInner({ params }: PageProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
-          <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6 lg:order-2">
             {isEditing ? (
               <form
                 onSubmit={handleSave}
@@ -867,29 +877,8 @@ function LessonDetailInner({ params }: PageProps) {
               </form>
             ) : (
               <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 bg-[#121212] text-white text-[10px] font-extrabold rounded-md uppercase tracking-wider">
-                      {selectedLesson.type || "learning"}
-                    </span>
-                    {selectedModule && (
-                      <span className="text-[12px] font-bold text-zinc-400">
-                        Module: {selectedModule.title}
-                      </span>
-                    )}
-                  </div>
-
-                  <h2 className="text-2xl font-black text-[#121212] tracking-tight leading-tight mt-1">
-                    {selectedLesson.title}
-                  </h2>
-                </div>
-
-                <div className="text-[14px] text-zinc-600 leading-relaxed font-medium whitespace-pre-wrap">
-                  {selectedLesson.desc || "No description provided for this lesson."}
-                </div>
-
                 {attachments.length > 0 && (
-                  <div className="flex flex-col gap-3 border-t border-zinc-100 pt-6">
+                  <div className="flex flex-col gap-3">
                     <h3 className="text-[12px] font-extrabold text-[#121212] tracking-tight uppercase mb-2">
                       Lesson Materials / Attachments
                     </h3>
@@ -1140,7 +1129,7 @@ function LessonDetailInner({ params }: PageProps) {
 
                         {quizTab === "quiz" ? (
                           <form onSubmit={handleSaveQuiz} className="flex flex-col gap-6 w-full text-left">
-                            <div className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-4 shadow-sm">
+                            <div className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left">
                               <h4 className="text-[12px] font-extrabold text-[#121212] uppercase tracking-wider border-b border-zinc-100 pb-2 flex items-center gap-1.5">
                                 <Settings className="w-4 h-4 text-zinc-400" />
                                 Quiz Policy & Settings
@@ -1206,9 +1195,9 @@ function LessonDetailInner({ params }: PageProps) {
                                 Questions List ({quiz.questions?.length || 0})
                               </h4>
 
-                              <div className="flex flex-col gap-6">
+                              <div className="flex flex-col gap-2">
                                 {quiz.questions?.map((q: any, qIdx: number) => (
-                                  <div key={qIdx} className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl shadow-sm flex flex-col gap-4 relative">
+                                  <div key={qIdx} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 relative text-left last:border-b-0 animate-in fade-in duration-200">
                                     <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
                                       <span className="text-[12px] font-bold text-[#f25c88]">
                                         Question #{qIdx + 1}
@@ -1329,7 +1318,7 @@ function LessonDetailInner({ params }: PageProps) {
                             </div>
                           </form>
                         ) : (
-                          <div className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl shadow-sm">
+                          <div className="py-6 flex flex-col gap-4 text-left animate-in fade-in duration-200">
                             {attemptsLoading ? (
                               <div className="flex flex-col items-center justify-center py-8">
                                 <div className="w-6 h-6 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
@@ -1459,22 +1448,23 @@ function LessonDetailInner({ params }: PageProps) {
                                 </span>
                               </div>
 
-                              <div className="flex flex-col gap-6">
+                              <div className="flex flex-col gap-2">
                                 {quiz.questions?.map((q: any, qIdx: number) => (
-                                  <div key={q.id} className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl shadow-sm flex flex-col gap-4 text-left">
-                                    <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
-                                      <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
-                                        Question {qIdx + 1}
-                                      </span>
-                                      <span className="px-2.5 py-0.5 bg-zinc-100 text-zinc-500 text-[10px] font-bold rounded-full">
-                                        {q.points || 1} pts
+                                  <div key={q.id} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left last:border-b-0">
+                                    <div className="flex flex-col gap-1">
+                                      <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
+                                        Question {String(qIdx + 1).padStart(2, "0")} · {q.points || 1} pts
                                       </span>
                                     </div>
-                                    <h4 className="text-[13.5px] font-bold text-zinc-800 leading-snug">
+                                    <h4 className="text-[16px] font-bold text-zinc-900 leading-snug">
                                       {q.questionText}
                                     </h4>
+                                    
+                                    <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mt-1 block">
+                                      Select only one
+                                    </span>
 
-                                    <div className="flex flex-col gap-2 mt-2">
+                                    <div className="flex flex-col gap-2 mt-1">
                                       {q.options.map((opt: string, optIdx: number) => {
                                         const isSelected = userAnswers[q.id] === optIdx;
                                         return (
@@ -1482,23 +1472,20 @@ function LessonDetailInner({ params }: PageProps) {
                                             key={optIdx}
                                             type="button"
                                             onClick={() => setUserAnswers((prev) => ({ ...prev, [q.id]: optIdx }))}
-                                            className={`w-full px-4 py-3 rounded-2xl border text-left text-[12px] font-semibold transition-all cursor-pointer flex items-center justify-between ${
-                                              isSelected
-                                                ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 shadow-sm"
-                                                : "border-zinc-200 bg-transparent text-zinc-650 hover:border-zinc-300"
-                                            }`}
+                                            className="w-full py-2 flex items-center gap-3 text-left text-[12.5px] font-semibold transition-all cursor-pointer group text-zinc-700 hover:text-zinc-950"
                                           >
-                                            <span className="flex items-center gap-3">
-                                              <span className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center border ${
-                                                isSelected
-                                                  ? "bg-[#f25c88] border-[#f25c88] text-white"
-                                                  : "border-zinc-300 text-zinc-400"
-                                              }`}>
-                                                {String.fromCharCode(65 + optIdx)}
-                                              </span>
-                                              <span>{opt}</span>
+                                            <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
+                                              isSelected
+                                                ? "border-[#f25c88] bg-[#f25c88]"
+                                                : "border-zinc-300 group-hover:border-zinc-400 bg-white"
+                                            }`}>
+                                              {isSelected && (
+                                                <div className="w-1.5 h-1.5 rounded-full bg-white animate-in zoom-in-50 duration-150" />
+                                              )}
+                                            </div>
+                                            <span className={isSelected ? "font-bold text-zinc-950" : "text-zinc-650"}>
+                                              {opt}
                                             </span>
-                                            {isSelected && <Check className="w-4 h-4 text-[#f25c88]" />}
                                           </button>
                                         );
                                       })}
@@ -1555,17 +1542,16 @@ function LessonDetailInner({ params }: PageProps) {
                                 <h4 className="text-[13px] font-extrabold text-[#121212] uppercase tracking-wider pl-1">
                                   Detailed Review
                                 </h4>
-
-                                <div className="flex flex-col gap-5">
+                                <div className="flex flex-col gap-2">
                                   {quiz.questions.map((q: any, qIdx: number) => {
                                     const submittedAnsIdx = myAttempt.answers?.[q.id];
                                     const correctAnsIdx = q.correctOption !== undefined ? q.correctOption : myAttempt.correctAnswers?.[q.id];
                                     const isCorrect = submittedAnsIdx !== undefined && Number(submittedAnsIdx) === correctAnsIdx;
 
                                     return (
-                                      <div key={q.id} className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl shadow-sm flex flex-col gap-3">
+                                      <div key={q.id} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left last:border-b-0">
                                         <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
-                                          <span className="text-[11.5px] font-extrabold text-zinc-400 uppercase tracking-wider font-semibold">
+                                          <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-widest">
                                             Question {qIdx + 1}
                                           </span>
                                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1575,7 +1561,7 @@ function LessonDetailInner({ params }: PageProps) {
                                           </span>
                                         </div>
 
-                                        <h4 className="text-[13.5px] font-bold text-zinc-800">
+                                        <h4 className="text-[15px] font-bold text-zinc-900 leading-snug">
                                           {q.questionText}
                                         </h4>
 
@@ -1583,27 +1569,41 @@ function LessonDetailInner({ params }: PageProps) {
                                           {q.options.map((opt: string, optIdx: number) => {
                                             const isMyChoice = submittedAnsIdx !== undefined && Number(submittedAnsIdx) === optIdx;
                                             const isRightChoice = correctAnsIdx !== undefined && Number(correctAnsIdx) === optIdx;
-                                            
-                                            let borderStyle = "border-zinc-200 text-zinc-500 bg-transparent";
-                                            if (isRightChoice) {
-                                              borderStyle = "border-emerald-500 bg-emerald-500/5 text-emerald-800 font-bold";
-                                            } else if (isMyChoice && !isCorrect) {
-                                              borderStyle = "border-rose-500 bg-rose-500/5 text-rose-800 font-bold";
-                                            }
 
                                             return (
                                               <div
                                                 key={optIdx}
-                                                className={`w-full px-4 py-2.5 rounded-2xl border text-[12px] flex items-center justify-between ${borderStyle}`}
+                                                className={`w-full py-2 text-[12.5px] flex items-center justify-between font-semibold ${
+                                                  isRightChoice
+                                                    ? "text-emerald-600 font-bold"
+                                                    : isMyChoice && !isCorrect
+                                                    ? "text-rose-600 font-bold"
+                                                    : "text-zinc-655"
+                                                }`}
                                               >
-                                                <span>{opt}</span>
+                                                <div className="flex items-center gap-3">
+                                                  <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
+                                                    isRightChoice
+                                                      ? "border-emerald-500 bg-emerald-500 text-white"
+                                                      : isMyChoice && !isCorrect
+                                                      ? "border-rose-500 bg-rose-500 text-white"
+                                                      : "border-zinc-300 bg-white"
+                                                  }`}>
+                                                    {isRightChoice ? (
+                                                      <Check className="w-3.5 h-3.5 text-white" />
+                                                    ) : isMyChoice && !isCorrect ? (
+                                                      <X className="w-3.5 h-3.5 text-white" />
+                                                    ) : null}
+                                                  </div>
+                                                  <span>{opt}</span>
+                                                </div>
                                                 {isRightChoice ? (
-                                                  <span className="text-[10px] text-emerald-600 font-extrabold uppercase flex items-center gap-1">
-                                                    <Check className="w-3.5 h-3.5" /> Correct Answer
+                                                  <span className="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wide">
+                                                    Correct Answer
                                                   </span>
                                                 ) : isMyChoice ? (
-                                                  <span className="text-[10px] text-rose-600 font-extrabold uppercase flex items-center gap-1">
-                                                    <X className="w-3.5 h-3.5" /> Your Answer
+                                                  <span className="text-[10px] text-rose-600 font-extrabold uppercase tracking-wide">
+                                                    Your Answer
                                                   </span>
                                                 ) : null}
                                               </div>
@@ -1694,68 +1694,70 @@ function LessonDetailInner({ params }: PageProps) {
             )}
           </div>
 
-          <div className="lg:col-span-1 flex flex-col gap-6">
-            <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
-              <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider border-b border-[#E5E1D8]/40 pb-2">
-                Lesson Meta Info
-              </span>
-
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
-                    Subject Name
+          <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 pl-13 lg:order-1">
+            <div className="flex flex-col gap-5 w-full">
+              <div className="flex flex-col gap-1.5">
+                <span
+                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit bg-[#f25c88]/10 text-[#f25c88] border border-[#f25c88]/20"
+                >
+                  {selectedLesson.type || "learning"}
+                </span>
+                <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
+                  {selectedLesson.title}
+                </h2>
+                {selectedModule && (
+                  <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider mt-0.5">
+                    Module: {selectedModule.title}
                   </span>
-                  <span className="text-[13px] font-bold text-zinc-800">
-                    {selectedSubject.name}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
-                    Lecturers
-                  </span>
-                  <div className="flex items-center gap-1.5 text-zinc-700 font-bold text-[12px]">
-                    <GraduationCap className="w-4 h-4 text-zinc-400" />
-                    <span>{selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
-                  </div>
-                </div>
-
-                {selectedLesson.type !== "learning" && (
-                  <>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
-                        Availability Window
-                      </span>
-                      <div className="flex items-center gap-1.5 text-zinc-700 font-bold text-[12px]">
-                        <Calendar className="w-4 h-4 text-zinc-400" />
-                        <span>Open: {formatDate(selectedLesson.openDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-zinc-700 font-bold text-[12px]">
-                        <Clock className="w-4 h-4 text-zinc-400" />
-                        <span>Due: {formatDate(selectedLesson.closeDate)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
-                        Restricting Policy
-                      </span>
-                      <div className="flex items-center gap-1.5 text-zinc-700 font-bold text-[12px]">
-                        {selectedLesson.closeType === "restrict" ? (
-                          <>
-                            <Lock className="w-4 h-4 text-[#f25c88]" />
-                            <span>Strict Deadline Restriction</span>
-                          </>
-                        ) : (
-                          <>
-                            <Unlock className="w-4 h-4 text-emerald-600" />
-                            <span>Open Submission Policy</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </>
                 )}
+                <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1.5">
+                  <GraduationCap className="w-4 h-4 text-zinc-400" />
+                  <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
+                </div>
+              </div>
+
+              {selectedLesson.desc && (
+                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                  {selectedLesson.desc}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-3 pt-3 border-t border-[#E5E1D8]/45">
+                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                  Lesson Information
+                </span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                    <span>Subject</span>
+                    <span className="text-zinc-500 text-[11px]">{selectedSubject.name}</span>
+                  </div>
+                  {selectedLesson.type !== "learning" && (
+                    <>
+                      <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                        <span>Open Date</span>
+                        <span className="text-zinc-500 text-[11px]">{formatDate(selectedLesson.openDate)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                        <span>Due Date</span>
+                        <span className="text-zinc-500 text-[11px]">{formatDate(selectedLesson.closeDate)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                        <span>Restricting Policy</span>
+                        <span className="text-zinc-500 text-[11px] flex items-center gap-1">
+                          {selectedLesson.closeType === "restrict" ? (
+                            <>
+                              <Lock className="w-3.5 h-3.5 text-[#f25c88]" /> Strict Deadline
+                            </>
+                          ) : (
+                            <>
+                              <Unlock className="w-3.5 h-3.5 text-emerald-600" /> Open Submission
+                            </>
+                          )}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 

@@ -163,35 +163,42 @@ export default function ModuleDetailPage({ params }: PageProps) {
                 <span className="text-[13px] text-zinc-400 font-semibold">No lessons registered under this module.</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
-                {selectedModule.lessons.map((lesson) => (
-                  <div
-                    key={lesson.id}
-                    className="bg-[#FAF7F2]/60 border border-[#E5E1D8]/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <div className="flex flex-col items-start gap-1.5">
-                        <span className="p-1 bg-[#121212] rounded text-white text-[9px] font-bold uppercase tracking-wide w-fit">
-                          {lesson.type || "learning"}
-                        </span>
-                        <h4 className="text-[14px] font-bold text-zinc-950 truncate">
-                          {lesson.title}
-                        </h4>
-                      </div>
-                      <p className="text-[11.5px] text-zinc-500 leading-relaxed font-medium line-clamp-2">
-                        {lesson.desc}
-                      </p>
-                    </div>
-
-                    <Link
-                      href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
-                      className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-white font-bold text-[11px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/40 w-fit shrink-0"
+              <div className="flex flex-col gap-8 ml-2.5 mt-4 pb-2">
+                {(() => {
+                  const sortedLessons = [...selectedModule.lessons].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                  return sortedLessons.map((lesson, idx) => (
+                    <div
+                      key={lesson.id}
+                      className="relative pl-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full"
                     >
-                      <span>Go to Lesson</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                ))}
+                      <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-[#FAF7F2] bg-[#f25c88] z-10 shadow-sm" />
+                      {idx < sortedLessons.length - 1 && (
+                        <div className="absolute left-0 top-[12px] bottom-[-40px] w-[2px] bg-zinc-300 -translate-x-1/2 z-0" />
+                      )}
+                      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                        <div className="flex flex-col items-start gap-1.5">
+                          <span className="p-1 bg-[#121212] rounded text-white text-[9px] font-bold uppercase tracking-wide w-fit">
+                            {lesson.type || "learning"}
+                          </span>
+                          <h4 className="text-[14px] font-bold text-zinc-950 truncate">
+                            {lesson.title}
+                          </h4>
+                        </div>
+                        <p className="text-[11.5px] text-zinc-500 leading-relaxed font-medium line-clamp-2">
+                          {lesson.desc}
+                        </p>
+                      </div>
+
+                      <Link
+                        href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
+                        className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-white font-bold text-[11px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/40 w-fit shrink-0"
+                      >
+                        <span>Go to Lesson</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  ));
+                })()}
               </div>
             )}
           </div>
