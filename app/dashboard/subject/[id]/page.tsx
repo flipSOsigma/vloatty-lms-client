@@ -24,6 +24,7 @@ import {
   Trophy,
 } from "lucide-react";
 import ContextMenu from "../../../../components/ui/ContextMenu";
+import ConfirmModal from "../../../../components/ui/ConfirmModal";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -59,6 +60,10 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
   const [editingModule, setEditingModule] = useState<any | null>(null);
   const [showEditModuleModal, setShowEditModuleModal] = useState(false);
+  const [deleteLessonInfo, setDeleteLessonInfo] = useState<{ moduleId: string; lessonId: string; title: string } | null>(null);
+  const [isDeletingLesson, setIsDeletingLesson] = useState(false);
+  const [deleteModuleInfo, setDeleteModuleInfo] = useState<{ moduleId: string; title: string } | null>(null);
+  const [isDeletingModule, setIsDeletingModule] = useState(false);
 
   const selectedSubject = subjects.find((s) => s.id === id);
 
@@ -133,27 +138,45 @@ export default function SubjectDetailPage({ params }: PageProps) {
     setEditingModule(null);
   };
 
-  const handleDeleteModule = async (moduleId: string) => {
-    if (!selectedSubject) return;
-    if (!confirm("Are you sure you want to delete this module?")) return;
-    const updatedModules = selectedSubject.modules.filter((m) => m.id !== moduleId);
-    const updatedSubject = { ...selectedSubject, modules: updatedModules };
-    await updateSubject(updatedSubject);
+  const confirmDeleteLesson = async () => {
+    if (!selectedSubject || !deleteLessonInfo) return;
+    setIsDeletingLesson(true);
+    try {
+      const { moduleId, lessonId } = deleteLessonInfo;
+      const updatedModules = selectedSubject.modules.map((m) => {
+        if (m.id === moduleId) {
+          return { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) };
+        }
+        return m;
+      });
+      const updatedSubject = { ...selectedSubject, modules: updatedModules };
+      await updateSubject(updatedSubject);
+      showToast("Lesson deleted successfully!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete lesson.", "error");
+    } finally {
+      setIsDeletingLesson(false);
+      setDeleteLessonInfo(null);
+    }
   };
 
-
-
-  const handleDeleteLesson = async (moduleId: string, lessonId: string) => {
-    if (!selectedSubject) return;
-    if (!confirm("Are you sure you want to delete this lesson?")) return;
-    const updatedModules = selectedSubject.modules.map((m) => {
-      if (m.id === moduleId) {
-        return { ...m, lessons: m.lessons.filter((l) => l.id !== lessonId) };
-      }
-      return m;
-    });
-    const updatedSubject = { ...selectedSubject, modules: updatedModules };
-    await updateSubject(updatedSubject);
+  const confirmDeleteModule = async () => {
+    if (!selectedSubject || !deleteModuleInfo) return;
+    setIsDeletingModule(true);
+    try {
+      const { moduleId } = deleteModuleInfo;
+      const updatedModules = selectedSubject.modules.filter((m) => m.id !== moduleId);
+      const updatedSubject = { ...selectedSubject, modules: updatedModules };
+      await updateSubject(updatedSubject);
+      showToast("Module deleted successfully!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete module.", "error");
+    } finally {
+      setIsDeletingModule(false);
+      setDeleteModuleInfo(null);
+    }
   };
 
   const handleSimulatedUpload = (lessonId: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -470,7 +493,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                   key={mod.id}
                   className="rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] flex flex-col gap-4"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 border-b border-[#E5E1D8]/40 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-1">
                     <div className="flex flex-col gap-1 max-w-xl md:max-w-2xl">
                       <Link
                         href={`/dashboard/subject/${selectedSubject.id}/module/${mod.id}`}
@@ -494,8 +517,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteModule(mod.id)}
+                            onClick={() => setDeleteModuleInfo({ moduleId: mod.id, title: mod.title })}
                             className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-red-500 cursor-pointer"
+                            title="Delete Module"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -508,19 +532,25 @@ export default function SubjectDetailPage({ params }: PageProps) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4 mt-2">
-                    {mod.lessons.map((lesson) => {
-                      const isUploading = uploadingProgress[lesson.id] !== undefined;
-                      const progress = uploadingProgress[lesson.id] || 0;
-                      const isUploaded = uploadedFiles[lesson.id] !== undefined;
-                      const fileInfo = uploadedFiles[lesson.id];
+                  <div className="flex flex-col gap-8 ml-2.5 mt-4 pb-2">
+                    {(() => {
+                      const sortedLessons = [...mod.lessons].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                      return sortedLessons.map((lesson, idx) => {
+                        const isUploading = uploadingProgress[lesson.id] !== undefined;
+                        const progress = uploadingProgress[lesson.id] || 0;
+                        const isUploaded = uploadedFiles[lesson.id] !== undefined;
+                        const fileInfo = uploadedFiles[lesson.id];
 
-                      return (
-                        <div
-                          key={lesson.id}
-                          className="bg-[#FAF7F2]/60 border border-[#E5E1D8]/30 rounded-2xl p-5 flex flex-col md:flex-row md:items-start justify-between gap-6"
-                        >
-                          <div className="flex flex-col gap-1.5 flex-1">
+                        return (
+                          <div
+                            key={lesson.id}
+                            className="relative pl-8 flex flex-col md:flex-row md:items-start justify-between gap-6 w-full"
+                          >
+                            <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-[#FAF7F2] bg-[#f25c88] z-10 shadow-sm" />
+                            {idx < sortedLessons.length - 1 && (
+                              <div className="absolute left-0 top-[12px] bottom-[-40px] w-[2px] bg-zinc-300 -translate-x-1/2 z-0" />
+                            )}
+                            <div className="flex flex-col gap-1.5 flex-1">
                             <div className="flex items-start justify-between w-full">
                               <div className="flex flex-col items-start gap-1.5">
                                 <span className="p-1 bg-[#121212] rounded text-white text-[9px] font-bold uppercase tracking-wide w-fit">
@@ -539,13 +569,14 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                 <div className="flex items-center gap-1">
                                   <Link
                                     href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}?edit=true`}
-                                    className="p-1 rounded-lg hover:bg-[#FAF7F2] text-zinc-400 hover:text-zinc-700 cursor-pointer"
+                                    className="p-1 rounded-lg hover:bg-zinc-200/50 text-zinc-400 hover:text-zinc-700 cursor-pointer"
                                   >
                                     <Edit className="w-3.5 h-3.5" />
                                   </Link>
                                   <button
-                                    onClick={() => handleDeleteLesson(mod.id, lesson.id)}
-                                    className="p-1 rounded-lg hover:bg-[#FAF7F2] text-zinc-400 hover:text-red-500 cursor-pointer"
+                                    onClick={() => setDeleteLessonInfo({ moduleId: mod.id, lessonId: lesson.id, title: lesson.title })}
+                                    className="p-1 rounded-lg hover:bg-zinc-200/50 text-zinc-400 hover:text-red-500 cursor-pointer"
+                                    title="Delete Lesson"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
@@ -568,7 +599,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                               if (!showLboard || top3.length === 0) return null;
 
                               return (
-                                <div className="flex flex-col gap-2 mt-4 bg-white/40 border border-zinc-200/50 rounded-2xl p-4 w-full animate-in fade-in duration-200 text-left">
+                                <div className="flex flex-col gap-2 mt-4 bg-white/40 border border-white/50 backdrop-blur-sm rounded-2xl p-4 w-full animate-in fade-in duration-200 text-left">
                                   <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
                                     <Trophy className="w-3.5 h-3.5 text-[#f25c88]" /> Quiz Leaderboard (Top 3 Participants)
                                   </span>
@@ -587,29 +618,35 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                       return (
                                         <div
                                           key={att.id}
-                                          className={`flex flex-col gap-1.5 p-3 rounded-xl border transition-all ${
+                                          className={`flex flex-col gap-2 p-3.5 rounded-xl border transition-all duration-300 hover:scale-[1.02] ${
                                             isMe
-                                              ? "bg-[#f25c88]/5 border-[#f25c88] shadow-sm"
-                                              : "bg-white/50 border-zinc-200/60"
+                                              ? "bg-gradient-to-br from-[#f25c88]/10 to-white/70 border-[#f25c88]/30 shadow-sm shadow-[#f25c88]/5"
+                                              : "bg-white/60 hover:bg-white/85 border-white/50 shadow-sm shadow-black/[0.01]"
                                           }`}
                                         >
                                           <div className="flex justify-between items-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${medalColors[idx]}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border flex items-center gap-1 ${medalColors[idx]}`}>
                                               {medals[idx]}
                                             </span>
-                                            <span className="text-[12px] font-black text-[#f25c88]">{pct}%</span>
+                                            <span className="text-[12px] font-black text-[#f25c88] tracking-tight">{pct}%</span>
                                           </div>
-                                          <div className="flex items-center gap-2 mt-1">
-                                            {!att.userId && (
-                                              <span className="bg-amber-100 text-amber-800 text-[8px] font-extrabold px-1 py-0.2 rounded border border-amber-200 uppercase shrink-0">Guest</span>
-                                            )}
-                                            <span className={`text-[12px] truncate ${isMe ? "font-bold text-zinc-950" : "font-semibold text-zinc-800"}`} title={name}>
-                                              {name}
-                                            </span>
+                                          <div className="flex items-center gap-2 mt-1 min-w-0">
+                                            <div className="w-5 h-5 rounded-full bg-zinc-200/50 flex items-center justify-center text-[9px] font-black text-zinc-500 uppercase shrink-0">
+                                              {name.charAt(0)}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                              {!att.userId && (
+                                                <span className="bg-amber-100 text-amber-800 text-[8px] font-extrabold px-1 rounded border border-amber-200 uppercase shrink-0">Guest</span>
+                                              )}
+                                              <span className={`text-[12.5px] truncate ${isMe ? "font-bold text-zinc-950" : "font-semibold text-zinc-800"}`} title={name}>
+                                                {name}
+                                              </span>
+                                            </div>
                                           </div>
-                                          <span className="text-[9.5px] text-zinc-400 font-bold">
-                                            Score: {att.score} / {att.totalPoints}
-                                          </span>
+                                          <div className="flex justify-between items-center text-[9.5px] text-zinc-400 font-bold border-t border-zinc-100/50 pt-2 mt-1">
+                                            <span>Score</span>
+                                            <span className="text-zinc-650 font-extrabold">{att.score} / {att.totalPoints}</span>
+                                          </div>
                                         </div>
                                       );
                                     })}
@@ -744,7 +781,8 @@ export default function SubjectDetailPage({ params }: PageProps) {
                           </div>
                         </div>
                       );
-                    })}
+                    });
+                  })()}
                   </div>
                 </div>
               ))}
@@ -901,7 +939,27 @@ export default function SubjectDetailPage({ params }: PageProps) {
         </div>
       )}
 
+      <ConfirmModal
+        isOpen={deleteLessonInfo !== null}
+        onClose={() => setDeleteLessonInfo(null)}
+        onConfirm={confirmDeleteLesson}
+        title="Delete Lesson"
+        message={deleteLessonInfo ? `Are you sure you want to delete "${deleteLessonInfo.title}"? This action is permanent and cannot be undone.` : ""}
+        confirmText="Delete"
+        isDanger={true}
+        isLoading={isDeletingLesson}
+      />
 
+      <ConfirmModal
+        isOpen={deleteModuleInfo !== null}
+        onClose={() => setDeleteModuleInfo(null)}
+        onConfirm={confirmDeleteModule}
+        title="Delete Module"
+        message={deleteModuleInfo ? `Are you sure you want to delete "${deleteModuleInfo.title}"? This action is permanent and cannot be undone.` : ""}
+        confirmText="Delete"
+        isDanger={true}
+        isLoading={isDeletingModule}
+      />
     </>
   );
 }
