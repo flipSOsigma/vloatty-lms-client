@@ -9,6 +9,7 @@ import {
   LogOut,
   MessageSquare,
   BookOpen,
+  Menu,
 } from "lucide-react";
 import { useLms } from "../../context/LmsContext";
 import Link from "next/link";
@@ -19,6 +20,7 @@ export default function Header() {
     setSearchQuery,
     logout,
     currentUser,
+    setMobileSidebarOpen,
   } = useLms();
 
   const getUserInitials = () => {
@@ -92,7 +94,15 @@ export default function Header() {
   return (
     <header className="flex flex-col gap-6 w-full select-none">
       {}
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between w-full gap-3.5">
+        {/* Mobile Sidebar Toggle Hamburger */}
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className="lg:hidden w-12 h-12 rounded-full bg-[#121212] text-zinc-300 hover:text-white flex items-center justify-center hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer shadow-md flex-shrink-0"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {}
         <div className="flex items-center flex-1 max-w-[760px] bg-transparent border border-[#E5E1D8] rounded-full p-1.5 pl-3 gap-3.5 shadow-sm">
           {}

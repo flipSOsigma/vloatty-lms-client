@@ -19,7 +19,12 @@ import { usePathname } from "next/navigation";
 export default function Sidebar() {
   const pathname = usePathname();
   const [isMinimized, setIsMinimized] = useState(false);
-  const { logout } = useLms();
+  const { logout, mobileSidebarOpen, setMobileSidebarOpen } = useLms();
+
+  // Close sidebar on navigation change on mobile
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [pathname, setMobileSidebarOpen]);
 
   // Sync state with localStorage on client mount
   useEffect(() => {
@@ -49,36 +54,48 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside
-      className={`bg-[#121212] text-zinc-400 p-6 flex flex-col justify-between rounded-3xl m-4 mr-0 select-none transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-        isMinimized ? "w-[88px] px-4" : "w-[260px] px-6"
-      }`}
-    >
-      <div className="flex flex-col gap-8">
-        {/* Brand / Logo */}
-        <div className="flex items-center justify-between mt-2 px-1.5 gap-2 w-full">
-          <div
-            className={`flex items-center gap-2 transition-all duration-300 ${
-              isMinimized ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
-            }`}
-          >
-            <img
-              src="/vloatty - Logo Typeface.png"
-              alt="Vloatty"
-              className="w-26 object-contain"
-            />
-          </div>
-          <button
-            onClick={handleToggle}
-            className="w-6 h-6 rounded-full bg-[#f25c88] flex items-center justify-center text-white hover:bg-[#d84b72] transition-colors shadow-sm cursor-pointer flex-shrink-0"
-          >
-            <ChevronRight
-              className={`w-3.5 h-3.5 stroke-[3] transition-transform duration-300 ${
-                isMinimized ? "" : "rotate-180"
+    <>
+      {/* Backdrop overlay for mobile */}
+      {mobileSidebarOpen && (
+        <div
+          onClick={() => setMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+        />
+      )}
+
+      <aside
+        className={`bg-[#121212] text-zinc-400 p-6 flex flex-col justify-between rounded-3xl select-none transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-50
+          fixed inset-y-0 left-0 m-4 shadow-2xl lg:shadow-none
+          lg:static lg:flex lg:h-auto lg:m-4 lg:mr-0
+          ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-[300px] lg:translate-x-0"}
+          ${isMinimized ? "w-[88px] px-4" : "w-[260px] px-6"}
+        `}
+      >
+        <div className="flex flex-col gap-8">
+          {/* Brand / Logo */}
+          <div className="flex items-center justify-between mt-2 px-1.5 gap-2 w-full">
+            <div
+              className={`flex items-center gap-2 transition-all duration-300 ${
+                isMinimized && !mobileSidebarOpen ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
               }`}
-            />
-          </button>
-        </div>
+            >
+              <img
+                src="/vloatty - Logo Typeface.png"
+                alt="Vloatty"
+                className="w-26 object-contain"
+              />
+            </div>
+            <button
+              onClick={handleToggle}
+              className="hidden lg:flex w-6 h-6 rounded-full bg-[#f25c88] items-center justify-center text-white hover:bg-[#d84b72] transition-colors shadow-sm cursor-pointer flex-shrink-0"
+            >
+              <ChevronRight
+                className={`w-3.5 h-3.5 stroke-[3] transition-transform duration-300 ${
+                  isMinimized ? "" : "rotate-180"
+                }`}
+              />
+            </button>
+          </div>
 
         {/* General Nav */}
         <div className="flex flex-col gap-2">
@@ -158,5 +175,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

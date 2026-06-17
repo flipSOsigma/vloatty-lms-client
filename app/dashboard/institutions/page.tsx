@@ -89,7 +89,7 @@ export default function InstitutionsPage() {
       <Header />
 
       <div className="flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300 w-full text-left">
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
           <div className="flex flex-col gap-0.5 text-left">
             <h2 className="text-xl font-black text-zinc-950 tracking-tight">Institutions</h2>
             <span className="text-[11px] font-bold text-zinc-400">Manage SaaS subscriptions and organization structures</span>

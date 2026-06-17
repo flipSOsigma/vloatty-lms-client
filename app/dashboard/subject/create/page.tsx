@@ -56,7 +56,10 @@ export default function CreateSubjectPage() {
   const [subjectId] = useState(() => {
     return typeof window !== "undefined" && window.crypto && window.crypto.randomUUID
       ? window.crypto.randomUUID()
-      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
   });
 
   const handleCropComplete = async (croppedImageBlob: Blob) => {
@@ -334,7 +337,10 @@ export default function CreateSubjectPage() {
       .map((m) => {
         const mId = typeof window !== "undefined" && window.crypto && window.crypto.randomUUID
           ? window.crypto.randomUUID()
-          : Math.random().toString(36).substring(2, 9);
+          : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+              const r = (Math.random() * 16) | 0;
+              return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+            });
         return {
           id: mId,
           title: m.title.trim(),
@@ -393,7 +399,7 @@ export default function CreateSubjectPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
           <div className="lg:col-span-9 flex flex-col gap-24 w-full lg:pr-20">
             <form onSubmit={handleSubmit} className="flex flex-col gap-24 w-full">
-              <div id="basic-parameters" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+              <div id="basic-parameters" className="flex flex-col gap-6 w-full mb-8 lg:pl-12 scroll-mt-24">
                 <div className="flex flex-col">
                   <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
                     <Settings className="w-4.5 h-4.5" style={{ color }} />
@@ -526,7 +532,7 @@ export default function CreateSubjectPage() {
                 </div>
               </div>
 
-              <div id="lecturers" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+              <div id="lecturers" className="flex flex-col gap-6 w-full mb-8 lg:pl-12 scroll-mt-24">
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between w-full">
                     <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
@@ -633,7 +639,7 @@ export default function CreateSubjectPage() {
                 </div>
               </div>
 
-              <div id="schedules" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+              <div id="schedules" className="flex flex-col gap-6 w-full mb-8 lg:pl-12 scroll-mt-24">
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between w-full">
                     <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
@@ -750,7 +756,7 @@ export default function CreateSubjectPage() {
                 </div>
               </div>
 
-              <div id="course-modules" className="flex flex-col gap-6 w-full mb-8 pl-12 scroll-mt-24">
+              <div id="course-modules" className="flex flex-col gap-6 w-full mb-8 lg:pl-12 scroll-mt-24">
                 <div className="flex flex-col">
                   <div className="flex items-center justify-between w-full">
                     <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
@@ -829,7 +835,7 @@ export default function CreateSubjectPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4 pl-12">
+              <div className="flex items-center gap-3 justify-end pt-6 border-t border-zinc-200 mt-4 lg:pl-12">
                 <Link
                   href="/dashboard"
                   className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"

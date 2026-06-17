@@ -34,6 +34,8 @@ interface LmsContextType extends LmsState {
   isLoadingUser: boolean;
   logout: () => void;
   showToast: (message: string, type?: "success" | "error") => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const LmsContext = createContext<LmsContextType | undefined>(undefined);
@@ -45,6 +47,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [events, setEvents] = useState<LmsEvent[]>([]);
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
 
   const [toasts, setToasts] = useState<{ message: string; type: "success" | "error"; id: string }[]>([]);
   const showToast = (message: string, type: "success" | "error" = "success") => {
@@ -399,7 +402,8 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update subject on the server");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to update subject on the server");
       }
 
       const savedSubject: Subject = await response.json();
@@ -456,6 +460,8 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isLoadingUser,
         logout,
         showToast,
+        mobileSidebarOpen,
+        setMobileSidebarOpen,
       }}
     >
       {children}

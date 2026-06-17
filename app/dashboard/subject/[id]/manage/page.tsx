@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 import ImageCropModal from "../../../../../components/ui/ImageCropModal";
+import { StorageTracker } from "../../../../../components/ui/StorageTracker";
 import {
   ArrowLeft,
   Check,
@@ -571,7 +572,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 errorFields={errorFields}
               />
 
-              <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 pl-12">
+              <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 lg:pl-12">
                 <Link
                   href={`/dashboard/subject/${subject.id}`}
                   className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"
@@ -660,6 +661,12 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 );
               })}
             </div>
+
+            {subject && subject.institutionId && (
+              <div className="mt-4 w-full">
+                <StorageTracker institutionId={subject.institutionId} />
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ export default function CategoryInviteSection({
   showToast,
 }: CategoryInviteSectionProps) {
   return (
-    <div id="category-invite" className="flex flex-col gap-6 w-full mb-16 pl-12 scroll-mt-24">
+    <div id="category-invite" className="flex flex-col gap-6 w-full mb-16 lg:pl-12 scroll-mt-24">
       <div className="flex flex-col">
         <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
           <Sparkles className="w-4.5 h-4.5" style={{ color: subjectColor }} />

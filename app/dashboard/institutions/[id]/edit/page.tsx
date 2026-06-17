@@ -183,7 +183,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
             <div className="lg:col-span-9 flex flex-col gap-24 w-full">
               <form onSubmit={handleUpdate} className="flex flex-col gap-24 w-full">
-                <div id="basic-parameters" className="flex flex-col gap-8 w-full mb-16 pl-12 scroll-mt-24">
+                <div id="basic-parameters" className="flex flex-col gap-8 w-full mb-16 lg:pl-12 scroll-mt-24">
                   <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
                     <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
                     Basic Parameters
@@ -239,7 +239,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 pl-12">
+                <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 lg:pl-12">
                   <button
                     type="button"
                     onClick={() => router.push("/dashboard/institutions")}
@@ -262,7 +262,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                 </div>
               </form>
 
-              <div id="danger-zone" className="flex flex-col gap-8 w-full mb-16 pl-12 mt-12 scroll-mt-24">
+              <div id="danger-zone" className="flex flex-col gap-8 w-full mb-16 lg:pl-12 mt-12 scroll-mt-24">
                 <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
                   <AlertTriangle className="w-4.5 h-4.5 text-red-500" />
                   Danger Zone

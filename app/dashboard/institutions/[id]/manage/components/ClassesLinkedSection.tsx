@@ -46,7 +46,7 @@ export default function ClassesLinkedSection({
   });
 
   return (
-    <div id="classes-linked" className="flex flex-col gap-8 w-full mb-16 pl-12 scroll-mt-24">
+    <div id="classes-linked" className="flex flex-col gap-8 w-full mb-16 lg:pl-12 scroll-mt-24">
       <div className="flex flex-col">
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
