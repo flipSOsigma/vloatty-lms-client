@@ -517,5 +517,913 @@
         ]
       }
     ]
+  },
+  {
+    "id": "5392f225-90ca-4469-b6d7-cb21dab0145f",
+    "name": "Introduction to Artificial Intelligence",
+    "lecturers": [
+      {
+        "userId": "u_turing_123",
+        "name": "Dr. Alan Turing",
+        "email": "turing@vloatty.edu"
+      }
+    ],
+    "room": "Online Room A",
+    "color": "purple",
+    "description": "Explore the core concepts of AI including search algorithms, knowledge representation, machine learning, and ethics.",
+    "schedules": [
+      {
+        "day": "Tuesday",
+        "startTime": "13:00",
+        "endTime": "14:40",
+        "room": "Online Room A"
+      }
+    ],
+    "createdBy": "c9c15c47-469a-412f-8431-21568eaf35d4",
+    "deletedBy": null,
+    "createdAt": "2026-06-17T11:32:44.051Z",
+    "updatedAt": "2026-06-17T11:32:44.051Z",
+    "deletedAt": null,
+    "modules": [
+      {
+        "id": "e0ec8ae1-515a-476c-9ec3-933c8da65264",
+        "title": "Module 1: Introduction & History of AI",
+        "desc": "Foundational calculus concepts describing function behaviors near specific values.",
+        "date": "2026-05-13T11:32:44.051Z",
+        "createdAt": "2026-05-13T11:32:44.051Z",
+        "updatedAt": "2026-05-13T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "98a9f22e-cb9e-41d9-987d-958df7bb69be",
+            "title": "Lesson 1: What is AI? Definition & Turing Test",
+            "desc": "Investigating limit behaviors graphically and numerically as values approach a point.",
+            "openDate": "2026-05-11T11:32:44.051Z",
+            "closeDate": "2026-05-18T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.051Z",
+            "updatedAt": "2026-05-13T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "b716f6c9-44c5-4c76-96d7-57c9faaef96b",
+            "title": "Lesson 2: Historical Milestones & Dartmouth Workshop",
+            "desc": "Proving limits rigorously using mathematical continuity bounds.",
+            "openDate": "2026-05-11T11:32:44.051Z",
+            "closeDate": "2026-05-18T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.051Z",
+            "updatedAt": "2026-05-13T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "5023339d-884d-4b4f-8876-7faf75b8ee47",
+        "title": "Module 2: State-Space Search & Planning",
+        "desc": "Rate of change calculations, graphing slopes, and optimization problems.",
+        "date": "2026-05-20T11:32:44.051Z",
+        "createdAt": "2026-05-20T11:32:44.051Z",
+        "updatedAt": "2026-05-20T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "af194732-a1dd-4a46-807b-a4176a60fc6b",
+            "title": "Lesson 1: Uninformed Search: BFS & DFS",
+            "desc": "Practicing algebraic rules for quick derivative computations.",
+            "openDate": "2026-05-18T11:32:44.051Z",
+            "closeDate": "2026-05-25T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.051Z",
+            "updatedAt": "2026-05-20T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "5aed96ec-3266-4807-850d-c20affff808a",
+            "title": "Lesson 2: Informed Search: A* & Heuristics",
+            "desc": "Using critical points to solve real-world efficiency and volume maximization scenarios.",
+            "openDate": "2026-05-18T11:32:44.051Z",
+            "closeDate": "2026-05-25T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.051Z",
+            "updatedAt": "2026-05-20T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "0a154542-024b-46c4-82c9-16cecfd4fae1",
+        "title": "Module 3: Knowledge Representation & Logic",
+        "desc": "How AI systems represent concepts and reason logically about facts.",
+        "date": "2026-05-27T11:32:44.051Z",
+        "createdAt": "2026-05-27T11:32:44.051Z",
+        "updatedAt": "2026-05-27T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "87eaa836-593f-4b63-8830-0f79a3e24332",
+            "title": "Lesson 1: Propositional & First-Order Logic",
+            "desc": "Representing logical relations, syntax, semantics, and inference proofs.",
+            "openDate": "2026-05-25T11:32:44.051Z",
+            "closeDate": "2026-06-01T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.051Z",
+            "updatedAt": "2026-05-27T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "c611f0b7-b253-40a4-860f-7be7cd9ac1b5",
+            "title": "Lesson 2: Semantic Networks & Frames",
+            "desc": "Structuring conceptual links, inheritance, and object properties.",
+            "openDate": "2026-05-25T11:32:44.051Z",
+            "closeDate": "2026-06-01T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.051Z",
+            "updatedAt": "2026-05-27T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "0871638f-eb33-4b2f-92e9-8be342f84b6a",
+        "title": "Module 4: Machine Learning Basics",
+        "desc": "Introduction to data-driven model learning.",
+        "date": "2026-06-03T11:32:44.051Z",
+        "createdAt": "2026-06-03T11:32:44.051Z",
+        "updatedAt": "2026-06-03T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "91f49694-c667-4ac8-90fa-e62ed1002427",
+            "title": "Lesson 1: Supervised vs Unsupervised Learning",
+            "desc": "Understanding labeled vs unlabeled data training procedures.",
+            "openDate": "2026-06-01T11:32:44.051Z",
+            "closeDate": "2026-06-08T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.051Z",
+            "updatedAt": "2026-06-03T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "699ff791-1b83-4d2e-aaa4-3f50be4c3b8d",
+            "title": "Lesson 2: Linear Regression & Decision Trees",
+            "desc": "Formulating classic machine learning algorithms and prediction workflows.",
+            "openDate": "2026-06-01T11:32:44.051Z",
+            "closeDate": "2026-06-08T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.051Z",
+            "updatedAt": "2026-06-03T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "81a11d6d-5653-47bb-b18c-2a98589d3ac2",
+        "title": "Module 5: Natural Language Processing",
+        "desc": "Processing and understanding human languages.",
+        "date": "2026-06-10T11:32:44.051Z",
+        "createdAt": "2026-06-10T11:32:44.051Z",
+        "updatedAt": "2026-06-10T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "34669eee-4431-45b5-9693-8df87c3f41de",
+            "title": "Lesson 1: Tokenization, Stemming & POS Tagging",
+            "desc": "Basic syntax preprocessing methods for unstructured texts.",
+            "openDate": "2026-06-08T11:32:44.051Z",
+            "closeDate": "2026-06-15T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.051Z",
+            "updatedAt": "2026-06-10T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "91d3d7a3-4428-4f19-b0e5-45cb110cd0c3",
+            "title": "Lesson 2: Sentiment Analysis & TF-IDF",
+            "desc": "Extracting emotional tones and document word weights.",
+            "openDate": "2026-06-08T11:32:44.051Z",
+            "closeDate": "2026-06-15T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.051Z",
+            "updatedAt": "2026-06-10T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "7ce35cb6-ae2f-419b-aeef-414446b508a6",
+        "title": "Module 6: Ethics & Future of AI",
+        "desc": "Evaluating the societal impacts and limitations of artificial agents.",
+        "date": "2026-06-17T11:32:44.051Z",
+        "createdAt": "2026-06-17T11:32:44.051Z",
+        "updatedAt": "2026-06-17T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "a9b9575b-fcf6-4fdc-a66b-0697a44cbd20",
+            "title": "Lesson 1: Bias, Fairness & Accountability in AI",
+            "desc": "Mitigating demographic biases in training data.",
+            "openDate": "2026-06-15T11:32:44.051Z",
+            "closeDate": "2026-06-22T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.051Z",
+            "updatedAt": "2026-06-17T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "48b77e2d-b3f5-4d09-a7f4-a7fa06b35f09",
+            "title": "Lesson 2: General vs Narrow AI (AGI discussion)",
+            "desc": "Analyzing limits of current AI systems compared to general intelligence.",
+            "openDate": "2026-06-15T11:32:44.051Z",
+            "closeDate": "2026-06-22T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.051Z",
+            "updatedAt": "2026-06-17T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "20b231f5-90ca-4f04-9125-141a3ae5fdce",
+    "name": "Deep Learning & Neural Networks",
+    "lecturers": [
+      {
+        "userId": "u_olivia_123",
+        "name": "Dr. Olivia",
+        "email": "olivia@vloatty.edu"
+      }
+    ],
+    "room": "Lab Room 404",
+    "color": "indigo",
+    "description": "Learn the theory and practice of deep neural networks, convolutional nets, recurrent networks, and transformers.",
+    "schedules": [
+      {
+        "day": "Wednesday",
+        "startTime": "13:00",
+        "endTime": "14:40",
+        "room": "Lab Room 404"
+      }
+    ],
+    "createdBy": "c9c15c47-469a-412f-8431-21568eaf35d4",
+    "deletedBy": null,
+    "createdAt": "2026-06-17T11:32:44.051Z",
+    "updatedAt": "2026-06-17T11:32:44.051Z",
+    "deletedAt": null,
+    "modules": [
+      {
+        "id": "9df7e72e-eabe-4e10-8d1d-bc5729650287",
+        "title": "Module 1: Foundations of Deep Learning",
+        "desc": "Mathematical foundations of deep learning architectures.",
+        "date": "2026-05-13T11:32:44.051Z",
+        "createdAt": "2026-05-13T11:32:44.051Z",
+        "updatedAt": "2026-05-13T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "d0174e4e-c22d-479b-bfc2-b051e5264da9",
+            "title": "Lesson 1: From Biological to Artificial Neurons",
+            "desc": "Understanding the perceptron, weights, biases, and summation functions.",
+            "openDate": "2026-05-11T11:32:44.051Z",
+            "closeDate": "2026-05-18T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.051Z",
+            "updatedAt": "2026-05-13T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "21821abe-c0c7-4218-b1a5-a41ca0bb63bf",
+            "title": "Lesson 2: Activation Functions (Sigmoid, ReLU, tanh)",
+            "desc": "Applying non-linear mappings to model complex structures.",
+            "openDate": "2026-05-11T11:32:44.051Z",
+            "closeDate": "2026-05-18T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.051Z",
+            "updatedAt": "2026-05-13T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "60ed2e03-7f51-445c-9b5e-3693b382fb17",
+        "title": "Module 2: Training Neural Networks",
+        "desc": "Optimization, optimization models and error minimization.",
+        "date": "2026-05-20T11:32:44.051Z",
+        "createdAt": "2026-05-20T11:32:44.051Z",
+        "updatedAt": "2026-05-20T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "ff9cc3bc-7663-4228-84ce-1d72781ec83d",
+            "title": "Lesson 1: Loss Functions & Cost Optimization",
+            "desc": "Evaluating cross-entropy and mean squared error costs.",
+            "openDate": "2026-05-18T11:32:44.051Z",
+            "closeDate": "2026-05-25T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.051Z",
+            "updatedAt": "2026-05-20T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "f1b6c24a-469a-4e8a-a107-1750d9f5b3f2",
+            "title": "Lesson 2: Backpropagation & Gradient Descent",
+            "desc": "Computing loss derivatives using chain rule and updating parameters.",
+            "openDate": "2026-05-18T11:32:44.051Z",
+            "closeDate": "2026-05-25T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.051Z",
+            "updatedAt": "2026-05-20T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "57806609-e036-47fc-8c18-7fdb6dab8a99",
+        "title": "Module 3: Convolutional Neural Networks (CNNs)",
+        "desc": "Grid data feature extraction and image processing.",
+        "date": "2026-05-27T11:32:44.051Z",
+        "createdAt": "2026-05-27T11:32:44.051Z",
+        "updatedAt": "2026-05-27T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "bbe07c80-6b16-4d76-9955-3bcf2d5b3e2d",
+            "title": "Lesson 1: Convolution & Pooling Operations",
+            "desc": "Applying kernels for edge detection and dimension downsampling.",
+            "openDate": "2026-05-25T11:32:44.051Z",
+            "closeDate": "2026-06-01T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.051Z",
+            "updatedAt": "2026-05-27T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "9687f2c9-b9cd-41fb-bcf1-7aec30b65ae6",
+            "title": "Lesson 2: Classic Architectures: LeNet & AlexNet",
+            "desc": "Reviewing history-making deep learning model templates.",
+            "openDate": "2026-05-25T11:32:44.051Z",
+            "closeDate": "2026-06-01T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.051Z",
+            "updatedAt": "2026-05-27T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "4d2ea9e6-8eef-4b67-9c86-c0c41a800d76",
+        "title": "Module 4: Recurrent Neural Networks (RNNs)",
+        "desc": "Sequences, context vectors, and temporal prediction problems.",
+        "date": "2026-06-03T11:32:44.051Z",
+        "createdAt": "2026-06-03T11:32:44.051Z",
+        "updatedAt": "2026-06-03T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "b55542f5-79a0-4662-92af-e393d10a5bb0",
+            "title": "Lesson 1: Sequential Data & Hidden States",
+            "desc": "Modeling text or time-series data with feedback neural loops.",
+            "openDate": "2026-06-01T11:32:44.051Z",
+            "closeDate": "2026-06-08T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.051Z",
+            "updatedAt": "2026-06-03T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "e5c7df59-952a-4f4c-af1f-7e4e7e3c88c5",
+            "title": "Lesson 2: LSTMs & GRUs",
+            "desc": "Overcoming vanishing gradients with gating cell architectures.",
+            "openDate": "2026-06-01T11:32:44.051Z",
+            "closeDate": "2026-06-08T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.051Z",
+            "updatedAt": "2026-06-03T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "0a8168d8-aaf0-4163-856b-7018b0f440b5",
+        "title": "Module 5: Modern Transformer Models",
+        "desc": "The architecture powering LLMs and GPT models.",
+        "date": "2026-06-10T11:32:44.051Z",
+        "createdAt": "2026-06-10T11:32:44.051Z",
+        "updatedAt": "2026-06-10T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "3232d115-2a92-451a-a203-616b986b034e",
+            "title": "Lesson 1: Attention Mechanism & Self-Attention",
+            "desc": "Computing query, key, and value vectors for context relationships.",
+            "openDate": "2026-06-08T11:32:44.051Z",
+            "closeDate": "2026-06-15T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.051Z",
+            "updatedAt": "2026-06-10T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "15abdd95-9ff8-457a-a6fa-e54be4dafde8",
+            "title": "Lesson 2: BERT & GPT Architecture Overview",
+            "desc": "Contrasting encoder-only and decoder-only transformer stacks.",
+            "openDate": "2026-06-08T11:32:44.051Z",
+            "closeDate": "2026-06-15T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.051Z",
+            "updatedAt": "2026-06-10T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "44eec7f9-82b1-4ad4-9f2e-816c2e8980e9",
+        "title": "Module 6: Deployment & Scaling",
+        "desc": "Moving model code to production environments.",
+        "date": "2026-06-17T11:32:44.051Z",
+        "createdAt": "2026-06-17T11:32:44.051Z",
+        "updatedAt": "2026-06-17T11:32:44.051Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "d9c8fa01-0e45-44b0-b17e-4a1506322bbc",
+            "title": "Lesson 1: Model Quantization & Pruning",
+            "desc": "Reducing file size and resource latency of neural graphs.",
+            "openDate": "2026-06-15T11:32:44.051Z",
+            "closeDate": "2026-06-22T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.051Z",
+            "updatedAt": "2026-06-17T11:32:44.051Z",
+            "deletedAt": null
+          },
+          {
+            "id": "109acbfa-1d2f-48e2-be2d-4b2aa55896fc",
+            "title": "Lesson 2: Deploying Models with ONNX & TensorFlow Serving",
+            "desc": "Publishing neural network endpoints behind web servers.",
+            "openDate": "2026-06-15T11:32:44.051Z",
+            "closeDate": "2026-06-22T11:32:44.051Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.051Z",
+            "updatedAt": "2026-06-17T11:32:44.051Z",
+            "deletedAt": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "752fe546-28c1-47a1-bb8d-43d612d7307d",
+    "name": "Full-Stack Web Development",
+    "lecturers": [
+      {
+        "userId": "u_feynman_123",
+        "name": "Prof. Richard Feynman",
+        "email": "feynman@vloatty.edu"
+      }
+    ],
+    "room": "Coding Hall B",
+    "color": "rose",
+    "description": "Build production-grade web applications using React, Next.js, Node.js, Express, and modern databases.",
+    "schedules": [
+      {
+        "day": "Thursday",
+        "startTime": "13:00",
+        "endTime": "14:40",
+        "room": "Coding Hall B"
+      }
+    ],
+    "createdBy": "c9c15c47-469a-412f-8431-21568eaf35d4",
+    "deletedBy": null,
+    "createdAt": "2026-06-17T11:32:44.052Z",
+    "updatedAt": "2026-06-17T11:32:44.052Z",
+    "deletedAt": null,
+    "modules": [
+      {
+        "id": "be360db6-a1e0-4331-9976-90fc462ae6fd",
+        "title": "Module 1: Modern HTML & CSS Layouts",
+        "desc": "Structuring and styling responsive screen designs.",
+        "date": "2026-05-13T11:32:44.052Z",
+        "createdAt": "2026-05-13T11:32:44.052Z",
+        "updatedAt": "2026-05-13T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "d0b35292-6320-4ad8-a2e7-634cc848c5a4",
+            "title": "Lesson 1: Flexbox & Grid Systems",
+            "desc": "Positioning elements along axes or inside coordinate meshes.",
+            "openDate": "2026-05-11T11:32:44.052Z",
+            "closeDate": "2026-05-18T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.052Z",
+            "updatedAt": "2026-05-13T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "7e447353-9bd9-4a78-a697-9c55b90f2688",
+            "title": "Lesson 2: Responsive Design & Tailwind CSS",
+            "desc": "Writing utility classes and media queries for flexible layouts.",
+            "openDate": "2026-05-11T11:32:44.052Z",
+            "closeDate": "2026-05-18T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.052Z",
+            "updatedAt": "2026-05-13T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "dae761d0-b8c1-4711-937d-e94b91820c61",
+        "title": "Module 2: JavaScript ES6+ & TypeScript",
+        "desc": "Mastering script logic and static typing systems.",
+        "date": "2026-05-20T11:32:44.052Z",
+        "createdAt": "2026-05-20T11:32:44.052Z",
+        "updatedAt": "2026-05-20T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "80e467e4-8d20-4964-9a64-07a2cdfae2c2",
+            "title": "Lesson 1: Promises, Async/Await & Event Loop",
+            "desc": "Understanding the asynchronous nature of browsers and JS runtimes.",
+            "openDate": "2026-05-18T11:32:44.052Z",
+            "closeDate": "2026-05-25T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.052Z",
+            "updatedAt": "2026-05-20T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "9e35fa6b-f63c-4cbe-a11a-f38aa83739f6",
+            "title": "Lesson 2: Typing Variables, Interfaces & Generics",
+            "desc": "Adding static compile check definitions to web application code.",
+            "openDate": "2026-05-18T11:32:44.052Z",
+            "closeDate": "2026-05-25T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.052Z",
+            "updatedAt": "2026-05-20T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "6cd91478-35b8-4022-a40c-23d53a78810b",
+        "title": "Module 3: Frontend Frameworks (React)",
+        "desc": "Component-based screen state synchronization.",
+        "date": "2026-05-27T11:32:44.052Z",
+        "createdAt": "2026-05-27T11:32:44.052Z",
+        "updatedAt": "2026-05-27T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "c9f8911a-1ed5-43c7-988e-7d79efb80ed9",
+            "title": "Lesson 1: State Management & Custom Hooks",
+            "desc": "Managing reactivity, props, local state, and custom hook abstractions.",
+            "openDate": "2026-05-25T11:32:44.052Z",
+            "closeDate": "2026-06-01T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.052Z",
+            "updatedAt": "2026-05-27T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "12af3250-14c2-48c3-8fb1-f75969dbacf2",
+            "title": "Lesson 2: Client Routing & Single Page Apps",
+            "desc": "Handling browser URL transitions asynchronously without page reloads.",
+            "openDate": "2026-05-25T11:32:44.052Z",
+            "closeDate": "2026-06-01T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.052Z",
+            "updatedAt": "2026-05-27T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "f9e44d50-f9fc-4461-9520-9c3ed3a422dd",
+        "title": "Module 4: Backend API Development",
+        "desc": "Writing server-side backend logic handlers.",
+        "date": "2026-06-03T11:32:44.052Z",
+        "createdAt": "2026-06-03T11:32:44.052Z",
+        "updatedAt": "2026-06-03T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "cdad30c8-0f99-42ef-8936-6ab61545dfed",
+            "title": "Lesson 1: RESTful API Principles & Express.js",
+            "desc": "Designing route endpoints with standard HTTP action methods.",
+            "openDate": "2026-06-01T11:32:44.052Z",
+            "closeDate": "2026-06-08T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.052Z",
+            "updatedAt": "2026-06-03T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "a7452cb5-680a-4b3e-b557-a27066c08a00",
+            "title": "Lesson 2: Middleware Pattern & Authentication",
+            "desc": "Securing routes, parsing payloads, and signing JSON Web Tokens.",
+            "openDate": "2026-06-01T11:32:44.052Z",
+            "closeDate": "2026-06-08T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.052Z",
+            "updatedAt": "2026-06-03T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "3e414b41-d32d-4222-bb52-59b80d799438",
+        "title": "Module 5: Databases & ORMs",
+        "desc": "Connecting to and managing transactional databases.",
+        "date": "2026-06-10T11:32:44.052Z",
+        "createdAt": "2026-06-10T11:32:44.052Z",
+        "updatedAt": "2026-06-10T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "8326415b-ea95-40f8-938b-79c64ed8b9ea",
+            "title": "Lesson 1: SQL vs NoSQL: PostgreSQL & MongoDB",
+            "desc": "Choosing between structured table relations and document schemas.",
+            "openDate": "2026-06-08T11:32:44.052Z",
+            "closeDate": "2026-06-15T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.052Z",
+            "updatedAt": "2026-06-10T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "81548ab8-1ce7-43d5-8335-77f77540cffc",
+            "title": "Lesson 2: Schema Migrations with Prisma ORM",
+            "desc": "Mapping javascript models to tables and managing db tables.",
+            "openDate": "2026-06-08T11:32:44.052Z",
+            "closeDate": "2026-06-15T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.052Z",
+            "updatedAt": "2026-06-10T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "50c01e63-6b77-4022-a565-fadddce0ec63",
+        "title": "Module 6: Testing & Deployment",
+        "desc": "Automating validation tests and launching to server hosting.",
+        "date": "2026-06-17T11:32:44.052Z",
+        "createdAt": "2026-06-17T11:32:44.052Z",
+        "updatedAt": "2026-06-17T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "d4deacec-a828-4615-b086-d963c9c96172",
+            "title": "Lesson 1: Unit Testing with Jest & Vitest",
+            "desc": "Writing code scripts to assert component and function correctness.",
+            "openDate": "2026-06-15T11:32:44.052Z",
+            "closeDate": "2026-06-22T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.052Z",
+            "updatedAt": "2026-06-17T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "d1a5dee1-c09c-4b04-8842-0de37b130374",
+            "title": "Lesson 2: CI/CD Pipelines & Vercel/Docker Deployment",
+            "desc": "Deploying code changes automatically with Docker containerization.",
+            "openDate": "2026-06-15T11:32:44.052Z",
+            "closeDate": "2026-06-22T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.052Z",
+            "updatedAt": "2026-06-17T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "5201b0a7-3a0e-4858-8533-7581feedd332",
+    "name": "Data Structures & Algorithms in Python",
+    "lecturers": [
+      {
+        "userId": "u_turing_123",
+        "name": "Dr. Alan Turing",
+        "email": "turing@vloatty.edu"
+      }
+    ],
+    "room": "Seminar Room 102",
+    "color": "emerald",
+    "description": "Master problem-solving techniques using lists, trees, graphs, sorting, and dynamic programming.",
+    "schedules": [
+      {
+        "day": "Friday",
+        "startTime": "13:00",
+        "endTime": "14:40",
+        "room": "Seminar Room 102"
+      }
+    ],
+    "createdBy": "c9c15c47-469a-412f-8431-21568eaf35d4",
+    "deletedBy": null,
+    "createdAt": "2026-06-17T11:32:44.052Z",
+    "updatedAt": "2026-06-17T11:32:44.052Z",
+    "deletedAt": null,
+    "modules": [
+      {
+        "id": "aba4f248-c818-4045-ad9d-c4ec65f5a03b",
+        "title": "Module 1: Complexity Analysis & Big O",
+        "desc": "Evaluating resource efficiency of algorithms.",
+        "date": "2026-05-13T11:32:44.052Z",
+        "createdAt": "2026-05-13T11:32:44.052Z",
+        "updatedAt": "2026-05-13T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "eb5ec2ae-39c8-4c18-bae7-8ad784747ccb",
+            "title": "Lesson 1: Time & Space Complexity Definitions",
+            "desc": "Understanding constant, linear, quadratic, and logarithmic growth metrics.",
+            "openDate": "2026-05-11T11:32:44.052Z",
+            "closeDate": "2026-05-18T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.052Z",
+            "updatedAt": "2026-05-13T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "de82e5a8-a374-4138-b394-1397c512aaad",
+            "title": "Lesson 2: Iterative vs Recursive Big O Analysis",
+            "desc": "Evaluating execution run times of loops compared to recursive trees.",
+            "openDate": "2026-05-11T11:32:44.052Z",
+            "closeDate": "2026-05-18T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-13T11:32:44.052Z",
+            "updatedAt": "2026-05-13T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "b2cd5f7c-7298-4861-831b-267feb73d0a2",
+        "title": "Module 2: Linear Data Structures",
+        "desc": "Sequential element storage blocks.",
+        "date": "2026-05-20T11:32:44.052Z",
+        "createdAt": "2026-05-20T11:32:44.052Z",
+        "updatedAt": "2026-05-20T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "92107c26-61dc-4a19-a96a-c438f1f0a770",
+            "title": "Lesson 1: Dynamic Arrays & Linked Lists",
+            "desc": "Comparing random access indexing to pointer node references.",
+            "openDate": "2026-05-18T11:32:44.052Z",
+            "closeDate": "2026-05-25T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.052Z",
+            "updatedAt": "2026-05-20T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "ea5e7ac0-ce35-4cfa-95e1-3516ebf70f13",
+            "title": "Lesson 2: Stacks, Queues & Double-ended Queues",
+            "desc": "Enforcing LIFO and FIFO item addition and retrieval constraints.",
+            "openDate": "2026-05-18T11:32:44.052Z",
+            "closeDate": "2026-05-25T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-20T11:32:44.052Z",
+            "updatedAt": "2026-05-20T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "5d63d96e-8677-4aa5-a5e5-86a89c442050",
+        "title": "Module 3: Trees & Binary Search Trees",
+        "desc": "Non-linear hierarchical nodes representation.",
+        "date": "2026-05-27T11:32:44.052Z",
+        "createdAt": "2026-05-27T11:32:44.052Z",
+        "updatedAt": "2026-05-27T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "ca952820-680c-4e41-a6f5-90bf88f17af2",
+            "title": "Lesson 1: Binary Tree Traversals (Pre, In, Post)",
+            "desc": "Implementing Depth-First Search patterns across hierarchical structures.",
+            "openDate": "2026-05-25T11:32:44.052Z",
+            "closeDate": "2026-06-01T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.052Z",
+            "updatedAt": "2026-05-27T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "9ee9acc4-b6f6-4752-844c-9370534fb5c3",
+            "title": "Lesson 2: Self-balancing Trees: AVL & Red-Black Basics",
+            "desc": "Maintaining O(log N) heights through rotation operations.",
+            "openDate": "2026-05-25T11:32:44.052Z",
+            "closeDate": "2026-06-01T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-05-27T11:32:44.052Z",
+            "updatedAt": "2026-05-27T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "5f45496a-411b-4c0e-8ae5-4787d1e57512",
+        "title": "Module 4: Sorting & Searching Algorithms",
+        "desc": "Ordering values and locating items fast.",
+        "date": "2026-06-03T11:32:44.052Z",
+        "createdAt": "2026-06-03T11:32:44.052Z",
+        "updatedAt": "2026-06-03T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "959ab944-a5e5-4aff-94e3-3f96baf80751",
+            "title": "Lesson 1: Quick Sort vs Merge Sort Performance",
+            "desc": "Comparing in-place partition swaps to divide-and-conquer merges.",
+            "openDate": "2026-06-01T11:32:44.052Z",
+            "closeDate": "2026-06-08T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.052Z",
+            "updatedAt": "2026-06-03T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "6a9a7574-fe39-498c-92f5-2d53a84335fb",
+            "title": "Lesson 2: Binary Search & Two-Pointer Techniques",
+            "desc": "Halving search spaces and traversing linear arrays simultaneously.",
+            "openDate": "2026-06-01T11:32:44.052Z",
+            "closeDate": "2026-06-08T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-03T11:32:44.052Z",
+            "updatedAt": "2026-06-03T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "83755192-ebca-4a67-9d39-8eab8f3698a6",
+        "title": "Module 5: Graph Algorithms",
+        "desc": "Modeling nodes and connectivity relations.",
+        "date": "2026-06-10T11:32:44.052Z",
+        "createdAt": "2026-06-10T11:32:44.052Z",
+        "updatedAt": "2026-06-10T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "fdc17817-2dc1-46fb-8ca7-e02d4f43d75e",
+            "title": "Lesson 1: Graph Representations: Adjacency List & Matrix",
+            "desc": "Evaluating storage memory vs edge lookup efficiency tradeoffs.",
+            "openDate": "2026-06-08T11:32:44.052Z",
+            "closeDate": "2026-06-15T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.052Z",
+            "updatedAt": "2026-06-10T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "c288afb2-d0d9-4b86-9a2a-bedc9309f37c",
+            "title": "Lesson 2: BFS, DFS & Dijkstra's Shortest Path",
+            "desc": "Traversing structures and calculating minimum weighted distances.",
+            "openDate": "2026-06-08T11:32:44.052Z",
+            "closeDate": "2026-06-15T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-10T11:32:44.052Z",
+            "updatedAt": "2026-06-10T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      },
+      {
+        "id": "efbf72fa-2ce0-4300-9fbc-4b862842c5af",
+        "title": "Module 6: Dynamic Programming & Greedy",
+        "desc": "Optimization methods using overlapping subproblems.",
+        "date": "2026-06-17T11:32:44.052Z",
+        "createdAt": "2026-06-17T11:32:44.052Z",
+        "updatedAt": "2026-06-17T11:32:44.052Z",
+        "deletedAt": null,
+        "lessons": [
+          {
+            "id": "8af819d2-46d9-4dd7-b93d-c2937b5a4ec5",
+            "title": "Lesson 1: Memoization vs Tabulation Concepts",
+            "desc": "Contrasting top-down recursion caches with bottom-up grid tables.",
+            "openDate": "2026-06-15T11:32:44.052Z",
+            "closeDate": "2026-06-22T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.052Z",
+            "updatedAt": "2026-06-17T11:32:44.052Z",
+            "deletedAt": null
+          },
+          {
+            "id": "13d2a6fe-72c5-4b1e-9cf4-991d364c21be",
+            "title": "Lesson 2: Knapsack Problem & Coin Change Analysis",
+            "desc": "Applying optimal substructure properties to solve selection problems.",
+            "openDate": "2026-06-15T11:32:44.052Z",
+            "closeDate": "2026-06-22T11:32:44.052Z",
+            "closeType": "open",
+            "createdAt": "2026-06-17T11:32:44.052Z",
+            "updatedAt": "2026-06-17T11:32:44.052Z",
+            "deletedAt": null
+          }
+        ]
+      }
+    ]
   }
 ]

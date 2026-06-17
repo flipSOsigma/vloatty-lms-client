@@ -519,7 +519,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
                   showToast={showToast}
                 />
 
-                <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 pl-12">
+                <div className="flex items-center gap-3 justify-end pt-8 border-t border-zinc-200 mt-8 lg:pl-12">
                   <Link
                     href={`/dashboard/institutions/${id}`}
                     className="px-6 py-2.5 border border-zinc-200 text-zinc-700 hover:text-[#121212] hover:border-zinc-400 font-bold rounded-full text-[12px] bg-white hover:bg-[#FAF9F5] transition-all cursor-pointer active:scale-[0.98]"

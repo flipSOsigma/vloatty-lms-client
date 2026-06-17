@@ -8,6 +8,7 @@ import { ArrowLeft, Users, BookOpen, Link2, Link2Off, CheckCircle, Grid2x2X, Gri
 import { useRouter } from "next/navigation";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
 import SubjectCard from "../../../../components/ui/SubjectCard";
+import { StorageTracker } from "../../../../components/ui/StorageTracker";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -197,7 +198,7 @@ export default function InstitutionDetailPage({ params }: PageProps) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-0 pl-13">
+          <div className="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-0">
             <div className="flex flex-col gap-5 w-full">
 
 
@@ -289,6 +290,10 @@ export default function InstitutionDetailPage({ params }: PageProps) {
               >
                 <span>Manage Institution</span>
               </Link>
+
+              <div className="mt-2 w-full">
+                <StorageTracker institutionId={institution.id} />
+              </div>
             </div>
           </div>
 

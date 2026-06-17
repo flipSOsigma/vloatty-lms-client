@@ -60,7 +60,7 @@ export function CreateLessonInner({ params }: PageProps) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   });
   const [closeType, setCloseType] = useState<"restrict" | "open">("open");
-  const [type, setType] = useState<"assignment" | "learning" | "quizzes">("learning");
+  const [type, setType] = useState<"assignment" | "learning" | "quizzes" | "presencion">("learning");
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -198,7 +198,10 @@ export function CreateLessonInner({ params }: PageProps) {
     const now = new Date().toISOString();
     const newId = typeof window !== "undefined" && window.crypto && window.crypto.randomUUID
       ? window.crypto.randomUUID()
-      : `l_${Math.random().toString(36).substring(2, 9)}`;
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
 
     const newLesson: Lesson = {
       id: newId,
@@ -293,7 +296,7 @@ export function CreateLessonInner({ params }: PageProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
           {/* Left Column - Form Card */}
-          <div className="lg:col-span-8 flex flex-col gap-6 w-full pl-12">
+          <div className="lg:col-span-8 flex flex-col gap-6 w-full lg:pl-12">
             <div className="flex flex-col gap-1">
               <h3 className="text-[15px] font-extrabold text-[#121212] flex items-center gap-2">
                 <BookOpen className="w-4.5 h-4.5 text-[#f25c88]" />
@@ -331,7 +334,7 @@ export function CreateLessonInner({ params }: PageProps) {
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type *</label>
-                <div className="grid grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-4 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setType("learning")}
@@ -364,6 +367,17 @@ export function CreateLessonInner({ params }: PageProps) {
                     }`}
                   >
                     Quizzes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setType("presencion")}
+                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                      type === "presencion"
+                        ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                        : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
+                    }`}
+                  >
+                    Presence
                   </button>
                 </div>
               </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Header from "../../../../../../components/views/Header";
 import { useLms } from "../../../../../../context/LmsContext";
+import { StorageTracker } from "../../../../../../components/ui/StorageTracker";
 import Link from "next/link";
 import { SubjectFile } from "../../../../../../types/subject";
 import { useSearchParams } from "next/navigation";
@@ -27,6 +28,10 @@ import {
   Settings,
   CheckCircle2,
   ListOrdered,
+  Search,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 interface PageProps {
@@ -102,6 +107,78 @@ function LessonDetailInner({ params }: PageProps) {
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
   const [myAttempt, setMyAttempt] = useState<any>(null);
 
+  // Assignment states
+  const [assignmentSettings, setAssignmentSettings] = useState<any>(null);
+  const [assignmentAllowedTypes, setAssignmentAllowedTypes] = useState<string[]>([]);
+  const [assignmentMaxSizeMb, setAssignmentMaxSizeMb] = useState<number>(10);
+  const [assignmentUserPermissions, setAssignmentUserPermissions] = useState<any[]>([]);
+  const [myAssignmentSubmission, setMyAssignmentSubmission] = useState<any>(null);
+  const [allAssignmentSubmissions, setAllAssignmentSubmissions] = useState<any[]>([]);
+  const [isLoadingAssignment, setIsLoadingAssignment] = useState(false);
+  const [savingAssignmentSettings, setSavingAssignmentSettings] = useState(false);
+  const [assignmentTab, setAssignmentTab] = useState<"submissions" | "settings">("submissions");
+  const [assignmentSearchText, setAssignmentSearchText] = useState("");
+  const [submissionSearchQuery, setSubmissionSearchQuery] = useState("");
+  const [debouncedSubmissionSearchQuery, setDebouncedSubmissionSearchQuery] = useState("");
+  const [submissionSortField, setSubmissionSortField] = useState<"fileSize" | "submittedAt">("submittedAt");
+  const [submissionSortOrder, setSubmissionSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Presence/Presencion states
+  const [presenceList, setPresenceList] = useState<any[]>([]);
+  const [myPresence, setMyPresence] = useState<any>(null);
+  const [isLoadingPresence, setIsLoadingPresence] = useState(false);
+  const [isSubmittingPresence, setIsSubmittingPresence] = useState(false);
+  const [presenceSearchQuery, setPresenceSearchQuery] = useState("");
+
+  const fetchPresenceData = async () => {
+    setIsLoadingPresence(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/presencion`, {
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.isInstructor) {
+          setPresenceList(data.presenceList || []);
+        } else {
+          setMyPresence(data.myPresence || null);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching presence data:", err);
+    } finally {
+      setIsLoadingPresence(false);
+    }
+  };
+
+  const handleSubmitPresence = async () => {
+    setIsSubmittingPresence(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/presencion`, {
+        method: "POST",
+        headers: token ? { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        } : {},
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || "Presence submitted successfully!", "success");
+        setMyPresence(data.presence);
+        fetchPresenceData();
+      } else {
+        showToast(data.error || "Failed to submit presence", "error");
+      }
+    } catch (err: any) {
+      console.error("Error submitting presence:", err);
+      showToast(err.message || "Failed to submit presence", "error");
+    } finally {
+      setIsSubmittingPresence(false);
+    }
+  };
+
   const fetchAttempts = async () => {
     setAttemptsLoading(true);
     try {
@@ -169,6 +246,43 @@ function LessonDetailInner({ params }: PageProps) {
     }
   };
 
+  const fetchAssignmentData = async () => {
+    if (selectedLesson?.type !== "assignment") return;
+    setIsLoadingAssignment(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
+
+      // 1. Fetch settings
+      const settingsRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/settings`, { headers });
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        setAssignmentSettings(settingsData);
+        setAssignmentAllowedTypes(settingsData.globalSettings.allowedTypes);
+        setAssignmentMaxSizeMb(settingsData.globalSettings.maxSizeMb);
+        setAssignmentUserPermissions(settingsData.userPermissions);
+      }
+
+      // 2. Fetch my submission
+      const mySubRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/my-submission`, { headers });
+      if (mySubRes.ok) {
+        const mySubData = await mySubRes.json();
+        setMyAssignmentSubmission(mySubData);
+      }
+
+      // 3. Fetch all submissions
+      const allSubsRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/submissions`, { headers });
+      if (allSubsRes.ok) {
+        const allSubsData = await allSubsRes.json();
+        setAllAssignmentSubmissions(allSubsData);
+      }
+    } catch (err) {
+      console.error("Error fetching assignment data:", err);
+    } finally {
+      setIsLoadingAssignment(false);
+    }
+  };
+
   useEffect(() => {
     if (isLoadingUser) return;
     if (selectedLesson?.type === "quizzes") {
@@ -192,8 +306,19 @@ function LessonDetailInner({ params }: PageProps) {
         setGuestName(localGuestName);
         setIsGuestStarted(true);
       }
+    } else if (selectedLesson?.type === "assignment") {
+      fetchAssignmentData();
+    } else if (selectedLesson?.type === "presencion") {
+      fetchPresenceData();
     }
   }, [lessonId, selectedLesson?.type, currentUser, isLoadingUser]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSubmissionSearchQuery(submissionSearchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [submissionSearchQuery]);
 
   const handleSaveQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -517,6 +642,147 @@ function LessonDetailInner({ params }: PageProps) {
     }
   };
 
+  const handleAssignmentSubmit = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check client side size and type constraints based on assignmentSettings
+    const allowed = assignmentAllowedTypes.length > 0
+      ? assignmentAllowedTypes
+      : ["pdf", "doc", "docx", "png", "jpg", "jpeg", "zip"];
+    const maxSize = assignmentMaxSizeMb;
+
+    const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
+    if (allowed.length > 0 && !allowed.includes(fileExtension)) {
+      showToast(`Invalid file format. Allowed types: ${allowed.join(", ")}`, "error");
+      return;
+    }
+
+    const fileSizeMb = file.size / (1024 * 1024);
+    if (fileSizeMb > maxSize) {
+      showToast(`File exceeds maximum size of ${maxSize}MB.`, "error");
+      return;
+    }
+
+    const extension = file.name.split(".").pop() || "";
+    const studentName = currentUser?.name || "student";
+    const moduleNameStr = selectedModule?.title || "module";
+    const lessonNameStr = selectedLesson?.title || "lesson";
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const sanitize = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    const newFileName = `${sanitize(studentName)}-${sanitize(moduleNameStr)}-${sanitize(lessonNameStr)}-${dateStr}-${id}.${extension}`;
+    const renamedFile = new File([file], newFileName, { type: file.type });
+
+    const formData = new FormData();
+    formData.append("file", renamedFile);
+
+    setUploadingProgress(0);
+    try {
+      const token = localStorage.getItem("token");
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/lessons/${lessonId}/assignment/submit`, true);
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      }
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadingProgress(progress);
+        }
+      };
+
+      xhr.onload = async () => {
+        if (xhr.status === 201) {
+          showToast("Assignment submitted successfully!", "success");
+          fetchAssignmentData();
+        } else {
+          let errMsg = "Failed to submit assignment";
+          try {
+            const errBody = JSON.parse(xhr.responseText);
+            errMsg = errBody.error || errMsg;
+          } catch (err) {}
+          showToast(errMsg, "error");
+        }
+        setUploadingProgress(null);
+      };
+
+      xhr.onerror = () => {
+        showToast("Network error occurred during upload.", "error");
+        setUploadingProgress(null);
+      };
+
+      xhr.send(formData);
+    } catch (err) {
+      console.error(err);
+      showToast("An unexpected error occurred", "error");
+      setUploadingProgress(null);
+    }
+  };
+
+  const handleAssignmentDelete = async (targetUserId?: string) => {
+    if (!confirm("Are you sure you want to delete this submission?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const url = targetUserId
+        ? `${API_BASE_URL}/lessons/${lessonId}/assignment/submit?userId=${targetUserId}`
+        : `${API_BASE_URL}/lessons/${lessonId}/assignment/submit`;
+
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      });
+
+      if (res.ok) {
+        showToast("Submission deleted successfully!", "success");
+        fetchAssignmentData();
+      } else {
+        const errBody = await res.json().catch(() => ({}));
+        showToast(errBody.error || "Failed to delete submission", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete submission", "error");
+    }
+  };
+
+  const handleSaveAssignmentSettings = async () => {
+    setSavingAssignmentSettings(true);
+    try {
+      const token = localStorage.getItem("token");
+      const formattedPermissions = assignmentUserPermissions.map((p) => ({
+        userId: p.userId,
+        canSubmit: p.canSubmit,
+      }));
+
+      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          allowedTypes: assignmentAllowedTypes,
+          maxSizeMb: assignmentMaxSizeMb,
+          userPermissions: formattedPermissions,
+        }),
+      });
+
+      if (res.ok) {
+        showToast("Assignment settings saved successfully!", "success");
+        fetchAssignmentData();
+      } else {
+        const err = await res.json();
+        showToast(err.error || "Failed to save settings", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error saving assignment settings", "error");
+    } finally {
+      setSavingAssignmentSettings(false);
+    }
+  };
+
   const isLocked =
     selectedLesson &&
     selectedLesson.type === "assignment" &&
@@ -526,6 +792,38 @@ function LessonDetailInner({ params }: PageProps) {
   const isCreator = selectedSubject && currentUser?.id === selectedSubject.createdBy;
   const isLecturer = selectedSubject && selectedSubject.lecturers.some((l) => l.userId === currentUser?.id);
   const canEdit = isCreator || isLecturer;
+
+  const myPermission = assignmentUserPermissions.find((p) => p.userId === currentUser?.id);
+  const canStudentSubmit = myPermission ? myPermission.canSubmit : true;
+
+  const sortedSubmissions = [...allAssignmentSubmissions].sort((a, b) => {
+    if (submissionSortField === "submittedAt") {
+      const timeA = new Date(a.submittedAt).getTime();
+      const timeB = new Date(b.submittedAt).getTime();
+      return submissionSortOrder === "asc" ? timeA - timeB : timeB - timeA;
+    } else {
+      const sizeA = Number(a.fileSize || 0);
+      const sizeB = Number(b.fileSize || 0);
+      return submissionSortOrder === "asc" ? sizeA - sizeB : sizeB - sizeA;
+    }
+  });
+
+  const filteredSubmissions = sortedSubmissions.filter((sub) => {
+    const name = sub.user?.name?.toLowerCase() || "";
+    const email = sub.user?.email?.toLowerCase() || "";
+    const file = sub.fileName?.toLowerCase() || "";
+    const query = debouncedSubmissionSearchQuery.toLowerCase();
+    return name.includes(query) || email.includes(query) || file.includes(query);
+  });
+
+  const handleSortSubmissions = (field: "fileSize" | "submittedAt") => {
+    if (submissionSortField === field) {
+      setSubmissionSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSubmissionSortField(field);
+      setSubmissionSortOrder("desc");
+    }
+  };
 
   const startEditing = () => {
     if (!selectedLesson) return;
@@ -632,8 +930,8 @@ function LessonDetailInner({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
-          <div className="lg:col-span-2 flex flex-col gap-6 lg:order-2">
+        <div className={`grid grid-cols-1 gap-8 items-start text-left ${selectedLesson.type === "learning" ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+          <div className={`flex flex-col gap-6 lg:order-2 ${selectedLesson.type === "learning" ? "lg:col-span-3" : "lg:col-span-2"}`}>
             {isEditing ? (
               <form
                 onSubmit={handleSave}
@@ -662,7 +960,7 @@ function LessonDetailInner({ params }: PageProps) {
                   <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
                     Lesson Type *
                   </label>
-                  <div className="grid grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-4 gap-2.5">
                     <button
                       type="button"
                       onClick={() => setEditType("learning")}
@@ -695,6 +993,17 @@ function LessonDetailInner({ params }: PageProps) {
                       }`}
                     >
                       Quizzes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditType("presencion")}
+                      className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                        editType === "presencion"
+                          ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                          : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
+                      }`}
+                    >
+                      Presence
                     </button>
                   </div>
                 </div>
@@ -778,7 +1087,7 @@ function LessonDetailInner({ params }: PageProps) {
                   )}
                 </div>
 
-                {(editType === "assignment" || editType === "quizzes") && (
+                {(editType === "assignment" || editType === "quizzes" || editType === "presencion") && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
                       <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
@@ -877,6 +1186,40 @@ function LessonDetailInner({ params }: PageProps) {
               </form>
             ) : (
               <div className="flex flex-col gap-6">
+                {selectedLesson.type === "learning" && (
+                  <div className="flex flex-col gap-6 bg-transparent border-none p-0 shadow-none select-text animate-in fade-in duration-300">
+                    <div className="flex flex-col gap-1.5 pb-4 border-b border-[#E5E1D8]/45">
+                      <span className="inline-block text-[9px] font-bold px-2.5 py-0.5 rounded-full w-fit bg-[#f25c88]/10 text-[#f25c88] border border-[#f25c88]/15 uppercase tracking-wide">
+                        {selectedLesson.type || "learning"}
+                      </span>
+                      <h1 className="text-3xl font-black text-[#121212] tracking-tight mt-3 leading-snug">
+                        {selectedLesson.title}
+                      </h1>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-zinc-500 font-semibold text-[12px] mt-2">
+                        {selectedModule && (
+                          <span className="bg-[#FAF7F2] border border-[#E5E1D8]/30 px-3 py-1 rounded-full text-zinc-600 font-extrabold uppercase text-[9px] tracking-wider">
+                            Module: {selectedModule.title}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <GraduationCap className="w-4 h-4 text-zinc-400" />
+                          Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selectedLesson.desc ? (
+                      <div className="text-[14.5px] text-zinc-800 leading-relaxed font-normal whitespace-pre-wrap tracking-wide pt-2 select-text text-left">
+                        {selectedLesson.desc}
+                      </div>
+                    ) : (
+                      <div className="text-[12px] text-zinc-400 font-semibold italic py-4">
+                        No description or content provided for this learning lesson.
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {attachments.length > 0 && (
                   <div className="flex flex-col gap-3">
                     <h3 className="text-[12px] font-extrabold text-[#121212] tracking-tight uppercase mb-2">
@@ -922,13 +1265,262 @@ function LessonDetailInner({ params }: PageProps) {
                   </div>
                 )}
 
+                {selectedLesson.type === "presencion" && !canEdit && (
+                  <div className="flex flex-col gap-6 border-t border-zinc-100 pt-6 animate-in fade-in duration-300">
+                    <div className="flex flex-col gap-1.5 text-left">
+                      <h3 className="text-lg font-black text-[#121212] tracking-tight">
+                        Attendance Session
+                      </h3>
+                      <p className="text-[12px] text-zinc-500 font-medium">
+                        Register your attendance for this class session.
+                      </p>
+                    </div>
+
+                    {isLoadingPresence ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <div className="w-8 h-8 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                        <span className="text-[12px] text-zinc-500 font-bold mt-3">Loading session...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        <div className="border border-[#E5E1D8] bg-white rounded-3xl p-6 shadow-sm flex flex-col gap-5 text-left">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Attendance Window</span>
+                            <div className="flex items-center gap-2 text-zinc-800 text-[13px] font-bold mt-1">
+                              <Calendar className="w-4 h-4 text-[#f25c88]" />
+                              <span>{formatDate(selectedLesson.openDate)}</span>
+                              <span className="text-zinc-300">—</span>
+                              <span>{formatDate(selectedLesson.closeDate)}</span>
+                            </div>
+                          </div>
+
+                          {myPresence ? (
+                            <div className="border border-emerald-500/20 bg-emerald-500/[0.02] rounded-2xl p-5 flex items-center gap-3">
+                              <CheckCircle2 className="w-8 h-8 text-emerald-500 shrink-0" />
+                              <div className="flex flex-col text-left">
+                                <span className="text-[13.5px] font-extrabold text-emerald-800">
+                                  Attendance Registered Successfully!
+                                </span>
+                                <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+                                  Checked in at {formatDate(myPresence.createdAt || new Date().toISOString())}
+                                </span>
+                              </div>
+                            </div>
+                          ) : new Date() < new Date(selectedLesson.openDate) ? (
+                            <div className="border border-amber-350/30 bg-amber-500/[0.02] rounded-2xl p-5 flex items-center gap-3">
+                              <Clock className="w-8 h-8 text-amber-500 shrink-0" />
+                              <div className="flex flex-col text-left">
+                                <span className="text-[13.5px] font-extrabold text-amber-800">
+                                  Attendance Has Not Started
+                                </span>
+                                <span className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                                  This session will open at {formatDate(selectedLesson.openDate)}.
+                                </span>
+                              </div>
+                            </div>
+                          ) : new Date() > new Date(selectedLesson.closeDate) ? (
+                            <div className="border border-red-500/20 bg-red-500/[0.02] rounded-2xl p-5 flex items-center gap-3">
+                              <Lock className="w-8 h-8 text-red-500 shrink-0" />
+                              <div className="flex flex-col text-left">
+                                <span className="text-[13.5px] font-extrabold text-red-800">
+                                  Attendance Session Closed
+                                </span>
+                                <span className="text-[11px] text-zinc-500 font-medium mt-0.5">
+                                  The deadline was {formatDate(selectedLesson.closeDate)}. You did not check in.
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col gap-4">
+                              <div className="bg-rose-50/50 border border-rose-100 rounded-2xl p-4 text-left">
+                                <p className="text-[12px] text-rose-800 font-medium">
+                                  The attendance session is currently active. Click the button below to register your presence for this lesson.
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={handleSubmitPresence}
+                                disabled={isSubmittingPresence}
+                                className="w-full py-3.5 bg-[#f25c88] hover:bg-[#e0527b] text-white font-extrabold rounded-2xl text-[13px] shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                              >
+                                {isSubmittingPresence ? (
+                                  <>
+                                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                                    <span>Submitting...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Check className="w-4 h-4" />
+                                    <span>Submit Presence</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {selectedLesson.type === "presencion" && canEdit && (
+                  <div className="flex flex-col gap-6 border-t border-zinc-100 pt-6 animate-in fade-in duration-300 text-left">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-lg font-black text-[#121212] tracking-tight">
+                          Attendance Control Panel
+                        </h3>
+                        <p className="text-[12px] text-zinc-500 font-medium">
+                          Monitor student attendance and registration timestamps.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-[11px] text-zinc-400 font-bold">
+                          Active Window: {formatDate(selectedLesson.openDate)} — {formatDate(selectedLesson.closeDate)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {isLoadingPresence ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <div className="w-8 h-8 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                        <span className="text-[12px] text-zinc-500 font-bold mt-3">Loading presence dashboard...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-6 w-full">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
+                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Total Enrolled</span>
+                            <span className="text-2xl font-black text-zinc-800">{presenceList.length}</span>
+                          </div>
+                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
+                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider text-emerald-600">Present</span>
+                            <span className="text-2xl font-black text-emerald-600">
+                              {presenceList.filter((p) => p.submitted).length}
+                            </span>
+                          </div>
+                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
+                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider text-rose-500">Absent</span>
+                            <span className="text-2xl font-black text-rose-500">
+                              {presenceList.filter((p) => !p.submitted).length}
+                            </span>
+                          </div>
+                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
+                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider text-[#f25c88]">Rate</span>
+                            <span className="text-2xl font-black text-[#f25c88]">
+                              {presenceList.length > 0
+                                ? `${((presenceList.filter((p) => p.submitted).length / presenceList.length) * 100).toFixed(1)}%`
+                                : "0.0%"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                            <div className="relative flex-1 max-w-sm">
+                              <input
+                                type="text"
+                                value={presenceSearchQuery}
+                                onChange={(e) => setPresenceSearchQuery(e.target.value)}
+                                className="bg-white border border-[#E5E1D8] rounded-xl pl-8 pr-3 py-2 text-[11px] w-full focus:outline-none focus:border-zinc-400 transition-all font-semibold"
+                                placeholder="Search student name or email..."
+                              />
+                              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={fetchPresenceData}
+                              className="px-4 py-2 border border-[#E5E1D8] hover:bg-[#FAF9F5] text-zinc-700 bg-white font-bold rounded-full text-[11.5px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                            >
+                              Refresh Data
+                            </button>
+                          </div>
+
+                          {presenceList.filter(
+                            (p) =>
+                              p.user?.name.toLowerCase().includes(presenceSearchQuery.toLowerCase()) ||
+                              p.user?.email.toLowerCase().includes(presenceSearchQuery.toLowerCase())
+                          ).length === 0 ? (
+                            <div className="border border-dashed border-[#E5E1D8] bg-[#FAF7F2]/10 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
+                              {presenceSearchQuery ? "No students match your query." : "No enrolled students found in this course subject."}
+                            </div>
+                          ) : (
+                            <div className="border border-[#EBE8E0] rounded-2xl overflow-hidden bg-white shadow-sm">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-zinc-50 border-b border-[#EBE8E0] text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3">Student Details</th>
+                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-4 py-3">Recorded Check-in</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-100">
+                                  {presenceList
+                                    .filter(
+                                      (p) =>
+                                        p.user?.name.toLowerCase().includes(presenceSearchQuery.toLowerCase()) ||
+                                        p.user?.email.toLowerCase().includes(presenceSearchQuery.toLowerCase())
+                                    )
+                                    .map((p) => (
+                                      <tr key={p.user.id} className="text-[12px] hover:bg-zinc-50/40 transition-colors">
+                                        <td className="px-4 py-3.5 font-bold text-zinc-800 flex items-center gap-2.5">
+                                          {p.user.avatar ? (
+                                            <img
+                                              src={p.user.avatar}
+                                              alt={p.user.name}
+                                              className="w-6.5 h-6.5 rounded-full object-cover border border-zinc-200"
+                                            />
+                                          ) : (
+                                            <div className="w-6.5 h-6.5 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[10px]">
+                                              {p.user.name.slice(0, 2).toUpperCase()}
+                                            </div>
+                                          )}
+                                          <div className="flex flex-col text-left">
+                                            <span className="font-bold text-zinc-800">{p.user.name}</span>
+                                            <span className="text-[9.5px] text-zinc-400 font-semibold">{p.user.email}</span>
+                                          </div>
+                                        </td>
+                                        <td className="px-4 py-3.5">
+                                          {p.submitted ? (
+                                            <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
+                                              Present
+                                            </span>
+                                          ) : (
+                                            <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold rounded-full">
+                                              Absent
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td className="px-4 py-3.5 font-semibold text-zinc-500">
+                                          {p.submittedAt ? formatDate(p.submittedAt) : "—"}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {selectedLesson.type === "assignment" && !canEdit && (
                   <div className="flex flex-col gap-4 border-t border-zinc-100 pt-6">
                     <h3 className="text-[15px] font-extrabold text-[#121212] tracking-tight mb-2">
                       Submit Homework
                     </h3>
 
-                    {isLocked ? (
+                    {!canStudentSubmit ? (
+                      <div className="border border-red-200 bg-red-50/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+                        <Lock className="w-8 h-8 text-red-500 mb-2" />
+                        <span className="text-[14px] text-red-600 font-bold">Submission Blocked</span>
+                        <span className="text-[12px] text-zinc-500 font-medium max-w-sm mt-1">
+                          You do not have permission to submit this assignment. Please contact your instructor.
+                        </span>
+                      </div>
+                    ) : isLocked ? (
                       <div className="border border-red-200 bg-red-50/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
                         <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
                         <span className="text-[14px] text-red-600 font-bold">Submission Closed</span>
@@ -950,22 +1542,22 @@ function LessonDetailInner({ params }: PageProps) {
                           />
                         </div>
                       </div>
-                    ) : mySubmission ? (
+                    ) : myAssignmentSubmission ? (
                       <div className="border border-emerald-500/20 bg-emerald-500/[0.02] rounded-2xl p-5 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0">
                           <FileCheck className="w-7 h-7 text-emerald-600 shrink-0" />
                           <div className="flex flex-col min-w-0">
                             <span className="text-[13px] font-bold text-zinc-800 truncate text-left">
-                              {mySubmission.name}
+                              {myAssignmentSubmission.fileName}
                             </span>
                             <span className="text-[10px] text-zinc-400 font-semibold text-left">
-                              {(mySubmission.sizeBytes / 1024).toFixed(1)} KB • Submitted successfully ({formatDate(mySubmission.createdAt)})
+                              {(myAssignmentSubmission.fileSize / 1024).toFixed(1)} KB • Submitted successfully ({formatDate(myAssignmentSubmission.submittedAt)})
                             </span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <a
-                            href={mySubmission.url}
+                            href={myAssignmentSubmission.filePath}
                             target="_blank"
                             rel="noreferrer"
                             className="px-4 py-2 border border-[#E5E1D8] hover:bg-zinc-100 text-zinc-700 font-bold rounded-full text-[11px] shadow-sm transition-colors"
@@ -974,7 +1566,7 @@ function LessonDetailInner({ params }: PageProps) {
                           </a>
                           <button
                             type="button"
-                            onClick={() => handleDeleteFile(mySubmission.id)}
+                            onClick={() => handleAssignmentDelete()}
                             className="p-1.5 rounded-full hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700 cursor-pointer"
                           >
                             <X className="w-4 h-4" />
@@ -986,15 +1578,15 @@ function LessonDetailInner({ params }: PageProps) {
                         <input
                           type="file"
                           className="hidden"
-                          onChange={(e) => handleFileUpload(e, "Submission")}
+                          onChange={handleAssignmentSubmit}
                         />
                         <UploadCloud className="w-8 h-8 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
                         <div className="flex flex-col items-center">
                           <span className="text-[12px] font-bold text-zinc-800">
                             Click to upload your assignment
                           </span>
-                          <span className="text-[10px] text-zinc-400 mt-0.5">
-                            PDF or Document formats up to 10MB
+                          <span className="text-[10px] text-zinc-400 mt-1">
+                            Allowed formats: {assignmentAllowedTypes.length > 0 ? assignmentAllowedTypes.join(", ").toUpperCase() : "ANY"} (up to {assignmentMaxSizeMb}MB)
                           </span>
                         </div>
                       </label>
@@ -1003,77 +1595,308 @@ function LessonDetailInner({ params }: PageProps) {
                 )}
 
                 {selectedLesson.type === "assignment" && canEdit && (
-                  <div className="flex flex-col gap-4 border-t border-zinc-100 pt-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-[15px] font-extrabold text-[#121212] tracking-tight">
-                        Student Homework Submissions
-                      </h3>
-                      <span className="px-2.5 py-0.5 bg-[#f25c88]/10 text-[#f25c88] text-[10px] font-bold rounded-full">
-                        {submissions.length} Submissions
-                      </span>
-                    </div>
+                  <div className="flex flex-col gap-6 w-full animate-in fade-in duration-355 border-t border-zinc-100 pt-6">
+                    <div className="flex items-center justify-between border-b border-[#E5E1D8]/40 pb-3">
+                      <div className="flex items-center gap-1.5">
+                        <GraduationCap className="w-5 h-5 text-[#f25c88]" />
+                        <h3 className="text-[15px] font-black text-zinc-850">Assignment Control Panel</h3>
+                      </div>
+                      <div className="flex bg-zinc-100 rounded-full p-1 border border-zinc-200/50">
+                        <button
+                          type="button"
+                          onClick={() => setAssignmentTab("submissions")}
+                          className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                            assignmentTab === "submissions"
+                              ? "bg-[#121212] text-white shadow-sm"
+                              : "text-zinc-500 hover:text-zinc-800"
+                          }`}
+                        >
+                          Submissions
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAssignmentTab("settings")}
+                          className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                            assignmentTab === "settings"
+                              ? "bg-[#121212] text-white shadow-sm"
+                              : "text-zinc-500 hover:text-zinc-800"
+                          }`}
+                        >
+                          Assignment Settings
+                        </button>
+                      </div>
+                    </div>                    {assignmentTab === "submissions" ? (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+                          <h4 className="text-[13px] font-extrabold text-zinc-700">
+                            Student Submissions List
+                          </h4>
+                          <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <div className="relative w-full sm:w-64">
+                              <input
+                                type="text"
+                                value={submissionSearchQuery}
+                                onChange={(e) => setSubmissionSearchQuery(e.target.value)}
+                                className="bg-white border border-[#E5E1D8] rounded-xl pl-8 pr-3 py-1.5 text-[11px] w-full focus:outline-none focus:border-zinc-400 transition-all font-semibold"
+                                placeholder="Search by student name or file..."
+                              />
+                              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2" />
+                            </div>
+                            <span className="px-2.5 py-0.5 bg-[#f25c88]/10 text-[#f25c88] text-[10px] font-bold rounded-full whitespace-nowrap shrink-0">
+                              {filteredSubmissions.length} Submissions
+                            </span>
+                          </div>
+                        </div>
 
-                    {submissions.length === 0 ? (
-                      <div className="border border-dashed border-[#E5E1D8] bg-[#FAF7F2]/10 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
-                        No submissions yet for this assignment.
+                        {filteredSubmissions.length === 0 ? (
+                          <div className="border border-dashed border-[#E5E1D8] bg-[#FAF7F2]/10 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
+                            {debouncedSubmissionSearchQuery ? "No submissions match your search query." : "No student submissions yet for this assignment."}
+                          </div>
+                        ) : (
+                          <div className="border border-[#EBE8E0] rounded-2xl overflow-hidden bg-white shadow-sm">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="bg-zinc-50 border-b border-[#EBE8E0] text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                  <th className="px-4 py-3">Student</th>
+                                  <th className="px-4 py-3">File Name</th>
+                                  <th
+                                    className="px-4 py-3 cursor-pointer hover:bg-zinc-100 select-none transition-all"
+                                    onClick={() => handleSortSubmissions("fileSize")}
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <span>File Size</span>
+                                      {submissionSortField === "fileSize" ? (
+                                        submissionSortOrder === "asc" ? (
+                                          <ChevronUp className="w-3.5 h-3.5 text-[#f25c88]" />
+                                        ) : (
+                                          <ChevronDown className="w-3.5 h-3.5 text-[#f25c88]" />
+                                        )
+                                      ) : (
+                                        <ArrowUpDown className="w-3.5 h-3.5 text-zinc-300 hover:text-zinc-550" />
+                                      )}
+                                    </div>
+                                  </th>
+                                  <th
+                                    className="px-4 py-3 cursor-pointer hover:bg-zinc-100 select-none transition-all"
+                                    onClick={() => handleSortSubmissions("submittedAt")}
+                                  >
+                                    <div className="flex items-center gap-1">
+                                      <span>Submitted At</span>
+                                      {submissionSortField === "submittedAt" ? (
+                                        submissionSortOrder === "asc" ? (
+                                          <ChevronUp className="w-3.5 h-3.5 text-[#f25c88]" />
+                                        ) : (
+                                          <ChevronDown className="w-3.5 h-3.5 text-[#f25c88]" />
+                                        )
+                                      ) : (
+                                        <ArrowUpDown className="w-3.5 h-3.5 text-zinc-300 hover:text-zinc-550" />
+                                      )}
+                                    </div>
+                                  </th>
+                                  <th className="px-4 py-3 text-right">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-zinc-100">
+                                {filteredSubmissions.map((sub) => (
+                                  <tr key={sub.id} className="text-[12px]">
+                                    <td className="px-4 py-3.5 font-bold text-zinc-800 flex items-center gap-2">
+                                      {sub.user?.avatar ? (
+                                        <img
+                                          src={sub.user.avatar}
+                                          alt={sub.user.name}
+                                          className="w-6 h-6 rounded-full object-cover border border-zinc-200"
+                                        />
+                                      ) : (
+                                        <div className="w-6 h-6 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[10px]">
+                                          {sub.user?.name?.slice(0, 2).toUpperCase() || "?"}
+                                        </div>
+                                      )}
+                                      <span>{sub.user?.name || "Unknown User"}</span>
+                                    </td>
+                                    <td className="px-4 py-3.5 text-zinc-600 font-medium truncate max-w-[150px]" title={sub.fileName}>
+                                      {sub.fileName}
+                                    </td>
+                                    <td className="px-4 py-3.5 text-zinc-500 font-medium">
+                                      {(sub.fileSize / 1024).toFixed(1)} KB
+                                    </td>
+                                    <td className="px-4 py-3.5 text-zinc-400 font-semibold">
+                                      {formatDate(sub.submittedAt)}
+                                    </td>
+                                    <td className="px-4 py-3.5 text-right">
+                                      <div className="flex justify-end gap-1.5">
+                                        <a
+                                          href={sub.filePath}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="px-3 py-1.5 border border-[#E5E1D8] hover:bg-zinc-50 text-zinc-700 font-bold rounded-full text-[10px] transition-colors"
+                                        >
+                                          Open File
+                                        </a>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleAssignmentDelete(sub.userId)}
+                                          className="px-3 py-1.5 border border-rose-100 hover:bg-rose-50 text-rose-600 font-bold rounded-full text-[10px] transition-colors"
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <div className="border border-[#EBE8E0] rounded-2xl overflow-hidden bg-white shadow-sm">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-zinc-50 border-b border-[#EBE8E0] text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
-                              <th className="px-4 py-3">Student</th>
-                              <th className="px-4 py-3">File Name</th>
-                              <th className="px-4 py-3">Submitted At</th>
-                              <th className="px-4 py-3 text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-zinc-100">
-                            {submissions.map((sub) => (
-                              <tr key={sub.id} className="text-[12px]">
-                                <td className="px-4 py-3.5 font-bold text-zinc-800 flex items-center gap-2">
-                                  {sub.uploadedBy?.avatar ? (
-                                    <img
-                                      src={sub.uploadedBy.avatar}
-                                      alt={sub.uploadedBy.name}
-                                      className="w-6 h-6 rounded-full object-cover border border-zinc-200"
-                                    />
-                                  ) : (
-                                    <div className="w-6 h-6 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[10px]">
-                                      {sub.uploadedBy?.name?.slice(0, 2).toUpperCase() || "?"}
+                      <div className="flex flex-col gap-6 w-full text-left bg-[#FAF9F5]/30 rounded-2xl p-6">
+                        <h4 className="text-[14px] font-black text-zinc-800 mb-2">Assignment Configuration</h4>
+                        
+                        {/* Allowed File Formats */}
+                        <div className="flex flex-col gap-2">
+                          <label className="text-[12px] font-extrabold text-zinc-700">Allowed File Formats</label>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {["pdf", "doc", "docx", "xls", "xlsx", "png", "jpg", "jpeg", "zip", "rar"].map((format) => {
+                              const isSelected = assignmentAllowedTypes.includes(format);
+                              return (
+                                <button
+                                  key={format}
+                                  type="button"
+                                  onClick={() => {
+                                    setAssignmentAllowedTypes(prev =>
+                                      prev.includes(format)
+                                        ? prev.filter(f => f !== format)
+                                        : [...prev, format]
+                                    );
+                                  }}
+                                  className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
+                                    isSelected
+                                      ? "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/30"
+                                      : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50 cursor-pointer"
+                                  }`}
+                                >
+                                  .{format.toUpperCase()}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-bold text-zinc-500">Or specify custom comma-separated formats:</span>
+                            <input
+                              type="text"
+                              value={assignmentAllowedTypes.join(", ")}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const types = val.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+                                setAssignmentAllowedTypes(types);
+                              }}
+                              className="bg-white border border-[#E5E1D8] rounded-xl px-3 py-2 text-[12px] w-full focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 transition-all font-semibold"
+                              placeholder="e.g. txt, csv, pptx"
+                            />
+                            <span className="text-[10px] text-zinc-400 font-medium">Leave empty to allow all file types.</span>
+                          </div>
+                        </div>
+
+                        {/* Max File Size */}
+                        <div className="flex flex-col gap-2 border-t border-zinc-200/50 pt-4">
+                          <div className="flex justify-between items-center text-[12px] font-extrabold text-zinc-700">
+                            <span>Maximum File Size Limit</span>
+                            <span className="text-[#f25c88] bg-[#f25c88]/10 px-2 py-0.5 rounded-full font-black text-[11px]">
+                              {assignmentMaxSizeMb} MB
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            value={assignmentMaxSizeMb}
+                            onChange={(e) => setAssignmentMaxSizeMb(parseInt(e.target.value))}
+                            className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-[#f25c88]"
+                          />
+                          <span className="text-[10px] text-zinc-400 font-medium">
+                            Set the maximum allowed file size per submission (between 1MB and 100MB).
+                          </span>
+                        </div>
+
+                        {/* Student Permissions */}
+                        <div className="flex flex-col gap-3 border-t border-zinc-200/50 pt-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[12px] font-extrabold text-zinc-700">Student Access Controls</label>
+                            <input
+                              type="text"
+                              value={assignmentSearchText}
+                              onChange={(e) => setAssignmentSearchText(e.target.value)}
+                              className="bg-white border border-zinc-200 rounded-xl px-3 py-1.5 text-[11px] w-48 focus:outline-none focus:border-zinc-400 transition-all font-semibold"
+                              placeholder="Search student..."
+                            />
+                          </div>
+
+                          <div className="border border-zinc-200/70 bg-white rounded-2xl overflow-hidden max-h-60 overflow-y-auto divide-y divide-zinc-100">
+                            {assignmentUserPermissions.length === 0 ? (
+                              <div className="p-4 text-center text-zinc-400 text-[11px] font-medium">
+                                No students enrolled in this subject.
+                              </div>
+                            ) : (
+                              assignmentUserPermissions
+                                .filter((p) => {
+                                  const name = p.user?.name?.toLowerCase() || "";
+                                  const email = p.user?.email?.toLowerCase() || "";
+                                  const query = assignmentSearchText.toLowerCase();
+                                  return name.includes(query) || email.includes(query);
+                                })
+                                .map((perm) => (
+                                  <div key={perm.userId} className="flex items-center justify-between p-3 text-[12px]">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {perm.user?.avatar ? (
+                                        <img
+                                          src={perm.user.avatar}
+                                          alt={perm.user.name}
+                                          className="w-6 h-6 rounded-full object-cover border border-zinc-200"
+                                        />
+                                      ) : (
+                                        <div className="w-6 h-6 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[9px]">
+                                          {perm.user?.name?.slice(0, 2).toUpperCase() || "?"}
+                                        </div>
+                                      )}
+                                      <div className="flex flex-col min-w-0">
+                                        <span className="font-bold text-zinc-800 truncate text-left">{perm.user?.name || "Unknown"}</span>
+                                        <span className="text-[9px] text-zinc-400 truncate text-left">{perm.user?.email || ""}</span>
+                                      </div>
                                     </div>
-                                  )}
-                                  <span>{sub.uploadedBy?.name || "Unknown User"}</span>
-                                </td>
-                                <td className="px-4 py-3.5 text-zinc-600 font-medium truncate max-w-[150px]" title={sub.name}>
-                                  {sub.name}
-                                </td>
-                                <td className="px-4 py-3.5 text-zinc-400 font-semibold">
-                                  {formatDate(sub.createdAt)}
-                                </td>
-                                <td className="px-4 py-3.5 text-right">
-                                  <div className="flex justify-end gap-1.5">
-                                    <a
-                                      href={sub.url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="px-3 py-1.5 border border-[#E5E1D8] hover:bg-zinc-50 text-zinc-700 font-bold rounded-full text-[10px] transition-colors"
-                                    >
-                                      Open File
-                                    </a>
                                     <button
                                       type="button"
-                                      onClick={() => handleDeleteFile(sub.id)}
-                                      className="px-3 py-1.5 border border-rose-100 hover:bg-rose-50 text-rose-600 font-bold rounded-full text-[10px] transition-colors"
+                                      title={perm.canSubmit ? "Click to block this student's access to submission" : "Click to allow this student to submit assignments"}
+                                      onClick={() => {
+                                        setAssignmentUserPermissions(prev =>
+                                          prev.map(p => p.userId === perm.userId ? { ...p, canSubmit: !p.canSubmit } : p)
+                                        );
+                                      }}
+                                      className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${
+                                        perm.canSubmit
+                                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 cursor-pointer"
+                                          : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20 cursor-pointer"
+                                      }`}
                                     >
-                                      Delete
+                                      {perm.canSubmit ? "Allowed" : "Blocked"}
                                     </button>
                                   </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                                ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Save Button */}
+                        <div className="flex justify-end pt-4 border-t border-zinc-200/50 mt-2">
+                          <button
+                            type="button"
+                            disabled={savingAssignmentSettings}
+                            onClick={handleSaveAssignmentSettings}
+                            className="px-5 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold rounded-full text-[12px] shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                          >
+                            {savingAssignmentSettings ? "Saving Settings..." : "Save Assignment Configuration"}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1694,7 +2517,7 @@ function LessonDetailInner({ params }: PageProps) {
             )}
           </div>
 
-          <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 pl-13 lg:order-1">
+          <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 lg:order-1">
             <div className="flex flex-col gap-5 w-full">
               <div className="flex flex-col gap-1.5">
                 <span
@@ -1702,48 +2525,76 @@ function LessonDetailInner({ params }: PageProps) {
                 >
                   {selectedLesson.type || "learning"}
                 </span>
-                <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
-                  {selectedLesson.title}
-                </h2>
-                {selectedModule && (
-                  <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider mt-0.5">
-                    Module: {selectedModule.title}
-                  </span>
+                {selectedLesson.type !== "learning" && (
+                  <>
+                    <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
+                      {selectedLesson.title}
+                    </h2>
+                    {selectedModule && (
+                      <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider mt-0.5">
+                        Module: {selectedModule.title}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1.5">
+                      <GraduationCap className="w-4 h-4 text-zinc-400" />
+                      <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
+                    </div>
+                  </>
                 )}
-                <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1.5">
-                  <GraduationCap className="w-4 h-4 text-zinc-400" />
-                  <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
-                </div>
               </div>
 
-              {selectedLesson.desc && (
+              {selectedLesson.type !== "learning" && selectedLesson.desc && (
                 <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
                   {selectedLesson.desc}
                 </p>
               )}
 
-              <div className="flex flex-col gap-3 pt-3 border-t border-[#E5E1D8]/45">
-                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
-                  Lesson Information
+              <div className="flex flex-col gap-4 pt-4 border-t border-[#E5E1D8]/45 text-left">
+                <span className="text-[11px] font-black text-zinc-800 uppercase tracking-wider mb-1">
+                  Lesson Details
                 </span>
-                <div className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
-                    <span>Subject</span>
-                    <span className="text-zinc-500 text-[11px]">{selectedSubject.name}</span>
+                <div className="flex flex-col gap-3.5">
+                  <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                    <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Subject</span>
+                    <span className="text-zinc-850 text-[12.5px] font-bold">{selectedSubject.name}</span>
+                  </div>
+                  {selectedModule && (
+                    <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                      <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Module</span>
+                      <span className="text-zinc-850 text-[12.5px] font-bold">{selectedModule.title}</span>
+                    </div>
+                  )}
+                  <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                    <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type</span>
+                    <span className="text-[12.5px] font-extrabold uppercase text-[#f25c88]">
+                      {selectedLesson.type === "learning"
+                        ? "Learning Material"
+                        : selectedLesson.type === "assignment"
+                        ? "Assignment"
+                        : selectedLesson.type === "quizzes"
+                        ? "Quiz"
+                        : "Presence Session"}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                    <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lecturers</span>
+                    <span className="text-zinc-850 text-[12.5px] font-bold" title={selectedSubject.lecturers.map((l) => l.name).join(", ")}>
+                      {selectedSubject.lecturers.map((l) => l.name).join(", ")}
+                    </span>
                   </div>
                   {selectedLesson.type !== "learning" && (
                     <>
-                      <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
-                        <span>Open Date</span>
-                        <span className="text-zinc-500 text-[11px]">{formatDate(selectedLesson.openDate)}</span>
+                      <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                        <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Open Date</span>
+                        <span className="text-zinc-855 text-[12.5px] font-bold">{formatDate(selectedLesson.openDate)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
-                        <span>Due Date</span>
-                        <span className="text-zinc-500 text-[11px]">{formatDate(selectedLesson.closeDate)}</span>
+                      <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                        <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Due Date</span>
+                        <span className="text-zinc-855 text-[12.5px] font-bold">{formatDate(selectedLesson.closeDate)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
-                        <span>Restricting Policy</span>
-                        <span className="text-zinc-500 text-[11px] flex items-center gap-1">
+                      <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                        <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Deadline Policy</span>
+                        <span className="text-zinc-855 text-[12.5px] font-bold flex items-center gap-1.5 mt-0.5">
                           {selectedLesson.closeType === "restrict" ? (
                             <>
                               <Lock className="w-3.5 h-3.5 text-[#f25c88]" /> Strict Deadline
@@ -1771,6 +2622,10 @@ function LessonDetailInner({ params }: PageProps) {
                 and recorded automatically.
               </p>
             </div>
+
+            {selectedSubject.institutionId && (
+              <StorageTracker institutionId={selectedSubject.institutionId} />
+            )}
           </div>
         </div>
       </div>

@@ -179,38 +179,156 @@ export default function SubjectDetailPage({ params }: PageProps) {
     }
   };
 
-  const handleSimulatedUpload = (lessonId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const fetchSubmissions = async () => {
+    if (!selectedSubject || !currentUser) return;
+    try {
+      const token = localStorage.getItem("token");
+      const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
+
+      const assignmentLessons: string[] = [];
+      selectedSubject.modules.forEach((mod) => {
+        mod.lessons.forEach((les) => {
+          if (les.type === "assignment") {
+            assignmentLessons.push(les.id);
+          }
+        });
+      });
+
+      const tempUploadedFiles: { [lessonId: string]: { name: string; size: string; path?: string } } = {};
+      
+      await Promise.all(
+        assignmentLessons.map(async (lessonId) => {
+          try {
+            const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/my-submission`, { headers });
+            if (res.ok) {
+              const data = await res.json();
+              if (data) {
+                tempUploadedFiles[lessonId] = {
+                  name: data.fileName,
+                  size: (data.fileSize / 1024).toFixed(1) + " KB",
+                  path: data.filePath,
+                };
+              }
+            }
+          } catch (e) {
+            console.error("Error fetching submission for lesson:", lessonId, e);
+          }
+        })
+      );
+
+      setUploadedFiles(tempUploadedFiles);
+    } catch (e) {
+      console.error("Error in fetchSubmissions:", e);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSubmissions();
+  }, [selectedSubject, currentUser]);
+
+  const handleSimulatedUpload = async (lessonId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileName = file.name;
-    const fileSize = (file.size / 1024).toFixed(1) + " KB";
+    let moduleName = "module";
+    let lessonName = "lesson";
+    if (selectedSubject) {
+      for (const mod of selectedSubject.modules) {
+        const les = mod.lessons.find((l) => l.id === lessonId);
+        if (les) {
+          moduleName = mod.title;
+          lessonName = les.title;
+          break;
+        }
+      }
+    }
+
+    const extension = file.name.split(".").pop() || "";
+    const studentName = currentUser?.name || "student";
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const sanitize = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    const newFileName = `${sanitize(studentName)}-${sanitize(moduleName)}-${sanitize(lessonName)}-${dateStr}-${id}.${extension}`;
+    const renamedFile = new File([file], newFileName, { type: file.type });
+
+    const formData = new FormData();
+    formData.append("file", renamedFile);
 
     setUploadingProgress((prev) => ({ ...prev, [lessonId]: 0 }));
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 25;
-      setUploadingProgress((prev) => ({ ...prev, [lessonId]: progress }));
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setUploadedFiles((prev) => ({ ...prev, [lessonId]: { name: fileName, size: fileSize } }));
-          setUploadingProgress((prev) => {
-            const copy = { ...prev };
-            delete copy[lessonId];
-            return copy;
-          });
-        }, 200);
+    try {
+      const token = localStorage.getItem("token");
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/lessons/${lessonId}/assignment/submit`, true);
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       }
-    }, 150);
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setUploadingProgress((prev) => ({ ...prev, [lessonId]: progress }));
+        }
+      };
+
+      xhr.onload = async () => {
+        if (xhr.status === 201) {
+          showToast("Assignment submitted successfully!", "success");
+          fetchSubmissions();
+        } else {
+          let errMsg = "Failed to submit assignment";
+          try {
+            const errBody = JSON.parse(xhr.responseText);
+            errMsg = errBody.error || errMsg;
+          } catch (err) {}
+          showToast(errMsg, "error");
+        }
+        setUploadingProgress((prev) => {
+          const copy = { ...prev };
+          delete copy[lessonId];
+          return copy;
+        });
+      };
+
+      xhr.onerror = () => {
+        showToast("Network error occurred during upload.", "error");
+        setUploadingProgress((prev) => {
+          const copy = { ...prev };
+          delete copy[lessonId];
+          return copy;
+        });
+      };
+
+      xhr.send(formData);
+    } catch (err) {
+      console.error(err);
+      showToast("An unexpected error occurred", "error");
+      setUploadingProgress((prev) => {
+        const copy = { ...prev };
+        delete copy[lessonId];
+        return copy;
+      });
+    }
   };
 
-  const handleRemoveFile = (lessonId: string) => {
-    setUploadedFiles((prev) => {
-      const copy = { ...prev };
-      delete copy[lessonId];
-      return copy;
-    });
+  const handleRemoveFile = async (lessonId: string) => {
+    if (!confirm("Are you sure you want to delete this submission?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/submit`, {
+        method: "DELETE",
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      });
+
+      if (res.ok) {
+        showToast("Submission deleted successfully!", "success");
+        fetchSubmissions();
+      } else {
+        const errBody = await res.json().catch(() => ({}));
+        showToast(errBody.error || "Failed to delete submission", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete submission", "error");
+    }
   };
 
 
@@ -259,7 +377,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
       {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
         {}
-        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 pl-13">
+        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0">
           <div className="flex flex-col gap-5 w-full">
             {selectedSubject.thumbnail && (
               <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0">
@@ -717,6 +835,18 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                     )
                                   );
                                 })()}
+                              </>
+                            ) : lesson.type === "presencion" ? (
+                              <>
+                                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                  Attendance Tracker
+                                </span>
+                                <Link
+                                  href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
+                                  className="border border-[#E5E1D8] hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-3 flex items-center justify-center gap-2 text-zinc-700 font-bold text-[12px] transition-all"
+                                >
+                                  <span>View Attendance</span>
+                                </Link>
                               </>
                             ) : (
                               <>

@@ -22,7 +22,7 @@ export interface Lesson {
   id: string;
   title: string;
   desc: string;
-  type: "assignment" | "learning" | "quizzes";
+  type: "assignment" | "learning" | "quizzes" | "presencion";
   homeworkFile?: string;
   openDate: string;
   closeDate: string;

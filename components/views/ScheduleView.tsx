@@ -3,7 +3,7 @@
 import React from "react";
 import { useLms } from "../../context/LmsContext";
 import { LmsEvent } from "../../types/lms";
-import ScheduleCard from "../ui/ScheduleCard";
+import { MapPin, GraduationCap, Plus, Calendar, Clock, Search } from "lucide-react";
 
 const getWeekNumber = (d: Date): number => {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -54,13 +54,13 @@ const HOURS = [
   "18:00",
   "19:00",
   "20:00",
-  "21:00",
+  "21:05",
 ];
 
 const START_HOUR = 7;
-const ROW_HEIGHT = 100;
-const HOUR_HEIGHT = ROW_HEIGHT;
-const MINUTE_HEIGHT = HOUR_HEIGHT / 60;
+const HOUR_WIDTH = 180;
+const MINUTE_WIDTH = HOUR_WIDTH / 60;
+const TRACK_HEIGHT = 85;
 
 const getMinutesFromStart = (timeStr: string): number => {
   const [h, m] = timeStr.split(":").map(Number);
@@ -153,156 +153,279 @@ export default function ScheduleView() {
     });
   }, [events, DAYS, searchQuery, selectedCategories]);
 
-  const displayEvents = React.useMemo(() => {
-    if (isMobile) {
-      return filteredEvents.filter((e) => e.dayIndex === activeDayIndex);
-    }
-    return filteredEvents.filter((e) => {
-      if (e.dateStr) {
-        return e.dayIndex === activeDayIndex;
-      }
-      return true;
+  // Filter events active for the selected day
+  const activeDayEvents = React.useMemo(() => {
+    return filteredEvents.filter((e) => e.dayIndex === activeDayIndex);
+  }, [filteredEvents, activeDayIndex]);
+
+  // Compute tracks algorithm for overlapping timeline items
+  const { events: timelineEvents, totalTracks } = React.useMemo(() => {
+    const sorted = [...activeDayEvents].sort((a, b) => {
+      const aMin = getMinutesFromStart(a.timeStart);
+      const bMin = getMinutesFromStart(b.timeStart);
+      return aMin - bMin;
     });
-  }, [filteredEvents, isMobile, activeDayIndex]);
+
+    const tracks: { endMin: number }[] = [];
+    const eventWithTracks = sorted.map((event) => {
+      const startMin = getMinutesFromStart(event.timeStart);
+      const endMin = getMinutesFromStart(event.timeEnd);
+
+      let assignedTrack = -1;
+      for (let i = 0; i < tracks.length; i++) {
+        if (tracks[i].endMin + 5 <= startMin) {
+          assignedTrack = i;
+          tracks[i].endMin = endMin;
+          break;
+        }
+      }
+
+      if (assignedTrack === -1) {
+        assignedTrack = tracks.length;
+        tracks.push({ endMin });
+      }
+
+      return {
+        ...event,
+        trackIndex: assignedTrack,
+      };
+    });
+
+    return {
+      events: eventWithTracks,
+      totalTracks: Math.max(1, tracks.length),
+    };
+  }, [activeDayEvents]);
 
   const curMins = getMinutesFromStart(currentTime);
-  const timeLineTop = curMins * MINUTE_HEIGHT;
+  const timeLineLeft = curMins * MINUTE_WIDTH;
 
   return (
-    <div className="flex flex-col flex-1 bg-[#FAF7F2] p-6 rounded-3xl overflow-y-auto select-none border border-[#EFECE6] relative max-h-[calc(100vh-180px)]">
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] w-full border-b border-[#E5E1D8]/60 pb-4 mb-4">
-        <div className="flex items-center justify-center text-[11px] font-bold text-zinc-400">
-          {"W" + currentWeekNumber}
-        </div>
-        
-        {DAYS.map((day, idx) => {
-          const isActive = idx === activeDayIndex;
-          return (
-            <div
-              key={day.label}
-              onClick={() => setActiveDayIndex(idx)}
-              className="flex justify-center items-center cursor-pointer"
-            >
-              {isActive ? (
-                <div className="flex flex-col items-center justify-center bg-[#121212] text-white px-5 py-2.5 rounded-2xl shadow-md min-w-[75px] transition-all duration-300">
-                  <span className="text-[10px] tracking-wider font-semibold opacity-70">
-                    {day.label}
-                  </span>
-                  <span className="text-[15px] font-bold mt-0.5">{day.date}</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-2 hover:bg-[#EFECE6]/50 rounded-xl transition-all w-full">
-                  <span
-                    className={`text-[10px] tracking-wider font-semibold ${
-                      day.isPink ? "text-[#f25c88]" : "text-zinc-400"
-                    }`}
-                  >
-                    {day.label}
-                  </span>
-                  <span
-                    className={`text-[15px] font-bold mt-0.5 ${
-                      day.isPink ? "text-[#f25c88]" : "text-zinc-800"
-                    }`}
-                  >
-                    {day.date}
-                  </span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <div className="flex flex-col flex-1 select-none relative gap-6 no-scrollbar ">
+      
+      {/* Title section */}
+      {/* <div className="flex flex-col text-left select-none pb-1 border-b border-zinc-100">
+        <h1 className="text-2xl font-black text-[#121212] tracking-tight">Schedule Timeline</h1>
+        <span className="text-[11.5px] text-zinc-400 font-bold mt-0.5">
+          Tuesday 10 November 2026
+        </span>
+      </div> */}
 
-      <div className="relative flex flex-row w-full" style={{ height: `${(HOURS.length - 1) * ROW_HEIGHT}px` }}>
-        
-        <div className="w-[60px] flex flex-col justify-between text-[11px] font-bold text-zinc-400 py-1 pr-4 relative">
-          {HOURS.map((hour, idx) => (
-            <div
-              key={hour}
-              className="absolute text-right w-full pr-4 select-none"
-              style={{ top: `${idx * ROW_HEIGHT}px`, transform: "translateY(-50%)" }}
-            >
-              {hour}
-            </div>
-          ))}
-        </div>
-
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-7 relative h-full border-l border-[#E5E1D8]/40">
-          
-          {HOURS.map((hour, idx) => (
-            <div
-              key={`line-${hour}`}
-              className="absolute left-0 right-0 border-t border-[#E5E1D8]/50 pointer-events-none"
-              style={{ top: `${idx * ROW_HEIGHT}px` }}
-            />
-          ))}
-
-          {Array.from({ length: 7 }).map((_, idx) => (
-            <div
-              key={`col-${idx}`}
-              className="absolute top-0 bottom-0 border-r border-[#E5E1D8]/20 pointer-events-none hidden sm:block"
-              style={{ left: `${(idx + 1) * 14.285}%` }}
-            />
-          ))}
-
-          {timeLineTop >= 0 && timeLineTop <= (HOURS.length - 1) * ROW_HEIGHT && (
-            <div
-              className="absolute left-0 right-0 border-t-2 border-dashed border-[#f25c88] z-20 flex items-center pointer-events-none transition-all duration-500"
-              style={{ top: `${timeLineTop}px` }}
-            >
-              <div
-                className="absolute w-2 h-2 bg-[#f25c88] rounded-full z-30 transition-all duration-500"
-                style={{ left: "0px", transform: "translate(-50%, -50%)" }}
-              >
-                <div className="absolute w-full h-full bg-[#f25c88] rounded-full animate-ping opacity-75" />
-              </div>
-
-              <div
-                className="absolute bg-[#f25c88] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm z-30 transition-all duration-500"
-                style={{ left: "-60px", transform: "translateY(-50%)" }}
-              >
-                {currentTime}
-              </div>
-            </div>
-          )}
-
-          {displayEvents.map((event) => {
-            const startMins = getMinutesFromStart(event.timeStart);
-            const endMins = getMinutesFromStart(event.timeEnd);
-            const duration = endMins - startMins;
-
-            const top = startMins * MINUTE_HEIGHT;
-            const height = duration * MINUTE_HEIGHT;
-            const leftPercent = isMobile ? 0.5 : event.dayIndex * 14.285 + 0.5;
-            const widthPercent = isMobile ? 99 : 14.285 - 1.0;
-
+      {/* Top row of event card summaries */}
+      {activeDayEvents.length > 0 && (
+        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-3 select-none">
+          {activeDayEvents.map((event) => {
             const subject = subjects.find((s) => s.id === event.subjectId);
-            const lecturerName = subject ? subject.lecturers.map((l) => l.name).join(", ") : undefined;
-
-            const sameTimeEvents = displayEvents
-              .filter((e) => e.dayIndex === event.dayIndex && e.timeStart === event.timeStart)
-              .sort((a, b) => a.id.localeCompare(b.id));
-            const stackIndex = sameTimeEvents.findIndex((e) => e.id === event.id);
-            const groupSize = sameTimeEvents.length;
-
             return (
-              <ScheduleCard
-                key={event.id}
-                event={event}
-                lecturerName={lecturerName}
+              <div
+                key={`top-${event.id}`}
                 onClick={() => setSelectedEvent(event)}
-                stackIndex={stackIndex}
-                groupSize={groupSize}
-                style={{
-                  top: `${top}px`,
-                  height: `${height}px`,
-                  left: `${leftPercent}%`,
-                  width: `${widthPercent}%`,
-                  zIndex: event.color === "image-text" ? 10 : 5,
-                }}
-              />
+                className="min-w-60 bg-white border border-[#E5E1D8]/80 hover:border-zinc-350 rounded-2xl p-4.5 flex flex-col justify-between cursor-pointer transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.01)] text-left group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-black text-[10px]">
+                    {subject?.name?.slice(0, 2).toUpperCase() || "EV"}
+                  </div>
+                  <span className="text-[8.5px] font-black text-zinc-400 bg-zinc-50 border border-zinc-150 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {event.tag?.text || "Class"}
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-col gap-0.5">
+                  <h4 className="text-[13px] font-extrabold text-zinc-800 leading-snug truncate group-hover:text-[#f25c88] transition-colors">
+                    {event.title}
+                  </h4>
+                  <span className="text-[9.5px] text-zinc-400 font-bold">
+                    Last update: Today, {event.timeStart}
+                  </span>
+                </div>
+                <div className="mt-4 pt-3 border-t border-zinc-100/60 flex items-center justify-between text-[10px] font-extrabold">
+                  <span className="text-[#f25c88] tracking-wide">
+                    {event.timeStart} - {event.timeEnd}
+                  </span>
+                  <span className="text-zinc-550 truncate max-w-20">
+                    {event.subtitle || "Online"}
+                  </span>
+                </div>
+              </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Week Day strip selector */}
+      <div className="flex items-center pb-2 justify-between rounded-2xl shrink-0">
+        <div className="flex flex-1 justify-center gap-8 overflow-x-auto no-scrollbar scroll-smooth">
+          {DAYS.map((day, idx) => {
+            const isActive = idx === activeDayIndex;
+            const label = day.label.charAt(0) + day.date.split("/")[0];
+            return (
+              <div
+                key={day.label}
+                onClick={() => setActiveDayIndex(idx)}
+                className="flex justify-center items-center cursor-pointer select-none transition-all py-1"
+              >
+                {isActive ? (
+                  <div className="flex flex-col items-center justify-center px-2 relative">
+                    <span className="text-[12.5px] font-black text-[#f25c88] tracking-widest">
+                      {label}
+                    </span>
+                    <span className="absolute -bottom-1 w-6 h-0.75 bg-[#f25c88] rounded-full" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center px-2 hover:opacity-80">
+                    <span className="text-[12.5px] font-bold text-zinc-400 tracking-widest hover:text-zinc-650 transition-colors">
+                      {label}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Horizontal timeline scheduler container */}
+      <div className="flex-1 border border-[#E5E1D8]/80 bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.003)] relative flex flex-col">
+        {/* Faded watermark */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.015] z-0">
+          <span className="text-[180px] font-black tracking-tight text-zinc-950 uppercase">
+            Schedule
+          </span>
+        </div>
+
+        {/* Horizontal scroll view wrapper */}
+        <div className="flex-1 overflow-x-auto overflow-y-auto no-scrollbar flex flex-col relative z-10">
+          
+          {/* Hour Headers */}
+          <div
+            className="flex border-b border-[#E5E1D8]/60 bg-zinc-55 bg-zinc-50/70 backdrop-blur-sm sticky top-0 z-30"
+            style={{ width: `${HOURS.length * HOUR_WIDTH}px` }}
+          >
+            {HOURS.map((hour, idx) => (
+              <div
+                key={hour}
+                className="text-left font-extrabold text-[10.5px] text-zinc-400 py-3 pl-4 border-r border-[#E5E1D8]/20 select-none shrink-0"
+                style={{ width: `${HOUR_WIDTH}px` }}
+              >
+                {hour}
+              </div>
+            ))}
+          </div>
+
+          {/* Timeline Body grid content */}
+          <div
+            className="relative flex-1"
+            style={{
+              width: `${HOURS.length * HOUR_WIDTH}px`,
+              height: `${totalTracks * TRACK_HEIGHT + 60}px`,
+              backgroundImage: "radial-gradient(#E5E1D8 1px, transparent 0)",
+              backgroundSize: "24px 24px"
+            }}
+          >
+            {/* Vertical hour marker lines */}
+            {HOURS.map((hour, idx) => (
+              <div
+                key={`line-${hour}`}
+                className="absolute top-0 bottom-0 border-r border-[#E5E1D8]/20 pointer-events-none z-10"
+                style={{ left: `${idx * HOUR_WIDTH}px` }}
+              />
+            ))}
+
+            {/* Current Time red indicator line */}
+            {timeLineLeft >= 0 && timeLineLeft <= HOURS.length * HOUR_WIDTH && (
+              <div
+                className="absolute top-0 bottom-0 border-l-2 border-dashed border-[#f25c88] z-25 pointer-events-none transition-all duration-500"
+                style={{ left: `${timeLineLeft}px` }}
+              >
+                {/* indicator dot at top */}
+                <div
+                  className="absolute w-2.5 h-2.5 bg-[#f25c88] rounded-full z-30 transition-all duration-500 shadow-sm"
+                  style={{ top: "0px", transform: "translate(-50%, -50%)" }}
+                >
+                  <div className="absolute w-full h-full bg-[#f25c88] rounded-full animate-ping opacity-75" />
+                </div>
+                {/* indicator badge at top */}
+                <div
+                  className="absolute bg-[#f25c88] text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full shadow-md z-30 transition-all duration-500"
+                  style={{ top: "10px", transform: "translateX(-50%)" }}
+                >
+                  {currentTime}
+                </div>
+              </div>
+            )}
+
+            {/* Event Pill Cards */}
+            <div className="absolute inset-0 pt-6 px-1">
+              {timelineEvents.map((event) => {
+                const startMins = getMinutesFromStart(event.timeStart);
+                const endMins = getMinutesFromStart(event.timeEnd);
+                const duration = endMins - startMins;
+
+                const left = startMins * MINUTE_WIDTH;
+                const width = duration * MINUTE_WIDTH;
+                const top = event.trackIndex * TRACK_HEIGHT;
+
+                const subject = subjects.find((s) => s.id === event.subjectId);
+                const lecturerName = subject ? subject.lecturers.map((l) => l.name).join(", ") : undefined;
+
+                const isHexColor = event.color && event.color.startsWith("#");
+                
+                let accentColor = "#f25c88";
+                let badgeClass = "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/20";
+                
+                if (event.color === "yellow") {
+                  accentColor = "#E6A23C";
+                  badgeClass = "bg-amber-100 text-amber-800 border-amber-200";
+                } else if (event.color === "blue") {
+                  accentColor = "#409EFF";
+                  badgeClass = "bg-blue-100 text-blue-800 border-blue-200";
+                } else if (isHexColor) {
+                  accentColor = event.color;
+                  badgeClass = "bg-zinc-100 text-zinc-800 border-zinc-200";
+                }
+
+                return (
+                  <div
+                    key={event.id}
+                    onClick={() => setSelectedEvent(event)}
+                    className="absolute bg-white hover:bg-zinc-50 border border-[#E5E1D8]/80 hover:border-zinc-300 shadow-sm rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer select-none transition-all duration-200 group text-left min-w-0 z-20"
+                    style={{
+                      left: `${left}px`,
+                      width: `${width}px`,
+                      top: `${top}px`,
+                      height: `${TRACK_HEIGHT - 12}px`,
+                      borderLeft: `4px solid ${accentColor}`
+                    }}
+                  >
+                    <div className="flex flex-col justify-between h-full min-w-0">
+                      <div className="flex items-start justify-between gap-2.5 min-w-0">
+                        <span className="text-[12px] font-extrabold text-zinc-850 leading-tight line-clamp-1 truncate group-hover:text-[#f25c88] transition-colors" title={event.title}>
+                          {event.title}
+                        </span>
+                        <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-full border shrink-0 ${badgeClass}`}>
+                          {event.tag?.text || "Class"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-0.5 mt-auto">
+                        <div className="flex items-center gap-1.5 text-zinc-500 text-[9px] font-semibold truncate">
+                          <Clock className="w-3 h-3 text-zinc-400 shrink-0" />
+                          <span>
+                            {event.timeStart} - {event.timeEnd}
+                          </span>
+                        </div>
+                        {event.subtitle && (
+                          <div className="flex items-center gap-1.5 text-zinc-500 text-[9px] font-semibold truncate">
+                            <MapPin className="w-3 h-3 text-zinc-400 shrink-0" />
+                            <span className="truncate text-left">{event.subtitle}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
