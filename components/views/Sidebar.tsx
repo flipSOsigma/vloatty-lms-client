@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
@@ -47,6 +45,7 @@ export default function Sidebar() {
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { name: "Institutions", icon: Users, href: "/dashboard/institutions" },
     { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
+    { name: "Subjects", icon: BookOpen, href: "/dashboard/subjects" },
     { name: "Create Subject", icon: Plus, href: "/dashboard/subject/create" },
     { name: "Statistics & reports", icon: BarChart3, href: "#" },
     { name: "Education", icon: BookOpen, href: "#" },
@@ -59,13 +58,13 @@ export default function Sidebar() {
       {mobileSidebarOpen && (
         <div
           onClick={() => setMobileSidebarOpen(false)}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 cursor-pointer"
         />
       )}
 
       <aside
-        className={`bg-[#121212] text-zinc-400 p-6 flex flex-col justify-between rounded-3xl select-none transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-50
-          fixed inset-y-0 left-0 m-4 shadow-2xl lg:shadow-none
+        className={`bg-white text-zinc-500 p-6 flex flex-col justify-between rounded-3xl select-none transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] border-r border-[#E5E1D8]/70 z-50
+          fixed inset-y-0 left-0 m-4 shadow-xl lg:shadow-none
           lg:static lg:flex lg:h-auto lg:m-4 lg:mr-0
           ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-[300px] lg:translate-x-0"}
           ${isMinimized ? "w-[88px] px-4" : "w-[260px] px-6"}
@@ -82,12 +81,12 @@ export default function Sidebar() {
               <img
                 src="/vloatty - Logo Typeface.png"
                 alt="Vloatty"
-                className="w-26 object-contain"
+                className="w-26 object-contain filter invert opacity-90"
               />
             </div>
             <button
               onClick={handleToggle}
-              className="hidden lg:flex w-6 h-6 rounded-full bg-[#f25c88] items-center justify-center text-white hover:bg-[#d84b72] transition-colors shadow-sm cursor-pointer flex-shrink-0"
+              className="hidden lg:flex w-6 h-6 rounded-full bg-[#121212] items-center justify-center text-white hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer flex-shrink-0"
             >
               <ChevronRight
                 className={`w-3.5 h-3.5 stroke-[3] transition-transform duration-300 ${
@@ -97,84 +96,84 @@ export default function Sidebar() {
             </button>
           </div>
 
-        {/* General Nav */}
-        <div className="flex flex-col gap-2">
-          <span
-            className={`text-[11px] font-semibold text-zinc-600 tracking-wider uppercase px-3 transition-all duration-300 ${
-              isMinimized ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
-            }`}
-          >
-            General
-          </span>
-          <nav className="flex flex-col gap-1 mt-1">
-            {generalItems.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                item.href !== "#" &&
-                (pathname === item.href || (item.href === "/dashboard" && pathname === "/"));
-              
-              const content = (
-                <>
-                  <Icon
-                    className={`w-4 h-4 flex-shrink-0 transition-colors duration-200 ${
-                      isActive ? "text-[#f25c88]" : "text-zinc-500"
-                    }`}
-                  />
-                  <span
-                    className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${
-                      isMinimized
-                        ? "opacity-0 w-0 pointer-events-none"
-                        : "opacity-100 w-auto"
-                    }`}
-                  >
-                    {item.name}
-                  </span>
-                </>
-              );
-
-              const buttonClass = `w-full flex items-center rounded-xl text-[14px] font-medium transition-all duration-200 cursor-pointer ${
-                isActive
-                  ? "text-[#f25c88] bg-white/[0.03] shadow-sm relative before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-[3px] before:bg-[#f25c88] before:rounded-r-md"
-                  : "hover:text-zinc-200 hover:bg-white/[0.01]"
-              } ${isMinimized ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"}`;
-
-              if (item.href === "#") {
-                return (
-                  <button key={item.name} className={buttonClass}>
-                    {content}
-                  </button>
+          {/* General Nav */}
+          <div className="flex flex-col gap-2">
+            <span
+              className={`text-[11px] font-semibold text-zinc-400 tracking-wider uppercase px-3 transition-all duration-300 ${
+                isMinimized ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+              }`}
+            >
+              General
+            </span>
+            <nav className="flex flex-col gap-1.5 mt-1">
+              {generalItems.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.href !== "#" &&
+                  (pathname === item.href || (item.href === "/dashboard" && pathname === "/"));
+                
+                const content = (
+                  <>
+                    <Icon
+                      className={`w-4.5 h-4.5 flex-shrink-0 transition-colors duration-200 ${
+                        isActive ? "text-zinc-800 stroke-[2.5]" : "text-zinc-400"
+                      }`}
+                    />
+                    <span
+                      className={`transition-all duration-300 whitespace-nowrap overflow-hidden font-semibold ${
+                        isMinimized
+                          ? "opacity-0 w-0 pointer-events-none"
+                          : "opacity-100 w-auto"
+                      }`}
+                    >
+                      {item.name}
+                    </span>
+                  </>
                 );
-              }
 
-              return (
-                <Link key={item.name} href={item.href} className={buttonClass}>
-                  {content}
-                </Link>
-              );
-            })}
-          </nav>
+                const buttonClass = `w-full flex items-center rounded-2xl text-[13.5px] font-semibold transition-all duration-200 cursor-pointer ${
+                  isActive
+                    ? "text-zinc-850 bg-[#facc15] shadow-[0_4px_14px_-4px_rgba(194,255,12,0.6)]"
+                    : "hover:text-zinc-800 hover:bg-zinc-50"
+                } ${isMinimized ? "justify-center px-0 py-3 rounded-full" : "gap-3 px-4 py-3"}`;
+
+                if (item.href === "#") {
+                  return (
+                    <button key={item.name} className={buttonClass}>
+                      {content}
+                    </button>
+                  );
+                }
+
+                return (
+                  <Link key={item.name} href={item.href} className={buttonClass}>
+                    {content}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         </div>
-      </div>
 
-      {/* Log Out at bottom */}
-      <div className="mt-auto pt-6 border-t border-zinc-800/50">
-        <button
-          onClick={logout}
-          className={`w-full flex items-center rounded-xl text-[14px] font-medium hover:text-red-400 hover:bg-red-500/[0.02] transition-all duration-200 cursor-pointer text-zinc-500 ${
-            isMinimized ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5"
-          }`}
-        >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          <span
-            className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${
-              isMinimized ? "opacity-0 w-0 pointer-events-none" : "opacity-100 w-auto"
+        {/* Log Out at bottom */}
+        <div className="mt-auto pt-6 border-t border-zinc-100">
+          <button
+            onClick={logout}
+            className={`w-full flex items-center rounded-2xl text-[13.5px] font-semibold hover:text-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer text-zinc-400 ${
+              isMinimized ? "justify-center px-0 py-3 rounded-full" : "gap-3 px-4 py-3"
             }`}
           >
-            Log out
-          </span>
-        </button>
-      </div>
-    </aside>
+            <LogOut className="w-4.5 h-4.5 flex-shrink-0" />
+            <span
+              className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${
+                isMinimized ? "opacity-0 w-0 pointer-events-none" : "opacity-100 w-auto"
+              }`}
+            >
+              Log out
+            </span>
+          </button>
+        </div>
+      </aside>
     </>
   );
 }

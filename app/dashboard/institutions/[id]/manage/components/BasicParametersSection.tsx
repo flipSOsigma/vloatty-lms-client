@@ -33,7 +33,7 @@ export default function BasicParametersSection({
       <div className="flex flex-col">
         <div className="flex items-center justify-between w-full">
           <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-            <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
+            <Settings className="w-4.5 h-4.5 text-[#d97706]" />
             Basic Parameters
           </h3>
           <button
@@ -63,7 +63,7 @@ export default function BasicParametersSection({
                 value={nameInput}
                 onChange={(e) => setNameInput(e.target.value)}
                 required
-                className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 focus:border-[#f25c88]"
+                className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 focus:border-[#f97316]"
               />
             </div>
           </div>
@@ -76,7 +76,7 @@ export default function BasicParametersSection({
                 value={descInput}
                 onChange={(e) => setDescInput(e.target.value)}
                 rows={4}
-                className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none focus:border-[#f25c88]"
+                className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none focus:border-[#f97316]"
               />
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function BasicParametersSection({
               </div>
             </div>
           ) : (
-            <div className="w-32 h-32 rounded-full border border-dashed border-zinc-200 flex flex-col items-center justify-center bg-white hover:border-[#f25c88] transition-colors relative overflow-hidden shadow-sm">
+            <div className="w-32 h-32 rounded-full border border-dashed border-zinc-200 flex flex-col items-center justify-center bg-white hover:border-[#f97316] transition-colors relative overflow-hidden shadow-sm">
               <input
                 type="file"
                 accept="image/*"
@@ -122,7 +122,7 @@ export default function BasicParametersSection({
               />
               {isUploading ? (
                 <div className="flex flex-col items-center gap-2">
-                  <div className="w-6 h-6 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                  <div className="w-6 h-6 rounded-full border-2 border-[#f97316]/20 border-t-[#facc15] animate-spin" />
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-1">

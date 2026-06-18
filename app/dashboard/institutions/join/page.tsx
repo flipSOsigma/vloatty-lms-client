@@ -89,7 +89,7 @@ export default function JoinInstitutionPage() {
     return (
       <div className="min-h-screen w-screen bg-[#FAF7F2] flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-4 border-zinc-200 border-t-[#f25c88] animate-spin" />
+          <div className="w-8 h-8 rounded-full border-4 border-zinc-200 border-t-[#facc15] animate-spin" />
           <span className="text-[13px] text-zinc-500 font-semibold">Loading invitation...</span>
         </div>
       </div>
@@ -98,8 +98,8 @@ export default function JoinInstitutionPage() {
 
   return (
     <div className="min-h-screen w-screen bg-[#FAF7F2] flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden select-none">
-      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#f25c88]/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#f25c88]/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#facc15]/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#facc15]/5 blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-[460px] bg-white border border-[#EFECE6]/80 rounded-[32px] p-6 md:p-10 shadow-sm relative z-10 transition-all duration-300">
         <div className="flex flex-col items-center mb-8">
@@ -110,7 +110,7 @@ export default function JoinInstitutionPage() {
               className="w-16 h-16 rounded-full object-cover mb-4 border border-[#FAF7F2] shadow-sm"
             />
           ) : (
-            <div className="w-16 h-16 rounded-3xl bg-[#f25c88]/10 border border-[#f25c88]/20 flex items-center justify-center mb-4 text-[#f25c88]">
+            <div className="w-16 h-16 rounded-3xl bg-[#facc15]/10 border border-[#f97316]/20 flex items-center justify-center mb-4 text-[#d97706]">
               <Building2 className="w-8 h-8" />
             </div>
           )}

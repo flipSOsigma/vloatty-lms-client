@@ -220,29 +220,29 @@ export default function ScheduleView() {
               <div
                 key={`top-${event.id}`}
                 onClick={() => setSelectedEvent(event)}
-                className="min-w-60 bg-white border border-[#E5E1D8]/80 hover:border-zinc-350 rounded-2xl p-4.5 flex flex-col justify-between cursor-pointer transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.01)] text-left group"
+                className="min-w-60 bg-white border border-[#E5E1D8]/70 hover:border-[#E5E1D8] rounded-2xl p-4.5 flex flex-col justify-between cursor-pointer transition-all duration-200 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] text-left group"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-black text-[10px]">
+                  <div className="w-8 h-8 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center font-black text-[10px]">
                     {subject?.name?.slice(0, 2).toUpperCase() || "EV"}
                   </div>
-                  <span className="text-[8.5px] font-black text-zinc-400 bg-zinc-50 border border-zinc-150 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    {event.tag?.text || "Class"}
-                  </span>
+                    <span className="text-[8.5px] font-semibold text-zinc-400 bg-zinc-50 border border-zinc-200/50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      {event.tag?.text || "Class"}
+                    </span>
                 </div>
                 <div className="mt-4 flex flex-col gap-0.5">
-                  <h4 className="text-[13px] font-extrabold text-zinc-800 leading-snug truncate group-hover:text-[#f25c88] transition-colors">
+                  <h4 className="text-[13px] font-semibold text-zinc-800 leading-snug truncate group-hover:text-[#d97706] transition-colors">
                     {event.title}
                   </h4>
-                  <span className="text-[9.5px] text-zinc-400 font-bold">
+                  <span className="text-[9.5px] text-zinc-400 font-semibold">
                     Last update: Today, {event.timeStart}
                   </span>
                 </div>
-                <div className="mt-4 pt-3 border-t border-zinc-100/60 flex items-center justify-between text-[10px] font-extrabold">
-                  <span className="text-[#f25c88] tracking-wide">
+                <div className="mt-4 pt-3 border-t border-zinc-100/60 flex items-center justify-between text-[10px] font-semibold">
+                  <span className="text-[#d97706] tracking-wide">
                     {event.timeStart} - {event.timeEnd}
                   </span>
-                  <span className="text-zinc-550 truncate max-w-20">
+                  <span className="text-zinc-400 truncate max-w-20">
                     {event.subtitle || "Online"}
                   </span>
                 </div>
@@ -264,16 +264,16 @@ export default function ScheduleView() {
                 onClick={() => setActiveDayIndex(idx)}
                 className="flex justify-center items-center cursor-pointer select-none transition-all py-1"
               >
-                {isActive ? (
+                  {isActive ? (
                   <div className="flex flex-col items-center justify-center px-2 relative">
-                    <span className="text-[12.5px] font-black text-[#f25c88] tracking-widest">
+                    <span className="text-[12.5px] font-semibold text-[#d97706] tracking-widest">
                       {label}
                     </span>
-                    <span className="absolute -bottom-1 w-6 h-0.75 bg-[#f25c88] rounded-full" />
+                    <span className="absolute -bottom-1 w-6 h-0.75 bg-[#facc15] rounded-full" />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center px-2 hover:opacity-80">
-                    <span className="text-[12.5px] font-bold text-zinc-400 tracking-widest hover:text-zinc-650 transition-colors">
+                    <span className="text-[12.5px] font-semibold text-zinc-400 tracking-widest hover:text-zinc-600 transition-colors">
                       {label}
                     </span>
                   </div>
@@ -285,7 +285,7 @@ export default function ScheduleView() {
       </div>
 
       {/* Horizontal timeline scheduler container */}
-      <div className="flex-1 border border-[#E5E1D8]/80 bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.003)] relative flex flex-col">
+      <div className="flex-1 border border-[#E5E1D8]/70 bg-white rounded-3xl overflow-hidden shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] relative flex flex-col">
         {/* Faded watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.015] z-0">
           <span className="text-[180px] font-black tracking-tight text-zinc-950 uppercase">
@@ -334,19 +334,19 @@ export default function ScheduleView() {
             {/* Current Time red indicator line */}
             {timeLineLeft >= 0 && timeLineLeft <= HOURS.length * HOUR_WIDTH && (
               <div
-                className="absolute top-0 bottom-0 border-l-2 border-dashed border-[#f25c88] z-25 pointer-events-none transition-all duration-500"
+                className="absolute top-0 bottom-0 border-l-2 border-dashed border-[#f97316] z-25 pointer-events-none transition-all duration-500"
                 style={{ left: `${timeLineLeft}px` }}
               >
                 {/* indicator dot at top */}
                 <div
-                  className="absolute w-2.5 h-2.5 bg-[#f25c88] rounded-full z-30 transition-all duration-500 shadow-sm"
+                  className="absolute w-2.5 h-2.5 bg-[#facc15] rounded-full z-30 transition-all duration-500 shadow-sm"
                   style={{ top: "0px", transform: "translate(-50%, -50%)" }}
                 >
-                  <div className="absolute w-full h-full bg-[#f25c88] rounded-full animate-ping opacity-75" />
+                  <div className="absolute w-full h-full bg-[#facc15] rounded-full animate-ping opacity-75" />
                 </div>
                 {/* indicator badge at top */}
                 <div
-                  className="absolute bg-[#f25c88] text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full shadow-md z-30 transition-all duration-500"
+                  className="absolute bg-[#facc15] text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full shadow-md z-30 transition-all duration-500"
                   style={{ top: "10px", transform: "translateX(-50%)" }}
                 >
                   {currentTime}
@@ -370,8 +370,8 @@ export default function ScheduleView() {
 
                 const isHexColor = event.color && event.color.startsWith("#");
                 
-                let accentColor = "#f25c88";
-                let badgeClass = "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/20";
+                let accentColor = "#facc15";
+                let badgeClass = "bg-[#facc15]/10 text-[#d97706] border-[#f97316]/20";
                 
                 if (event.color === "yellow") {
                   accentColor = "#E6A23C";
@@ -399,7 +399,7 @@ export default function ScheduleView() {
                   >
                     <div className="flex flex-col justify-between h-full min-w-0">
                       <div className="flex items-start justify-between gap-2.5 min-w-0">
-                        <span className="text-[12px] font-extrabold text-zinc-850 leading-tight line-clamp-1 truncate group-hover:text-[#f25c88] transition-colors" title={event.title}>
+                        <span className="text-[12px] font-extrabold text-zinc-850 leading-tight line-clamp-1 truncate group-hover:text-[#d97706] transition-colors" title={event.title}>
                           {event.title}
                         </span>
                         <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-full border shrink-0 ${badgeClass}`}>

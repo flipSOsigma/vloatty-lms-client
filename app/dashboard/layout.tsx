@@ -23,8 +23,8 @@ export default function DashboardLayout({
   if (isLoadingUser) {
     return (
       <div className="min-h-screen w-screen bg-[#FAF7F2] flex flex-col items-center justify-center gap-4 select-none">
-        <div className="w-12 h-12 rounded-2xl bg-[#f25c88]/10 flex items-center justify-center animate-pulse">
-          <Library className="w-6 h-6 text-[#f25c88]" />
+        <div className="w-12 h-12 rounded-2xl bg-[#facc15]/10 flex items-center justify-center animate-pulse">
+          <Library className="w-6 h-6 text-[#d97706]" />
         </div>
         <p className="text-[12px] text-zinc-500 font-bold tracking-tight">
           Synchronizing portal profile...

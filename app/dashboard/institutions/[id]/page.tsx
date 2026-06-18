@@ -146,9 +146,9 @@ export default function InstitutionDetailPage({ params }: PageProps) {
         bg: "bg-white",
         border: "border border-pink-200/60",
         shadow: "hover:shadow-[0_20px_40px_rgba(242,92,136,0.06)]",
-        logoBg: "bg-[#f25c88] text-white",
+        logoBg: "bg-[#facc15] text-white",
         tagBg: "bg-pink-50 text-pink-700 border border-pink-200/50",
-        colorHex: "#f25c88"
+        colorHex: "#facc15"
       };
     }
     if (status === "professional") {
@@ -158,7 +158,7 @@ export default function InstitutionDetailPage({ params }: PageProps) {
         shadow: "hover:shadow-[0_20px_40px_rgba(16,185,129,0.06)]",
         logoBg: "bg-emerald-600 text-white",
         tagBg: "bg-emerald-50 text-emerald-700 border border-emerald-200/50",
-        colorHex: "#10b981"
+        colorHex: "#facc15"
       };
     }
     return {
@@ -181,18 +181,19 @@ export default function InstitutionDetailPage({ params }: PageProps) {
     <>
       <Header />
 
-      <div className="flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300 w-full text-left">
+      <div className="flex-1 overflow-y-auto pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full no-scrollbar">
+        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
         <div className="flex items-center justify-between w-full mt-1">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard/institutions"
-              className="w-10 h-10 rounded-full border border-[#E5E1D8]/60 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white"
+              className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex flex-col gap-0.5 text-left">
-              <h2 className="text-xl font-black text-zinc-950 tracking-tight">{institution.name} Details</h2>
-              <span className="text-[11px] font-bold text-zinc-400">View institution profile, users, and subjects</span>
+              <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">Institution</span>
+              <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">{institution.name}</h1>
             </div>
           </div>
         </div>
@@ -204,29 +205,29 @@ export default function InstitutionDetailPage({ params }: PageProps) {
 
               <div className="flex flex-col gap-1">
                 <span
-                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit uppercase tracking-wider"
+                  className="inline-block text-[9px] font-semibold px-3 py-1 rounded-full w-fit uppercase tracking-wider"
                   style={{
-                    backgroundColor: "#f25c8815",
-                    color: "#f25c88",
-                    border: "1px solid #f25c8830"
+                    backgroundColor: "#facc1515",
+                    color: "#facc15",
+                    border: "1px solid #facc1530"
                   }}
                 >
                   {institution.subscriptionStatus} Plan
                 </span>
-                <h2 className="text-2xl font-black text-zinc-950 tracking-tight mt-2 leading-tight">
+                <h2 className="text-2xl font-semibold text-zinc-800 tracking-tight mt-2 leading-tight">
                   {institution.name}
                 </h2>
               </div>
 
               {institution.description && (
-                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-zinc-50 p-4 border border-[#E5E1D8]/70 rounded-xl">
                   {institution.description}
                 </p>
               )}
 
               {institution.users && institution.users.length > 0 && (
                 <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-                  <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                  <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                     Active Directory
                   </span>
                   <div className="flex flex-col gap-2">
@@ -240,17 +241,17 @@ export default function InstitutionDetailPage({ params }: PageProps) {
                             .toUpperCase()
                         : "?";
                       return (
-                        <div key={user.id} className="flex items-center justify-between bg-[#FAF7F2]/50 p-2.5 border border-[#E5E1D8]/30 rounded-xl">
+                        <div key={user.id} className="flex items-center justify-between bg-zinc-50 p-2.5 border border-[#E5E1D8]/70 rounded-xl">
                           <div className="flex items-center gap-2 min-w-0">
                             {user.avatar ? (
                               <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-[#f25c88]/10 border border-[#f25c88]/15 text-[#f25c88] flex items-center justify-center text-[10.5px] font-black shrink-0">
+                              <div className="w-8 h-8 rounded-full bg-[#facc15]/10 border border-[#f97316]/15 text-[#d97706] flex items-center justify-center text-[10.5px] font-semibold shrink-0">
                                 {userInitials}
                               </div>
                             )}
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[12.5px] font-bold text-zinc-950 truncate">{user.name}</span>
+                              <span className="text-[12.5px] font-semibold text-zinc-800 truncate">{user.name}</span>
                               <span className="text-[10px] text-zinc-400 font-semibold truncate capitalize">{user.institutionRole || "Lecturer"}</span>
                             </div>
                           </div>
@@ -267,16 +268,16 @@ export default function InstitutionDetailPage({ params }: PageProps) {
               )}
 
               <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                   Organization Info
                 </span>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                  <div className="flex justify-between items-center text-[12px] font-semibold text-zinc-700 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl">
                     <span>Invite Code</span>
                     <span className="text-zinc-500 text-[11px] select-all font-mono">{institution.inviteCode || "None"}</span>
                   </div>
                   {institution.createdAt && (
-                    <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                    <div className="flex justify-between items-center text-[12px] font-semibold text-zinc-700 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl">
                       <span>Joined Date</span>
                       <span className="text-zinc-500 text-[11px]">{formatDate(institution.createdAt)}</span>
                     </div>
@@ -286,7 +287,7 @@ export default function InstitutionDetailPage({ params }: PageProps) {
 
               <Link
                 href={`/dashboard/institutions/${institution.id}/manage`}
-                className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
+                className="w-full flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11px] rounded-xl transition-all cursor-pointer active:scale-[0.98] mt-2 text-center"
               >
                 <span>Manage Institution</span>
               </Link>
@@ -301,13 +302,13 @@ export default function InstitutionDetailPage({ params }: PageProps) {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[16px] font-black text-zinc-950 tracking-tight">Linked Subjects</h3>
-                  <span className="bg-zinc-800 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                  <h3 className="text-[16px] font-semibold text-zinc-800 tracking-tight">Linked Subjects</h3>
+                  <span className="bg-zinc-800 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
                     {linkedSubjects.length}
                   </span>
                 </div>
                 {linkedSubjects.length > 0 && (
-                  <div className="flex items-center gap-1 bg-white border border-[#E5E1D8]/45 p-1 rounded-xl shadow-sm shrink-0">
+                  <div className="flex items-center gap-1 bg-white border border-[#E5E1D8]/70 p-1 rounded-xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] shrink-0">
                     <button
                       type="button"
                       onClick={() => setLinkedCols((prev) => Math.max(2, prev - 1))}
@@ -332,7 +333,7 @@ export default function InstitutionDetailPage({ params }: PageProps) {
               </div>
 
               {linkedSubjects.length === 0 ? (
-                <div className="w-full h-36 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl bg-white/40 p-6 text-center">
+                <div className="w-full h-36 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl bg-white/40 p-6 text-center">
                   <span className="text-[12px] text-zinc-400 font-semibold">No subjects linked to this institution yet.</span>
                 </div>
               ) : (
@@ -441,6 +442,7 @@ export default function InstitutionDetailPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+    </div>
 
       <ConfirmModal
         isOpen={isUnlinkModalOpen}

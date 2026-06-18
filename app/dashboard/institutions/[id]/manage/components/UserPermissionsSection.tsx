@@ -106,7 +106,7 @@ export default function UserPermissionsSection({
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-              <Users className="w-4.5 h-4.5 text-[#f25c88]" />
+              <Users className="w-4.5 h-4.5 text-[#d97706]" />
               User Permissions
             </h3>
             <button
@@ -138,7 +138,7 @@ export default function UserPermissionsSection({
             }}
             className="flex items-center gap-1.5 px-4.5 py-2 rounded-full border border-zinc-200 bg-white hover:bg-[#FAF9F5] hover:border-zinc-400 text-[11px] font-bold text-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
           >
-            <Link className="w-3.5 h-3.5 text-[#f25c88]" />
+            <Link className="w-3.5 h-3.5 text-[#d97706]" />
             Copy Join Link
           </button>
         </div>
@@ -249,7 +249,7 @@ export default function UserPermissionsSection({
                   </td>
                   <td className="py-3 pr-4">
                     {user.role === "owner" ? (
-                      <span className="text-[10.5px] font-extrabold text-[#f25c88] bg-[#f25c88]/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      <span className="text-[10.5px] font-extrabold text-[#d97706] bg-[#facc15]/10 px-2.5 py-1 rounded-full uppercase tracking-wider">
                         Owner
                       </span>
                     ) : isOwner ? (

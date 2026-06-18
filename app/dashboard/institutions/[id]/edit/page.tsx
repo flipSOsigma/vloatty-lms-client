@@ -185,7 +185,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
               <form onSubmit={handleUpdate} className="flex flex-col gap-24 w-full">
                 <div id="basic-parameters" className="flex flex-col gap-8 w-full mb-16 lg:pl-12 scroll-mt-24">
                   <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-200">
-                    <Settings className="w-4.5 h-4.5 text-[#f25c88]" />
+                    <Settings className="w-4.5 h-4.5 text-[#d97706]" />
                     Basic Parameters
                   </h3>
 
@@ -200,7 +200,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                             value={nameInput}
                             onChange={(e) => setNameInput(e.target.value)}
                             required
-                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 focus:border-[#f25c88]"
+                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 focus:border-[#f97316]"
                           />
                         </div>
                       </div>
@@ -212,7 +212,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                           <select
                             value={statusInput}
                             onChange={(e) => setStatusInput(e.target.value)}
-                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-semibold focus:outline-none transition-colors duration-200 cursor-pointer focus:border-[#f25c88]"
+                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-semibold focus:outline-none transition-colors duration-200 cursor-pointer focus:border-[#f97316]"
                           >
                             <option value="free">Free Tier</option>
                             <option value="premium">Premium</option>
@@ -231,7 +231,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                             value={descInput}
                             onChange={(e) => setDescInput(e.target.value)}
                             rows={4}
-                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none focus:border-[#f25c88]"
+                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none focus:border-[#f97316]"
                           />
                         </div>
                       </div>
@@ -308,7 +308,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                         isActive
                           ? sec.isDanger
                             ? "bg-red-50 text-red-600 border-l-2 border-red-500 rounded-l-none"
-                            : "bg-[#f25c88]/10 text-[#f25c88] border-l-2 border-[#f25c88] rounded-l-none"
+                            : "bg-[#facc15]/10 text-[#d97706] border-l-2 border-[#f97316] rounded-l-none"
                           : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50/80"
                       }`}
                     >
@@ -317,7 +317,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                           isActive
                             ? sec.isDanger
                               ? "text-red-500"
-                              : "text-[#f25c88]"
+                              : "text-[#d97706]"
                             : "text-zinc-400 group-hover:text-zinc-600"
                         }`}
                       />

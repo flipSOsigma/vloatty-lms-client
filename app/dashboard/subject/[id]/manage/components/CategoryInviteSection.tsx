@@ -132,7 +132,7 @@ export default function CategoryInviteSection({
                   setInviteEmail("");
                   showToast(`Invitation sent to ${inviteEmail}!`, "success");
                 }}
-                className="px-5 py-2.5 bg-[#f25c88] hover:bg-[#d84b72] text-white text-[12px] font-bold rounded-2xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
+                className="px-5 py-2.5 bg-[#facc15] hover:bg-[#d84b72] text-white text-[12px] font-bold rounded-2xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
               >
                 Send Invite
               </button>

@@ -88,23 +88,24 @@ export default function InstitutionsPage() {
     <>
       <Header />
 
-      <div className="flex-1 overflow-y-auto pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300 w-full text-left">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
+      <div className="flex-1 overflow-y-auto pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full no-scrollbar">
+        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col gap-0.5 text-left">
-            <h2 className="text-xl font-black text-zinc-950 tracking-tight">Institutions</h2>
-            <span className="text-[11px] font-bold text-zinc-400">Manage SaaS subscriptions and organization structures</span>
+            <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">Organization</span>
+            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">Institutions</h1>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push("/dashboard/institutions/create")}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] cursor-pointer transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[11px] cursor-pointer transition-colors shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Institution</span>
             </button>
 
-            <div className="flex items-center gap-1 bg-white border border-[#E5E1D8]/45 p-1 rounded-xl shadow-sm shrink-0">
+            <div className="flex items-center gap-1 bg-white border border-[#E5E1D8]/70 p-1 rounded-xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] shrink-0">
               <button
                 onClick={() => setCols((prev) => Math.max(2, prev - 1))}
                 disabled={cols <= 2}
@@ -112,7 +113,7 @@ export default function InstitutionsPage() {
               >
                 <Grid2x2X className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[10px] font-bold text-zinc-500 px-1 select-none">
+              <span className="text-[10px] font-semibold text-zinc-500 px-1 select-none">
                 {cols}
               </span>
               <button
@@ -128,14 +129,14 @@ export default function InstitutionsPage() {
 
         {isLoading ? (
           <div className="w-full h-64 flex items-center justify-center">
-            <span className="text-[13px] font-bold text-zinc-400">Loading institutions list...</span>
+            <span className="text-[13px] font-semibold text-zinc-400">Loading institutions list...</span>
           </div>
         ) : filteredInstitutions.length === 0 ? (
-          <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl p-6 bg-white/10">
-            <span className="text-[13px] font-bold text-zinc-400">No institutions found.</span>
+          <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/40">
+            <span className="text-[13px] font-semibold text-zinc-400">No institutions found.</span>
             <button
               onClick={() => router.push("/dashboard/institutions/create")}
-              className="mt-3 px-4 py-2 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[11px]"
+              className="mt-3 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[10.5px]"
             >
               Register First Institution
             </button>
@@ -147,6 +148,7 @@ export default function InstitutionsPage() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </>
   );

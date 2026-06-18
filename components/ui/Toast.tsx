@@ -95,7 +95,7 @@ export const ToastItem: React.FC<ToastItemProps> = ({ id, message, type, onRemov
       <div
         className={`absolute -left-4.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-white border-2 border-[#111214] scale-0 animate-badge-pop ${
           type === "success"
-            ? "bg-[#10b981] shadow-[0_0_15px_rgba(16,185,129,0.35)]"
+            ? "bg-[#facc15] shadow-[0_0_15px_rgba(16,185,129,0.35)]"
             : "bg-[#f43f5e] shadow-[0_0_15px_rgba(244,63,94,0.35)]"
         }`}
       >
@@ -106,7 +106,7 @@ export const ToastItem: React.FC<ToastItemProps> = ({ id, message, type, onRemov
       <div className="flex flex-col gap-0.5 text-left pl-2.5">
         <span
           className={`text-[10px] font-extrabold uppercase tracking-wider leading-tight ${
-            type === "success" ? "text-[#10b981]" : "text-[#f43f5e]"
+            type === "success" ? "text-[#d97706]" : "text-[#f43f5e]"
           }`}
         >
           {type === "success" ? "Success" : "Error"}

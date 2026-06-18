@@ -171,9 +171,9 @@ export default function ProfilePage() {
     },
     premium: {
       label: "Premium",
-      color: "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/20",
-      accent: "text-[#f25c88]",
-      bgLight: "bg-[#f25c88]/5",
+      color: "bg-[#facc15]/10 text-[#d97706] border-[#f97316]/20",
+      accent: "text-[#d97706]",
+      bgLight: "bg-[#facc15]/5",
     },
     professional: {
       label: "Professional",

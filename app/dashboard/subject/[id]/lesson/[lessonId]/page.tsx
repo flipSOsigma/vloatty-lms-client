@@ -542,6 +542,12 @@ function LessonDetailInner({ params }: PageProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const limitBytes = 200 * 1024 * 1024;
+    if (file.size > limitBytes) {
+      showToast("File size exceeds your maximum storage quota of 200 MB.", "error");
+      return;
+    }
+
     const allowedExtensions = [
       "pdf", "doc", "docx", "xls", "xlsx", "csv", "ppt", "pptx",
       "png", "jpg", "jpeg", "webp", "txt", "zip", "rar"
@@ -852,13 +858,13 @@ function LessonDetailInner({ params }: PageProps) {
 
   if (!selectedSubject || !selectedLesson) {
     return (
-      <div className="flex flex-col gap-6 text-left animate-in fade-in duration-300">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
         <Header />
-        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl p-6 bg-white/10 select-none">
+        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/10 select-none">
           <span className="text-[14px] text-zinc-400 font-semibold">Lesson not found.</span>
           <Link
             href="/dashboard"
-            className="mt-4 px-5 py-2.5 bg-[#121212] text-white font-bold rounded-full text-[12px] shadow-sm hover:bg-zinc-800 transition-colors"
+            className="mt-4 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all"
           >
             Go back to Dashboard
           </Link>
@@ -903,14 +909,13 @@ function LessonDetailInner({ params }: PageProps) {
     <>
       <Header />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full px-6 md:px-8">
         <div className="flex items-center justify-between mt-1">
           <Link
             href={`/dashboard/subject/${selectedSubject.id}`}
-            className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-zinc-100 font-bold text-[12px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/50"
+            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Subject</span>
+            <ArrowLeft className="w-4 h-4" />
           </Link>
 
           <div className="flex items-center gap-2">
@@ -918,13 +923,13 @@ function LessonDetailInner({ params }: PageProps) {
               <button
                 type="button"
                 onClick={startEditing}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] cursor-pointer transition-colors shadow-sm"
+                className="flex items-center gap-1.5 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm cursor-pointer transition-all"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 <span>Edit Lesson</span>
               </button>
             )}
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
               Lesson Detail
             </span>
           </div>
@@ -948,7 +953,7 @@ function LessonDetailInner({ params }: PageProps) {
                     required
                     className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-bold text-zinc-800 focus:outline-none transition-colors duration-200"
                     onFocus={(e) => {
-                      e.target.style.borderColor = "#f25c88";
+                      e.target.style.borderColor = "#facc15";
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = "";
@@ -966,7 +971,7 @@ function LessonDetailInner({ params }: PageProps) {
                       onClick={() => setEditType("learning")}
                       className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                         editType === "learning"
-                          ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                          ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
                           : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                       }`}
                     >
@@ -977,7 +982,7 @@ function LessonDetailInner({ params }: PageProps) {
                       onClick={() => setEditType("assignment")}
                       className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                         editType === "assignment"
-                          ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                          ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
                           : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                       }`}
                     >
@@ -988,7 +993,7 @@ function LessonDetailInner({ params }: PageProps) {
                       onClick={() => setEditType("quizzes")}
                       className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                         editType === "quizzes"
-                          ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                          ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
                           : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                       }`}
                     >
@@ -999,7 +1004,7 @@ function LessonDetailInner({ params }: PageProps) {
                       onClick={() => setEditType("presencion")}
                       className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
                         editType === "presencion"
-                          ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950"
+                          ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
                           : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                       }`}
                     >
@@ -1018,7 +1023,7 @@ function LessonDetailInner({ params }: PageProps) {
                     rows={6}
                     className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium text-zinc-700 focus:outline-none transition-colors duration-200 resize-none"
                     onFocus={(e) => {
-                      e.target.style.borderColor = "#f25c88";
+                      e.target.style.borderColor = "#facc15";
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = "";
@@ -1064,7 +1069,7 @@ function LessonDetailInner({ params }: PageProps) {
                       </div>
                       <div className="w-full h-1.5 rounded-full overflow-hidden bg-zinc-100">
                         <div
-                          className="h-full bg-[#f25c88] rounded-full transition-all duration-150"
+                          className="h-full bg-[#facc15] rounded-full transition-all duration-150"
                           style={{ width: `${attachingProgress}%` }}
                         />
                       </div>
@@ -1100,7 +1105,7 @@ function LessonDetailInner({ params }: PageProps) {
                         required
                         className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-bold text-zinc-800 focus:outline-none transition-colors duration-200"
                         onFocus={(e) => {
-                          e.target.style.borderColor = "#f25c88";
+                          e.target.style.borderColor = "#facc15";
                         }}
                         onBlur={(e) => {
                           e.target.style.borderColor = "";
@@ -1119,7 +1124,7 @@ function LessonDetailInner({ params }: PageProps) {
                         required
                         className="w-full px-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-bold text-zinc-800 focus:outline-none transition-colors duration-200"
                         onFocus={(e) => {
-                          e.target.style.borderColor = "#f25c88";
+                          e.target.style.borderColor = "#facc15";
                         }}
                         onBlur={(e) => {
                           e.target.style.borderColor = "";
@@ -1137,7 +1142,7 @@ function LessonDetailInner({ params }: PageProps) {
                           onClick={() => setEditCloseType("open")}
                           className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                             editCloseType === "open"
-                              ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
+                              ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950 font-bold"
                               : "border-[#E5E1D8] bg-transparent text-zinc-500 font-semibold hover:border-zinc-300"
                           }`}
                         >
@@ -1153,7 +1158,7 @@ function LessonDetailInner({ params }: PageProps) {
                           onClick={() => setEditCloseType("restrict")}
                           className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                             editCloseType === "restrict"
-                              ? "border-[#f25c88] bg-[#f25c88]/5 text-zinc-950 font-bold"
+                              ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950 font-bold"
                               : "border-[#E5E1D8] bg-transparent text-zinc-500 font-semibold hover:border-zinc-300"
                           }`}
                         >
@@ -1189,15 +1194,15 @@ function LessonDetailInner({ params }: PageProps) {
                 {selectedLesson.type === "learning" && (
                   <div className="flex flex-col gap-6 bg-transparent border-none p-0 shadow-none select-text animate-in fade-in duration-300">
                     <div className="flex flex-col gap-1.5 pb-4 border-b border-[#E5E1D8]/45">
-                      <span className="inline-block text-[9px] font-bold px-2.5 py-0.5 rounded-full w-fit bg-[#f25c88]/10 text-[#f25c88] border border-[#f25c88]/15 uppercase tracking-wide">
+                      <span className="inline-block text-[9px] font-semibold px-2.5 py-0.5 rounded-full w-fit bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/15 uppercase tracking-wide">
                         {selectedLesson.type || "learning"}
                       </span>
-                      <h1 className="text-3xl font-black text-[#121212] tracking-tight mt-3 leading-snug">
+                      <h1 className="text-3xl font-semibold text-zinc-800 tracking-tight mt-3 leading-snug">
                         {selectedLesson.title}
                       </h1>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-zinc-500 font-semibold text-[12px] mt-2">
                         {selectedModule && (
-                          <span className="bg-[#FAF7F2] border border-[#E5E1D8]/30 px-3 py-1 rounded-full text-zinc-600 font-extrabold uppercase text-[9px] tracking-wider">
+                          <span className="bg-zinc-50 border border-[#E5E1D8]/70 px-3 py-1 rounded-full text-zinc-600 font-semibold uppercase text-[9px] tracking-wider">
                             Module: {selectedModule.title}
                           </span>
                         )}
@@ -1222,12 +1227,12 @@ function LessonDetailInner({ params }: PageProps) {
 
                 {attachments.length > 0 && (
                   <div className="flex flex-col gap-3">
-                    <h3 className="text-[12px] font-extrabold text-[#121212] tracking-tight uppercase mb-2">
+                    <h3 className="text-[12px] font-semibold text-zinc-800 tracking-tight uppercase mb-2">
                       Lesson Materials / Attachments
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {attachments.map((file) => (
-                        <div key={file.id} className="border border-[#E5E1D8] bg-[#FAF7F2]/30 rounded-2xl p-4 flex flex-col justify-between gap-4">
+                        <div key={file.id} className="border border-[#E5E1D8]/70 bg-zinc-50 rounded-2xl p-4 flex flex-col justify-between gap-4">
                           <div className="flex items-start gap-3 min-w-0">
                             <BookOpen className="w-5 h-5 text-zinc-500 shrink-0 mt-0.5" />
                             <div className="flex flex-col min-w-0">
@@ -1268,7 +1273,7 @@ function LessonDetailInner({ params }: PageProps) {
                 {selectedLesson.type === "presencion" && !canEdit && (
                   <div className="flex flex-col gap-6 border-t border-zinc-100 pt-6 animate-in fade-in duration-300">
                     <div className="flex flex-col gap-1.5 text-left">
-                      <h3 className="text-lg font-black text-[#121212] tracking-tight">
+                      <h3 className="text-lg font-semibold text-zinc-800 tracking-tight">
                         Attendance Session
                       </h3>
                       <p className="text-[12px] text-zinc-500 font-medium">
@@ -1278,16 +1283,16 @@ function LessonDetailInner({ params }: PageProps) {
 
                     {isLoadingPresence ? (
                       <div className="flex flex-col items-center justify-center py-12">
-                        <div className="w-8 h-8 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                        <div className="w-8 h-8 rounded-full border-2 border-[#f97316]/20 border-t-[#facc15] animate-spin" />
                         <span className="text-[12px] text-zinc-500 font-bold mt-3">Loading session...</span>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-4">
-                        <div className="border border-[#E5E1D8] bg-white rounded-3xl p-6 shadow-sm flex flex-col gap-5 text-left">
+                        <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-6 flex flex-col gap-5 text-left">
                           <div className="flex flex-col gap-1">
-                            <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Attendance Window</span>
+                            <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Attendance Window</span>
                             <div className="flex items-center gap-2 text-zinc-800 text-[13px] font-bold mt-1">
-                              <Calendar className="w-4 h-4 text-[#f25c88]" />
+                              <Calendar className="w-4 h-4 text-[#d97706]" />
                               <span>{formatDate(selectedLesson.openDate)}</span>
                               <span className="text-zinc-300">—</span>
                               <span>{formatDate(selectedLesson.closeDate)}</span>
@@ -1341,7 +1346,7 @@ function LessonDetailInner({ params }: PageProps) {
                                 type="button"
                                 onClick={handleSubmitPresence}
                                 disabled={isSubmittingPresence}
-                                className="w-full py-3.5 bg-[#f25c88] hover:bg-[#e0527b] text-white font-extrabold rounded-2xl text-[13px] shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                className="w-full py-3.5 bg-[#facc15] hover:bg-[#e0527b] text-white font-extrabold rounded-2xl text-[13px] shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                               >
                                 {isSubmittingPresence ? (
                                   <>
@@ -1367,7 +1372,7 @@ function LessonDetailInner({ params }: PageProps) {
                   <div className="flex flex-col gap-6 border-t border-zinc-100 pt-6 animate-in fade-in duration-300 text-left">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-lg font-black text-[#121212] tracking-tight">
+                        <h3 className="text-lg font-semibold text-zinc-800 tracking-tight">
                           Attendance Control Panel
                         </h3>
                         <p className="text-[12px] text-zinc-500 font-medium">
@@ -1383,31 +1388,31 @@ function LessonDetailInner({ params }: PageProps) {
 
                     {isLoadingPresence ? (
                       <div className="flex flex-col items-center justify-center py-12">
-                        <div className="w-8 h-8 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                        <div className="w-8 h-8 rounded-full border-2 border-[#f97316]/20 border-t-[#facc15] animate-spin" />
                         <span className="text-[12px] text-zinc-500 font-bold mt-3">Loading presence dashboard...</span>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-6 w-full">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
-                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Total Enrolled</span>
-                            <span className="text-2xl font-black text-zinc-800">{presenceList.length}</span>
+                          <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-4.5 text-left flex flex-col gap-1.5">
+                            <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Total Enrolled</span>
+                            <span className="text-2xl font-semibold text-zinc-800">{presenceList.length}</span>
                           </div>
-                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
-                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider text-emerald-600">Present</span>
-                            <span className="text-2xl font-black text-emerald-600">
+                          <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-4.5 text-left flex flex-col gap-1.5">
+                            <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider text-emerald-600">Present</span>
+                            <span className="text-2xl font-semibold text-emerald-600">
                               {presenceList.filter((p) => p.submitted).length}
                             </span>
                           </div>
-                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
-                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider text-rose-500">Absent</span>
-                            <span className="text-2xl font-black text-rose-500">
+                          <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-4.5 text-left flex flex-col gap-1.5">
+                            <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider text-rose-500">Absent</span>
+                            <span className="text-2xl font-semibold text-rose-500">
                               {presenceList.filter((p) => !p.submitted).length}
                             </span>
                           </div>
-                          <div className="border border-[#EBE8E0] rounded-2xl bg-white p-4.5 text-left flex flex-col gap-1.5 shadow-sm">
-                            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider text-[#f25c88]">Rate</span>
-                            <span className="text-2xl font-black text-[#f25c88]">
+                          <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-4.5 text-left flex flex-col gap-1.5">
+                            <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider text-[#d97706]">Rate</span>
+                            <span className="text-2xl font-semibold text-[#d97706]">
                               {presenceList.length > 0
                                 ? `${((presenceList.filter((p) => p.submitted).length / presenceList.length) * 100).toFixed(1)}%`
                                 : "0.0%"}
@@ -1422,7 +1427,7 @@ function LessonDetailInner({ params }: PageProps) {
                                 type="text"
                                 value={presenceSearchQuery}
                                 onChange={(e) => setPresenceSearchQuery(e.target.value)}
-                                className="bg-white border border-[#E5E1D8] rounded-xl pl-8 pr-3 py-2 text-[11px] w-full focus:outline-none focus:border-zinc-400 transition-all font-semibold"
+                                className="bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl pl-8 pr-3 py-2 text-[13px] w-full focus:outline-none text-zinc-800 font-semibold"
                                 placeholder="Search student name or email..."
                               />
                               <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
@@ -1430,7 +1435,7 @@ function LessonDetailInner({ params }: PageProps) {
                             <button
                               type="button"
                               onClick={fetchPresenceData}
-                              className="px-4 py-2 border border-[#E5E1D8] hover:bg-[#FAF9F5] text-zinc-700 bg-white font-bold rounded-full text-[11.5px] shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                              className="px-4 py-2 rounded-xl border border-[#E5E1D8]/70 text-zinc-700 hover:text-zinc-800 font-semibold text-[11px] bg-white transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                             >
                               Refresh Data
                             </button>
@@ -1441,14 +1446,14 @@ function LessonDetailInner({ params }: PageProps) {
                               p.user?.name.toLowerCase().includes(presenceSearchQuery.toLowerCase()) ||
                               p.user?.email.toLowerCase().includes(presenceSearchQuery.toLowerCase())
                           ).length === 0 ? (
-                            <div className="border border-dashed border-[#E5E1D8] bg-[#FAF7F2]/10 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
+                            <div className="border border-dashed border-[#E5E1D8]/70 bg-zinc-50 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
                               {presenceSearchQuery ? "No students match your query." : "No enrolled students found in this course subject."}
                             </div>
                           ) : (
-                            <div className="border border-[#EBE8E0] rounded-2xl overflow-hidden bg-white shadow-sm">
+                            <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] overflow-hidden">
                               <table className="w-full text-left border-collapse">
                                 <thead>
-                                  <tr className="bg-zinc-50 border-b border-[#EBE8E0] text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                  <tr className="bg-zinc-50 border-b border-[#E5E1D8]/70 text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">
                                     <th className="px-4 py-3">Student Details</th>
                                     <th className="px-4 py-3">Status</th>
                                     <th className="px-4 py-3">Recorded Check-in</th>
@@ -1463,7 +1468,7 @@ function LessonDetailInner({ params }: PageProps) {
                                     )
                                     .map((p) => (
                                       <tr key={p.user.id} className="text-[12px] hover:bg-zinc-50/40 transition-colors">
-                                        <td className="px-4 py-3.5 font-bold text-zinc-800 flex items-center gap-2.5">
+                                        <td className="px-4 py-3.5 font-semibold text-zinc-800 flex items-center gap-2.5">
                                           {p.user.avatar ? (
                                             <img
                                               src={p.user.avatar}
@@ -1471,7 +1476,7 @@ function LessonDetailInner({ params }: PageProps) {
                                               className="w-6.5 h-6.5 rounded-full object-cover border border-zinc-200"
                                             />
                                           ) : (
-                                            <div className="w-6.5 h-6.5 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[10px]">
+                                            <div className="w-6.5 h-6.5 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center font-bold text-[10px]">
                                               {p.user.name.slice(0, 2).toUpperCase()}
                                             </div>
                                           )}
@@ -1508,7 +1513,7 @@ function LessonDetailInner({ params }: PageProps) {
 
                 {selectedLesson.type === "assignment" && !canEdit && (
                   <div className="flex flex-col gap-4 border-t border-zinc-100 pt-6">
-                    <h3 className="text-[15px] font-extrabold text-[#121212] tracking-tight mb-2">
+                    <h3 className="text-[15px] font-semibold text-zinc-800 tracking-tight mb-2">
                       Submit Homework
                     </h3>
 
@@ -1530,14 +1535,14 @@ function LessonDetailInner({ params }: PageProps) {
                         </span>
                       </div>
                     ) : uploadingProgress !== null ? (
-                      <div className="border border-[#E5E1D8] bg-white rounded-2xl p-5 flex flex-col gap-3">
+                      <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-5 flex flex-col gap-3">
                         <div className="flex justify-between items-center text-[12px] font-bold text-zinc-500">
                           <span>Uploading document...</span>
                           <span>{uploadingProgress}%</span>
                         </div>
                         <div className="w-full h-2 rounded-full overflow-hidden bg-zinc-100">
                           <div
-                            className="h-full bg-[#f25c88] rounded-full transition-all duration-150"
+                            className="h-full bg-[#facc15] rounded-full transition-all duration-150"
                             style={{ width: `${uploadingProgress}%` }}
                           />
                         </div>
@@ -1598,16 +1603,16 @@ function LessonDetailInner({ params }: PageProps) {
                   <div className="flex flex-col gap-6 w-full animate-in fade-in duration-355 border-t border-zinc-100 pt-6">
                     <div className="flex items-center justify-between border-b border-[#E5E1D8]/40 pb-3">
                       <div className="flex items-center gap-1.5">
-                        <GraduationCap className="w-5 h-5 text-[#f25c88]" />
-                        <h3 className="text-[15px] font-black text-zinc-850">Assignment Control Panel</h3>
+                        <GraduationCap className="w-5 h-5 text-[#d97706]" />
+                        <h3 className="text-[15px] font-semibold text-zinc-800">Assignment Control Panel</h3>
                       </div>
                       <div className="flex bg-zinc-100 rounded-full p-1 border border-zinc-200/50">
                         <button
                           type="button"
                           onClick={() => setAssignmentTab("submissions")}
-                          className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                          className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                             assignmentTab === "submissions"
-                              ? "bg-[#121212] text-white shadow-sm"
+                              ? "bg-zinc-800 text-white shadow-sm"
                               : "text-zinc-500 hover:text-zinc-800"
                           }`}
                         >
@@ -1616,9 +1621,9 @@ function LessonDetailInner({ params }: PageProps) {
                         <button
                           type="button"
                           onClick={() => setAssignmentTab("settings")}
-                          className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                          className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                             assignmentTab === "settings"
-                              ? "bg-[#121212] text-white shadow-sm"
+                              ? "bg-zinc-800 text-white shadow-sm"
                               : "text-zinc-500 hover:text-zinc-800"
                           }`}
                         >
@@ -1628,7 +1633,7 @@ function LessonDetailInner({ params }: PageProps) {
                     </div>                    {assignmentTab === "submissions" ? (
                       <div className="flex flex-col gap-4">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
-                          <h4 className="text-[13px] font-extrabold text-zinc-700">
+                          <h4 className="text-[13px] font-semibold text-zinc-800">
                             Student Submissions List
                           </h4>
                           <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -1637,26 +1642,26 @@ function LessonDetailInner({ params }: PageProps) {
                                 type="text"
                                 value={submissionSearchQuery}
                                 onChange={(e) => setSubmissionSearchQuery(e.target.value)}
-                                className="bg-white border border-[#E5E1D8] rounded-xl pl-8 pr-3 py-1.5 text-[11px] w-full focus:outline-none focus:border-zinc-400 transition-all font-semibold"
+                                className="bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl pl-8 pr-3 py-1.5 text-[13px] w-full focus:outline-none text-zinc-800 font-semibold"
                                 placeholder="Search by student name or file..."
                               />
                               <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2" />
                             </div>
-                            <span className="px-2.5 py-0.5 bg-[#f25c88]/10 text-[#f25c88] text-[10px] font-bold rounded-full whitespace-nowrap shrink-0">
+                            <span className="px-2.5 py-0.5 bg-[#facc15]/10 text-[#d97706] text-[10px] font-bold rounded-full whitespace-nowrap shrink-0">
                               {filteredSubmissions.length} Submissions
                             </span>
                           </div>
                         </div>
 
                         {filteredSubmissions.length === 0 ? (
-                          <div className="border border-dashed border-[#E5E1D8] bg-[#FAF7F2]/10 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
+                          <div className="border border-dashed border-[#E5E1D8]/70 bg-zinc-50 rounded-2xl p-6 text-center text-zinc-400 text-[12px] font-medium">
                             {debouncedSubmissionSearchQuery ? "No submissions match your search query." : "No student submissions yet for this assignment."}
                           </div>
                         ) : (
-                          <div className="border border-[#EBE8E0] rounded-2xl overflow-hidden bg-white shadow-sm">
+                          <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] overflow-hidden">
                             <table className="w-full text-left border-collapse">
                               <thead>
-                                <tr className="bg-zinc-50 border-b border-[#EBE8E0] text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                <tr className="bg-zinc-50 border-b border-[#E5E1D8]/70 text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">
                                   <th className="px-4 py-3">Student</th>
                                   <th className="px-4 py-3">File Name</th>
                                   <th
@@ -1667,9 +1672,9 @@ function LessonDetailInner({ params }: PageProps) {
                                       <span>File Size</span>
                                       {submissionSortField === "fileSize" ? (
                                         submissionSortOrder === "asc" ? (
-                                          <ChevronUp className="w-3.5 h-3.5 text-[#f25c88]" />
+                                          <ChevronUp className="w-3.5 h-3.5 text-[#d97706]" />
                                         ) : (
-                                          <ChevronDown className="w-3.5 h-3.5 text-[#f25c88]" />
+                                          <ChevronDown className="w-3.5 h-3.5 text-[#d97706]" />
                                         )
                                       ) : (
                                         <ArrowUpDown className="w-3.5 h-3.5 text-zinc-300 hover:text-zinc-550" />
@@ -1684,9 +1689,9 @@ function LessonDetailInner({ params }: PageProps) {
                                       <span>Submitted At</span>
                                       {submissionSortField === "submittedAt" ? (
                                         submissionSortOrder === "asc" ? (
-                                          <ChevronUp className="w-3.5 h-3.5 text-[#f25c88]" />
+                                          <ChevronUp className="w-3.5 h-3.5 text-[#d97706]" />
                                         ) : (
-                                          <ChevronDown className="w-3.5 h-3.5 text-[#f25c88]" />
+                                          <ChevronDown className="w-3.5 h-3.5 text-[#d97706]" />
                                         )
                                       ) : (
                                         <ArrowUpDown className="w-3.5 h-3.5 text-zinc-300 hover:text-zinc-550" />
@@ -1707,7 +1712,7 @@ function LessonDetailInner({ params }: PageProps) {
                                           className="w-6 h-6 rounded-full object-cover border border-zinc-200"
                                         />
                                       ) : (
-                                        <div className="w-6 h-6 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[10px]">
+                                        <div className="w-6 h-6 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center font-bold text-[10px]">
                                           {sub.user?.name?.slice(0, 2).toUpperCase() || "?"}
                                         </div>
                                       )}
@@ -1749,12 +1754,12 @@ function LessonDetailInner({ params }: PageProps) {
                         )}
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-6 w-full text-left bg-[#FAF9F5]/30 rounded-2xl p-6">
-                        <h4 className="text-[14px] font-black text-zinc-800 mb-2">Assignment Configuration</h4>
+                      <div className="flex flex-col gap-6 w-full text-left bg-zinc-50 rounded-2xl p-6">
+                        <h4 className="text-[14px] font-semibold text-zinc-800 mb-2">Assignment Configuration</h4>
                         
                         {/* Allowed File Formats */}
                         <div className="flex flex-col gap-2">
-                          <label className="text-[12px] font-extrabold text-zinc-700">Allowed File Formats</label>
+                          <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Allowed File Formats</label>
                           <div className="flex flex-wrap gap-2 mb-2">
                             {["pdf", "doc", "docx", "xls", "xlsx", "png", "jpg", "jpeg", "zip", "rar"].map((format) => {
                               const isSelected = assignmentAllowedTypes.includes(format);
@@ -1771,7 +1776,7 @@ function LessonDetailInner({ params }: PageProps) {
                                   }}
                                   className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
                                     isSelected
-                                      ? "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/30"
+                                      ? "bg-[#facc15]/10 text-[#d97706] border-[#f97316]/30"
                                       : "bg-white text-zinc-500 border-zinc-200 hover:bg-zinc-50 cursor-pointer"
                                   }`}
                                 >
@@ -1791,7 +1796,7 @@ function LessonDetailInner({ params }: PageProps) {
                                 const types = val.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
                                 setAssignmentAllowedTypes(types);
                               }}
-                              className="bg-white border border-[#E5E1D8] rounded-xl px-3 py-2 text-[12px] w-full focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 transition-all font-semibold"
+                              className="bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl px-3 py-2 text-[13px] w-full focus:outline-none text-zinc-800 font-semibold"
                               placeholder="e.g. txt, csv, pptx"
                             />
                             <span className="text-[10px] text-zinc-400 font-medium">Leave empty to allow all file types.</span>
@@ -1800,9 +1805,9 @@ function LessonDetailInner({ params }: PageProps) {
 
                         {/* Max File Size */}
                         <div className="flex flex-col gap-2 border-t border-zinc-200/50 pt-4">
-                          <div className="flex justify-between items-center text-[12px] font-extrabold text-zinc-700">
+                          <div className="flex justify-between items-center text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">
                             <span>Maximum File Size Limit</span>
-                            <span className="text-[#f25c88] bg-[#f25c88]/10 px-2 py-0.5 rounded-full font-black text-[11px]">
+                            <span className="text-[#d97706] bg-[#facc15]/10 px-2 py-0.5 rounded-full font-black text-[11px]">
                               {assignmentMaxSizeMb} MB
                             </span>
                           </div>
@@ -1812,7 +1817,7 @@ function LessonDetailInner({ params }: PageProps) {
                             max="100"
                             value={assignmentMaxSizeMb}
                             onChange={(e) => setAssignmentMaxSizeMb(parseInt(e.target.value))}
-                            className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-[#f25c88]"
+                            className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-[#facc15]"
                           />
                           <span className="text-[10px] text-zinc-400 font-medium">
                             Set the maximum allowed file size per submission (between 1MB and 100MB).
@@ -1827,7 +1832,7 @@ function LessonDetailInner({ params }: PageProps) {
                               type="text"
                               value={assignmentSearchText}
                               onChange={(e) => setAssignmentSearchText(e.target.value)}
-                              className="bg-white border border-zinc-200 rounded-xl px-3 py-1.5 text-[11px] w-48 focus:outline-none focus:border-zinc-400 transition-all font-semibold"
+                              className="bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl px-3 py-1.5 text-[13px] w-48 focus:outline-none text-zinc-800 font-semibold"
                               placeholder="Search student..."
                             />
                           </div>
@@ -1855,7 +1860,7 @@ function LessonDetailInner({ params }: PageProps) {
                                           className="w-6 h-6 rounded-full object-cover border border-zinc-200"
                                         />
                                       ) : (
-                                        <div className="w-6 h-6 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[9px]">
+                                        <div className="w-6 h-6 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center font-bold text-[9px]">
                                           {perm.user?.name?.slice(0, 2).toUpperCase() || "?"}
                                         </div>
                                       )}
@@ -1892,7 +1897,7 @@ function LessonDetailInner({ params }: PageProps) {
                             type="button"
                             disabled={savingAssignmentSettings}
                             onClick={handleSaveAssignmentSettings}
-                            className="px-5 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold rounded-full text-[12px] shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                            className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                           >
                             {savingAssignmentSettings ? "Saving Settings..." : "Save Assignment Configuration"}
                           </button>
@@ -1906,13 +1911,13 @@ function LessonDetailInner({ params }: PageProps) {
                   <div className="flex flex-col gap-6 border-t border-zinc-100 pt-6">
                     {quizLoading ? (
                       <div className="flex flex-col items-center justify-center py-12">
-                        <div className="w-8 h-8 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                        <div className="w-8 h-8 rounded-full border-2 border-[#f97316]/20 border-t-[#facc15] animate-spin" />
                         <span className="text-[12px] text-zinc-500 font-bold mt-3">Loading quiz portal...</span>
                       </div>
                     ) : !quiz ? (
-                      <div className="border border-dashed border-[#E5E1D8] bg-[#FAF9F5]/30 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                      <div className="border border-dashed border-[#E5E1D8]/70 bg-zinc-50 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
                         <AlertTriangle className="w-10 h-10 text-amber-500 mb-3" />
-                        <span className="text-[15px] text-zinc-800 font-bold">Quiz Not Ready</span>
+                        <span className="text-[15px] text-zinc-800 font-semibold">Quiz Not Ready</span>
                         <span className="text-[12px] text-zinc-500 font-medium max-w-md mt-1.5">
                           This quiz hasn't been set up yet by the lecturer. Please check back later.
                         </span>
@@ -1921,28 +1926,28 @@ function LessonDetailInner({ params }: PageProps) {
                       <div className="flex flex-col gap-6 w-full animate-in fade-in duration-355">
                         <div className="flex items-center justify-between border-b border-[#E5E1D8]/40 pb-3">
                           <div className="flex items-center gap-1.5">
-                            <Settings className="w-5 h-5 text-[#f25c88]" />
-                            <h3 className="text-[15px] font-black text-zinc-850">Quiz Management Panel</h3>
+                            <Settings className="w-5 h-5 text-[#d97706]" />
+                            <h3 className="text-[15px] font-semibold text-zinc-800">Quiz Management Panel</h3>
                           </div>
                           <div className="flex bg-zinc-100 rounded-full p-1 border border-zinc-200/50">
                             <button
                               type="button"
                               onClick={() => setQuizTab("quiz")}
-                              className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-                                quizTab === "quiz"
-                                  ? "bg-[#121212] text-white shadow-sm"
-                                  : "text-zinc-500 hover:text-zinc-800"
-                              }`}
-                            >
-                              Edit Quiz
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setQuizTab("submissions")}
-                              className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-                                quizTab === "submissions"
-                                  ? "bg-[#121212] text-white shadow-sm"
-                                  : "text-zinc-500 hover:text-zinc-800"
+                          className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+                            quizTab === "quiz"
+                              ? "bg-zinc-800 text-white shadow-sm"
+                              : "text-zinc-500 hover:text-zinc-800"
+                          }`}
+                        >
+                          Edit Quiz
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuizTab("submissions")}
+                          className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+                            quizTab === "submissions"
+                              ? "bg-zinc-800 text-white shadow-sm"
+                              : "text-zinc-500 hover:text-zinc-800"
                               }`}
                             >
                               Submissions & Stats
@@ -1953,7 +1958,7 @@ function LessonDetailInner({ params }: PageProps) {
                         {quizTab === "quiz" ? (
                           <form onSubmit={handleSaveQuiz} className="flex flex-col gap-6 w-full text-left">
                             <div className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left">
-                              <h4 className="text-[12px] font-extrabold text-[#121212] uppercase tracking-wider border-b border-zinc-100 pb-2 flex items-center gap-1.5">
+                              <h4 className="text-[12px] font-semibold text-zinc-800 uppercase tracking-wider border-b border-[#E5E1D8]/70 pb-2 flex items-center gap-1.5">
                                 <Settings className="w-4 h-4 text-zinc-400" />
                                 Quiz Policy & Settings
                               </h4>
@@ -1964,7 +1969,7 @@ function LessonDetailInner({ params }: PageProps) {
                                     type="checkbox"
                                     checked={quiz.allowViewGrade}
                                     onChange={(e) => updateQuizSetting("allowViewGrade", e.target.checked)}
-                                    className="mt-1 accent-[#f25c88] w-4 h-4"
+                                    className="mt-1 accent-[#facc15] w-4 h-4"
                                   />
                                   <div className="flex flex-col">
                                     <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
@@ -1981,7 +1986,7 @@ function LessonDetailInner({ params }: PageProps) {
                                     type="checkbox"
                                     checked={quiz.showLeaderboard}
                                     onChange={(e) => updateQuizSetting("showLeaderboard", e.target.checked)}
-                                    className="mt-1 accent-[#f25c88] w-4 h-4"
+                                    className="mt-1 accent-[#facc15] w-4 h-4"
                                   />
                                   <div className="flex flex-col">
                                     <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
@@ -1998,7 +2003,7 @@ function LessonDetailInner({ params }: PageProps) {
                                     type="checkbox"
                                     checked={quiz.allowGuest}
                                     onChange={(e) => updateQuizSetting("allowGuest", e.target.checked)}
-                                    className="mt-1 accent-[#f25c88] w-4 h-4"
+                                    className="mt-1 accent-[#facc15] w-4 h-4"
                                   />
                                   <div className="flex flex-col">
                                     <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
@@ -2013,8 +2018,8 @@ function LessonDetailInner({ params }: PageProps) {
                             </div>
 
                             <div className="flex flex-col gap-4">
-                              <h4 className="text-[13px] font-extrabold text-[#121212] uppercase tracking-wider flex items-center gap-1.5 pl-1">
-                                <ListOrdered className="w-4 h-4 text-[#f25c88]" />
+                              <h4 className="text-[13px] font-semibold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5 pl-1">
+                                <ListOrdered className="w-4 h-4 text-[#d97706]" />
                                 Questions List ({quiz.questions?.length || 0})
                               </h4>
 
@@ -2022,7 +2027,7 @@ function LessonDetailInner({ params }: PageProps) {
                                 {quiz.questions?.map((q: any, qIdx: number) => (
                                   <div key={qIdx} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 relative text-left last:border-b-0 animate-in fade-in duration-200">
                                     <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
-                                      <span className="text-[12px] font-bold text-[#f25c88]">
+                                      <span className="text-[12px] font-bold text-[#d97706]">
                                         Question #{qIdx + 1}
                                       </span>
                                       {quiz.questions.length > 1 && (
@@ -2039,30 +2044,30 @@ function LessonDetailInner({ params }: PageProps) {
 
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                                       <div className="md:col-span-9 flex flex-col gap-1.5">
-                                        <label className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Question Text</label>
+                                        <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Question Text</label>
                                         <textarea
                                           value={q.questionText}
                                           onChange={(e) => updateQuestionText(qIdx, e.target.value)}
                                           placeholder="Type your question here..."
                                           rows={2}
                                           required
-                                          className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-[13px] font-medium text-zinc-800 focus:outline-none focus:border-[#f25c88] focus:bg-white transition-colors"
+                                          className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
                                         />
                                       </div>
                                       <div className="md:col-span-3 flex flex-col gap-1.5">
-                                        <label className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Points</label>
+                                        <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Points</label>
                                         <input
                                           type="number"
                                           min={1}
                                           value={q.points || 1}
                                           onChange={(e) => updateQuestionPoints(qIdx, parseInt(e.target.value) || 1)}
-                                          className="w-full px-3 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-[13px] font-bold text-zinc-800 focus:outline-none focus:border-[#f25c88] focus:bg-white transition-colors"
+                                          className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
                                         />
                                       </div>
                                     </div>
 
                                     <div className="flex flex-col gap-2.5 mt-2">
-                                      <label className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Options (Pick the correct option)</label>
+                                      <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Options (Pick the correct option)</label>
                                       <div className="flex flex-col gap-2">
                                         {q.options.map((opt: string, optIdx: number) => (
                                           <div key={optIdx} className="flex items-center gap-3 w-full">
@@ -2071,7 +2076,7 @@ function LessonDetailInner({ params }: PageProps) {
                                               onClick={() => setQuestionCorrectOption(qIdx, optIdx)}
                                               className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all cursor-pointer ${
                                                 q.correctOption === optIdx
-                                                  ? "bg-[#f25c88] border-[#f25c88] text-white"
+                                                  ? "bg-[#facc15] border-[#f97316] text-white"
                                                   : "border-zinc-300 hover:border-zinc-400 text-transparent"
                                               }`}
                                             >
@@ -2084,7 +2089,7 @@ function LessonDetailInner({ params }: PageProps) {
                                               onChange={(e) => updateQuestionOption(qIdx, optIdx, e.target.value)}
                                               placeholder={`Option ${optIdx + 1}`}
                                               required
-                                              className="flex-1 px-3 py-2 bg-transparent border-b border-zinc-200 text-[13px] font-medium text-zinc-700 focus:outline-none focus:border-[#f25c88] transition-colors"
+                                              className="flex-1 px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
                                             />
 
                                             {q.options.length > 2 && (
@@ -2118,9 +2123,9 @@ function LessonDetailInner({ params }: PageProps) {
                               <button
                                 type="button"
                                 onClick={addQuestion}
-                                className="flex items-center justify-center gap-2 border-2 border-dashed border-[#E5E1D8] hover:border-zinc-400 bg-white/40 hover:bg-white rounded-3xl py-4 transition-all w-full text-[12px] font-bold text-zinc-650 cursor-pointer"
+                                className="flex items-center justify-center gap-2 border-2 border-dashed border-[#E5E1D8]/70 hover:border-zinc-400 bg-white/40 hover:bg-white rounded-3xl py-4 transition-all w-full text-[12px] font-semibold text-zinc-800 cursor-pointer"
                               >
-                                <Plus className="w-4 h-4 text-[#f25c88]" />
+                                <Plus className="w-4 h-4 text-[#d97706]" />
                                 <span>Add New Question</span>
                               </button>
                             </div>
@@ -2129,7 +2134,7 @@ function LessonDetailInner({ params }: PageProps) {
                               <button
                                 type="submit"
                                 disabled={quizSaving}
-                                className="px-8 py-3 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                className="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
                               >
                                 {quizSaving ? (
                                   <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
@@ -2144,7 +2149,7 @@ function LessonDetailInner({ params }: PageProps) {
                           <div className="py-6 flex flex-col gap-4 text-left animate-in fade-in duration-200">
                             {attemptsLoading ? (
                               <div className="flex flex-col items-center justify-center py-8">
-                                <div className="w-6 h-6 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                                <div className="w-6 h-6 rounded-full border-2 border-[#f97316]/20 border-t-[#facc15] animate-spin" />
                                 <span className="text-[11px] text-zinc-500 mt-2">Loading submissions...</span>
                               </div>
                             ) : attempts.length === 0 ? (
@@ -2155,7 +2160,7 @@ function LessonDetailInner({ params }: PageProps) {
                               <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse text-[12px]">
                                   <thead>
-                                    <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                    <tr className="bg-zinc-50 border-b border-[#E5E1D8]/70 text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">
                                       <th className="px-4 py-3">Rank</th>
                                       <th className="px-4 py-3">Participant</th>
                                       <th className="px-4 py-3">Type</th>
@@ -2180,7 +2185,7 @@ function LessonDetailInner({ params }: PageProps) {
                                                 className="w-5 h-5 rounded-full object-cover border border-zinc-200"
                                               />
                                             ) : (
-                                              <div className="w-5 h-5 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[9px] border border-zinc-200">
+                                              <div className="w-5 h-5 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center font-bold text-[9px] border border-zinc-200">
                                                 {name.slice(0, 2).toUpperCase()}
                                               </div>
                                             )}
@@ -2194,7 +2199,7 @@ function LessonDetailInner({ params }: PageProps) {
                                             </span>
                                           </td>
                                           <td className="px-4 py-3 font-bold text-zinc-700">{att.score} / {att.totalPoints}</td>
-                                          <td className="px-4 py-3 font-bold text-[#f25c88]">{pct}%</td>
+                                          <td className="px-4 py-3 font-bold text-[#d97706]">{pct}%</td>
                                           <td className="px-4 py-3 text-right text-zinc-400 font-medium">{formatDate(att.submittedAt)}</td>
                                         </tr>
                                       );
@@ -2211,7 +2216,7 @@ function LessonDetailInner({ params }: PageProps) {
                         {myAttempt === null ? (
                           !currentUser && quiz.allowGuest && !isGuestStarted ? (
                             <div className="bg-white border border-[#E5E1D8]/60 p-8 rounded-3xl shadow-sm text-center flex flex-col items-center justify-center max-w-lg mx-auto w-full animate-in fade-in duration-300">
-                              <Trophy className="w-10 h-10 text-[#f25c88] mb-3" />
+                              <Trophy className="w-10 h-10 text-[#d97706] mb-3" />
                               <h3 className="text-[16px] text-zinc-850 font-black">Guest Participant Access</h3>
                               <p className="text-[12px] text-zinc-500 font-medium max-w-sm mt-1.5 mb-6">
                                 Unsigned guest access is enabled. Please enter your name/nickname below to verify yourself and start the quiz.
@@ -2222,7 +2227,7 @@ function LessonDetailInner({ params }: PageProps) {
                                   placeholder="Enter your nickname (e.g. JohnD)"
                                   value={guestName}
                                   onChange={(e) => setGuestName(e.target.value)}
-                                  className="w-full px-4 py-2.5 bg-zinc-50 border border-zinc-200 rounded-2xl text-[13px] text-center font-bold text-zinc-800 focus:outline-none focus:border-[#f25c88] focus:bg-white transition-all shadow-inner"
+                                  className="w-full px-4 py-2.5 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] text-center focus:outline-none"
                                 />
                                 <button
                                   type="button"
@@ -2233,7 +2238,7 @@ function LessonDetailInner({ params }: PageProps) {
                                       showToast("Please enter a name.", "error");
                                     }
                                   }}
-                                  className="px-6 py-2.5 bg-[#f25c88] hover:bg-[#e14f7b] text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer active:scale-95"
+                                  className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all cursor-pointer"
                                 >
                                   Enter & Start Quiz
                                 </button>
@@ -2248,7 +2253,7 @@ function LessonDetailInner({ params }: PageProps) {
                               </span>
                               <Link
                                 href="/auth/login"
-                                className="px-5 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[11px] shadow-sm transition-colors"
+                                className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all"
                               >
                                 Go to Sign In
                               </Link>
@@ -2266,7 +2271,7 @@ function LessonDetailInner({ params }: PageProps) {
                                     </span>
                                   )}
                                 </div>
-                                <span className="px-3 py-1 bg-[#f25c88]/10 text-[#f25c88] text-[10.5px] font-extrabold rounded-full">
+                                <span className="px-3 py-1 bg-[#facc15]/10 text-[#d97706] text-[10.5px] font-extrabold rounded-full">
                                   {quiz.questions?.length || 0} Questions
                                 </span>
                               </div>
@@ -2299,7 +2304,7 @@ function LessonDetailInner({ params }: PageProps) {
                                           >
                                             <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
                                               isSelected
-                                                ? "border-[#f25c88] bg-[#f25c88]"
+                                                ? "border-[#f97316] bg-[#facc15]"
                                                 : "border-zinc-300 group-hover:border-zinc-400 bg-white"
                                             }`}>
                                               {isSelected && (
@@ -2323,7 +2328,7 @@ function LessonDetailInner({ params }: PageProps) {
                                   onClick={handleSubmitQuizAttempt}
                                   className="px-8 py-3 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95"
                                 >
-                                  <CheckCircle2 className="w-4.5 h-4.5 text-[#f25c88]" />
+                                  <CheckCircle2 className="w-4.5 h-4.5 text-[#d97706]" />
                                   <span>Submit Quiz Attempt</span>
                                 </button>
                               </div>
@@ -2332,17 +2337,17 @@ function LessonDetailInner({ params }: PageProps) {
                         ) : (
                           <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
                             <div className="bg-white border border-[#E5E1D8]/60 p-8 rounded-3xl shadow-sm text-center flex flex-col items-center justify-center">
-                              <Trophy className="w-12 h-12 text-[#f25c88] mb-3 animate-bounce" />
+                              <Trophy className="w-12 h-12 text-[#d97706] mb-3 animate-bounce" />
                               <h3 className="text-[17px] text-zinc-850 font-black">Quiz Completed!</h3>
                               
                               {quiz.allowViewGrade ? (
                                 <div className="mt-4 flex flex-col items-center">
-                                  <div className="w-24 h-24 rounded-full border-4 border-[#f25c88] flex flex-col items-center justify-center bg-[#f25c88]/5">
+                                  <div className="w-24 h-24 rounded-full border-4 border-[#f97316] flex flex-col items-center justify-center bg-[#facc15]/5">
                                     <span className="text-2xl font-black text-zinc-900">{myAttempt.score}</span>
                                     <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest border-t border-zinc-200 pt-0.5 mt-0.5">/ {myAttempt.totalPoints} pts</span>
                                   </div>
                                   <span className="text-[13px] font-bold text-zinc-800 mt-4">
-                                    Percentage: <span className="text-[#f25c88]">{Math.round((myAttempt.score / myAttempt.totalPoints) * 100)}%</span>
+                                    Percentage: <span className="text-[#d97706]">{Math.round((myAttempt.score / myAttempt.totalPoints) * 100)}%</span>
                                   </span>
                                   <span className="text-[10px] text-zinc-400 font-semibold mt-1">
                                     Submitted at: {formatDate(myAttempt.submittedAt)}
@@ -2443,13 +2448,13 @@ function LessonDetailInner({ params }: PageProps) {
                             {quiz.showLeaderboard && (
                               <div className="bg-white border border-[#E5E1D8]/60 p-6 rounded-3xl shadow-sm text-left">
                                 <h4 className="text-[13px] font-extrabold text-[#121212] uppercase tracking-wider mb-4 flex items-center gap-2">
-                                  <Trophy className="w-4 h-4 text-[#f25c88]" />
+                                  <Trophy className="w-4 h-4 text-[#d97706]" />
                                   Quiz Leaderboard
                                 </h4>
 
                                 {attemptsLoading ? (
                                   <div className="flex flex-col items-center justify-center py-6">
-                                    <div className="w-5 h-5 rounded-full border-2 border-[#f25c88]/20 border-t-[#f25c88] animate-spin" />
+                                    <div className="w-5 h-5 rounded-full border-2 border-[#f97316]/20 border-t-[#facc15] animate-spin" />
                                     <span className="text-[10px] text-zinc-400 mt-2">Refreshing ranking...</span>
                                   </div>
                                 ) : attempts.length === 0 ? (
@@ -2476,7 +2481,7 @@ function LessonDetailInner({ params }: PageProps) {
                                           const isMe = (!currentUser && isGuest && guestName.trim() === att.guestName) || (currentUser && currentUser.id === att.userId);
                                           
                                           return (
-                                            <tr key={att.id} className={`${isMe ? "bg-[#f25c88]/5 font-bold border-l-2 border-l-[#f25c88]" : ""}`}>
+                                            <tr key={att.id} className={`${isMe ? "bg-[#facc15]/5 font-bold border-l-2 border-l-[#facc15]" : ""}`}>
                                               <td className="px-3 py-2.5 text-zinc-700">#{idx + 1}</td>
                                               <td className="px-3 py-2.5 text-zinc-800 flex items-center gap-2">
                                                 {!isGuest && att.user?.avatar ? (
@@ -2486,7 +2491,7 @@ function LessonDetailInner({ params }: PageProps) {
                                                     className="w-4 h-4 rounded-full object-cover"
                                                   />
                                                 ) : (
-                                                  <div className="w-4 h-4 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-bold text-[8.5px]">
+                                                  <div className="w-4 h-4 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center font-bold text-[8.5px]">
                                                     {name.slice(0, 2).toUpperCase()}
                                                   </div>
                                                 )}
@@ -2496,7 +2501,7 @@ function LessonDetailInner({ params }: PageProps) {
                                                 )}
                                               </td>
                                               <td className="px-3 py-2.5 text-zinc-700">{att.score} / {att.totalPoints}</td>
-                                              <td className="px-3 py-2.5 text-[#f25c88]">{pct}%</td>
+                                              <td className="px-3 py-2.5 text-[#d97706]">{pct}%</td>
                                               <td className="px-3 py-2.5 text-right text-zinc-400">{formatDate(att.submittedAt)}</td>
                                             </tr>
                                           );
@@ -2521,7 +2526,7 @@ function LessonDetailInner({ params }: PageProps) {
             <div className="flex flex-col gap-5 w-full">
               <div className="flex flex-col gap-1.5">
                 <span
-                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit bg-[#f25c88]/10 text-[#f25c88] border border-[#f25c88]/20"
+                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/20"
                 >
                   {selectedLesson.type || "learning"}
                 </span>
@@ -2566,7 +2571,7 @@ function LessonDetailInner({ params }: PageProps) {
                   )}
                   <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
                     <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type</span>
-                    <span className="text-[12.5px] font-extrabold uppercase text-[#f25c88]">
+                    <span className="text-[12.5px] font-extrabold uppercase text-[#d97706]">
                       {selectedLesson.type === "learning"
                         ? "Learning Material"
                         : selectedLesson.type === "assignment"
@@ -2597,7 +2602,7 @@ function LessonDetailInner({ params }: PageProps) {
                         <span className="text-zinc-855 text-[12.5px] font-bold flex items-center gap-1.5 mt-0.5">
                           {selectedLesson.closeType === "restrict" ? (
                             <>
-                              <Lock className="w-3.5 h-3.5 text-[#f25c88]" /> Strict Deadline
+                              <Lock className="w-3.5 h-3.5 text-[#d97706]" /> Strict Deadline
                             </>
                           ) : (
                             <>
@@ -2614,7 +2619,7 @@ function LessonDetailInner({ params }: PageProps) {
 
             <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-4">
               <h3 className="text-[13px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
-                <Lightbulb className="w-4 h-4 text-[#f25c88]" />
+                <Lightbulb className="w-4 h-4 text-[#d97706]" />
                 Resource Tips
               </h3>
               <p className="text-[11px] text-zinc-500 leading-relaxed font-semibold">

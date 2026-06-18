@@ -56,9 +56,9 @@ export const StorageTracker: React.FC<StorageTrackerProps> = ({ institutionId })
   const percentage = Math.min(100, (usedMb / maxMb) * 100);
 
   // Determine indicator colors based on usage density
-  let barColor = "bg-[#f25c88]"; // Pink default
-  let textColor = "text-[#f25c88]";
-  let bgTint = "bg-[#f25c88]/10";
+  let barColor = "bg-[#facc15]"; // Pink default
+  let textColor = "text-[#d97706]";
+  let bgTint = "bg-[#facc15]/10";
 
   if (percentage >= 90) {
     barColor = "bg-rose-500";

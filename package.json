@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/animejs": "^3.1.13",
     "@uploadthing/react": "^7.3.3",
+    "animejs": "^4.4.1",
     "lucide-react": "^1.17.0",
     "next": "16.2.7",
     "react": "19.2.4",

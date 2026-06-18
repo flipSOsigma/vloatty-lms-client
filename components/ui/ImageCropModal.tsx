@@ -85,7 +85,7 @@ export default function ImageCropModal({ imageSrc, onCropComplete, onCancel, asp
               step={0.1}
               aria-labelledby="Zoom"
               onChange={(e) => setZoom(Number(e.target.value))}
-              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-[#f25c88]"
+              className="w-full h-1.5 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-[#facc15]"
             />
           </div>
 

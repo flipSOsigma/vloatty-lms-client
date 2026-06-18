@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLms } from "../../../../../context/LmsContext";
 import { GraduationCap, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import LoadingSpinner from "../../../../../components/ui/LoadingSpinner";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -17,7 +18,7 @@ export default function JoinSubjectPage({ params }: PageProps) {
 
   const [subjectName, setSubjectName] = useState("");
   const [subjectDesc, setSubjectDesc] = useState("");
-  const [subjectColor, setSubjectColor] = useState("#f25c88");
+  const [subjectColor, setSubjectColor] = useState("#facc15");
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export default function JoinSubjectPage({ params }: PageProps) {
         const data = await response.json();
         setSubjectName(data.name);
         setSubjectDesc(data.description || "");
-        setSubjectColor(data.color || "#f25c88");
+        setSubjectColor(data.color || "#facc15");
       } catch (err: any) {
         setError(err.message || "Unable to fetch subject information.");
       } finally {
@@ -82,21 +83,18 @@ export default function JoinSubjectPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-screen bg-[#FAF7F2] flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-full border-4 border-zinc-200 border-t-[#f25c88] animate-spin" />
-          <span className="text-[13px] text-zinc-500 font-semibold">Loading invite...</span>
-        </div>
+      <div className="min-h-screen w-screen bg-zinc-50 flex items-center justify-center p-4">
+        <LoadingSpinner label="Loading invite..." size="md" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-screen bg-[#FAF7F2] flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden select-none">
-      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#f25c88]/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#f25c88]/5 blur-3xl pointer-events-none" />
+    <div className="min-h-screen w-screen bg-zinc-50 flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden select-none">
+      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#facc15]/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#facc15]/5 blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-[460px] bg-white border border-[#EFECE6]/80 rounded-[32px] p-6 md:p-10 shadow-sm relative z-10 transition-all duration-300">
+      <div className="w-full max-w-[460px] bg-white border border-[#E5E1D8]/70 rounded-[32px] p-6 md:p-10 shadow-sm relative z-10 transition-all duration-300">
         
         <div className="flex flex-col items-center mb-8">
           <div 
@@ -109,10 +107,10 @@ export default function JoinSubjectPage({ params }: PageProps) {
           >
             <GraduationCap className="w-8 h-8" />
           </div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-[#121212] tracking-tight text-center">
+          <h1 className="text-xl md:text-2xl font-semibold text-zinc-800 tracking-tight text-center">
             You&apos;re Invited to Join
           </h1>
-          <h2 className="text-lg font-bold text-zinc-700 text-center mt-1">
+          <h2 className="text-lg font-semibold text-zinc-700 text-center mt-1">
             {subjectName}
           </h2>
         </div>
@@ -125,7 +123,7 @@ export default function JoinSubjectPage({ params }: PageProps) {
         )}
 
         {subjectDesc && (
-          <div className="mb-6 p-4 bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl text-[12.5px] text-zinc-500 font-medium leading-relaxed max-h-32 overflow-y-auto no-scrollbar">
+          <div className="mb-6 p-4 bg-zinc-50 border border-[#E5E1D8]/70 rounded-2xl text-[12.5px] text-zinc-500 font-medium leading-relaxed max-h-32 overflow-y-auto no-scrollbar">
             {subjectDesc}
           </div>
         )}
@@ -133,7 +131,7 @@ export default function JoinSubjectPage({ params }: PageProps) {
         <button
           onClick={handleJoin}
           disabled={joining}
-          className="w-full py-3.5 px-6 bg-[#121212] text-white hover:bg-zinc-800 disabled:bg-zinc-300 rounded-full text-[13px] font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 select-none"
+          className="w-full py-3.5 px-6 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-300 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 select-none"
         >
           {joining ? "Joining Class..." : currentUser ? "Accept Invitation" : "Sign In to Accept Invite"}
           {!joining && <ArrowRight className="w-4 h-4" />}

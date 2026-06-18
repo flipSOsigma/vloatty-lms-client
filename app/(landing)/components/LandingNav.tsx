@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLms } from "@/context/LmsContext";
 
 export default function LandingNav() {
+  const { currentUser } = useLms();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -24,13 +26,13 @@ export default function LandingNav() {
       <div className="lp-nav__inner">
         {/* Logo */}
         <Link href="/" className="lp-logo" aria-label="Vloatty Home">
-          <span className="lp-logo__icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="28" height="28" rx="8" fill="#f25c88" />
-              <path d="M7 9L14 19L21 9" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M10 9L14 15L18 9" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
-            </svg>
-          </span>
+          <img 
+            src="/vloatty - Logo Only.png" 
+            alt="Vloatty Logo" 
+            width={28} 
+            height={28} 
+            style={{ filter: "brightness(0)", objectFit: "contain", marginRight: "4px" }} 
+          />
           <span className="lp-logo__text">Vloatty</span>
         </Link>
 
@@ -43,11 +45,32 @@ export default function LandingNav() {
 
         {/* Desktop CTA */}
         <div className="lp-nav__cta">
-          <Link href="/login" className="lp-btn lp-btn--ghost lp-btn--sm">
-            Sign In
-          </Link>
+          {currentUser ? (
+            <Link href="/dashboard" className="lp-btn lp-btn--ghost lp-btn--sm">
+              <span className="lp-btn__text-container">
+                <span className="lp-btn__text-track">
+                  <span className="lp-btn__text-normal">{currentUser.name}</span>
+                  <span className="lp-btn__text-hover">{currentUser.name}</span>
+                </span>
+              </span>
+            </Link>
+          ) : (
+            <Link href="/login" className="lp-btn lp-btn--ghost lp-btn--sm">
+              <span className="lp-btn__text-container">
+                <span className="lp-btn__text-track">
+                  <span className="lp-btn__text-normal">Sign In</span>
+                  <span className="lp-btn__text-hover">Sign In</span>
+                </span>
+              </span>
+            </Link>
+          )}
           <Link href="/register" className="lp-btn lp-btn--primary lp-btn--sm">
-            Get Started Free
+            <span className="lp-btn__text-container">
+              <span className="lp-btn__text-track">
+                <span className="lp-btn__text-normal">Get Started Free</span>
+                <span className="lp-btn__text-hover">Get Started Free</span>
+              </span>
+            </span>
           </Link>
         </div>
 
@@ -74,11 +97,32 @@ export default function LandingNav() {
             <li><a href="#testimonials" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">About</a></li>
           </ul>
           <div className="lp-nav__drawer-cta">
-            <Link href="/login" className="lp-btn lp-btn--ghost lp-btn--full" onClick={() => setMenuOpen(false)}>
-              Sign In
-            </Link>
+            {currentUser ? (
+              <Link href="/dashboard" className="lp-btn lp-btn--ghost lp-btn--full" onClick={() => setMenuOpen(false)}>
+                <span className="lp-btn__text-container">
+                  <span className="lp-btn__text-track">
+                    <span className="lp-btn__text-normal">{currentUser.name}</span>
+                    <span className="lp-btn__text-hover">{currentUser.name}</span>
+                  </span>
+                </span>
+              </Link>
+            ) : (
+              <Link href="/login" className="lp-btn lp-btn--ghost lp-btn--full" onClick={() => setMenuOpen(false)}>
+                <span className="lp-btn__text-container">
+                  <span className="lp-btn__text-track">
+                    <span className="lp-btn__text-normal">Sign In</span>
+                    <span className="lp-btn__text-hover">Sign In</span>
+                  </span>
+                </span>
+              </Link>
+            )}
             <Link href="/register" className="lp-btn lp-btn--primary lp-btn--full" onClick={() => setMenuOpen(false)}>
-              Get Started Free
+              <span className="lp-btn__text-container">
+                <span className="lp-btn__text-track">
+                  <span className="lp-btn__text-normal">Get Started Free</span>
+                  <span className="lp-btn__text-hover">Get Started Free</span>
+                </span>
+              </span>
             </Link>
           </div>
         </div>
