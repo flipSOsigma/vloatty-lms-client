@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LmsProvider } from "../context/LmsContext";
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: "Vloatty - Learning Management System",
@@ -24,6 +25,7 @@ export default function RootLayout({
         <LmsProvider>
           {children}
         </LmsProvider>
+        <Analytics />
       </body>
     </html>
   );
