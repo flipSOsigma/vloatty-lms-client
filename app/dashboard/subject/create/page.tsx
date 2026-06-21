@@ -376,9 +376,9 @@ export default function CreateSubjectPage() {
 
   return (
     <>
-      <Header />
+      <Header title="Create Subject" subtitle="Academics" />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full px-2 md:px-4">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"

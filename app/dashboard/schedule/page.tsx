@@ -7,9 +7,9 @@ import EventModal from "../../../components/views/EventModal";
 export default function SchedulePage() {
   return (
     <>
-      <Header />
+      <Header title="Daily Schedule" subtitle="Academics" />
       <div className="flex-grow overflow-y-auto pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full no-scrollbar">
-        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+        <div className="w-full px-2 md:px-4 flex flex-col gap-6">
           <ScheduleView />
         </div>
       </div>

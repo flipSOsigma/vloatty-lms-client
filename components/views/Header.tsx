@@ -8,7 +8,12 @@ import {
 } from "lucide-react";
 import { useLms } from "../../context/LmsContext";
 
-export default function Header() {
+interface HeaderProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export default function Header({ title = "Dashboard", subtitle = "Academic Portal" }: HeaderProps) {
   const { currentUser } = useLms();
 
   const [dateString, setDateString] = useState("");
@@ -22,13 +27,13 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="flex items-center justify-between w-full select-none py-4 px-6 md:px-8 bg-transparent">
+    <header className="flex items-center justify-between w-full select-none py-4 px-2 md:px-4 bg-transparent">
       {/* Left side: Page Title */}
       <div className="flex items-center gap-3">
         <div className="flex flex-col text-left">
-          <span className="text-[12px] font-semibold text-zinc-400">Academic Portal</span>
+          <span className="text-[12px] font-semibold text-zinc-400">{subtitle}</span>
           <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
-            Dashboard
+            {title}
           </h1>
         </div>
         <div className="w-9 h-9 rounded-full bg-[#facc15] flex items-center justify-center text-zinc-800 shadow-sm border border-zinc-200/20 font-semibold text-lg select-none relative -bottom-1">

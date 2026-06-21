@@ -41,17 +41,11 @@ export default function SubjectsPage() {
 
   return (
     <>
-      <Header />
+      <Header title="My Subjects" subtitle="Academics" />
 
       <div className="flex-1 overflow-y-auto pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full no-scrollbar">
-        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-col gap-0.5 text-left">
-            <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">Academics</span>
-            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">My Subjects</h1>
-          </div>
-
-          <div className="flex items-center gap-3">
+        <div className="w-full px-2 md:px-4 flex flex-col gap-6">
+          <div className="flex justify-end items-center gap-3 w-full mb-1">
             <Link
               href="/dashboard/subject/create"
               className="flex items-center gap-1.5 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[11px] cursor-pointer transition-colors shadow-sm"
@@ -80,7 +74,6 @@ export default function SubjectsPage() {
               </button>
             </div>
           </div>
-        </div>
 
         {filteredSubjects.length === 0 ? (
           <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/40">

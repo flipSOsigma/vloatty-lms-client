@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Subject, LmsEvent } from "../../types/lms";
 import StudyActivityChart from "../../components/ui/CourseAnalyticsChart";
+import { animate, stagger } from "animejs";
 
 export default function DashboardPage() {
   const { subjects, searchQuery, currentUser, events, setSelectedEvent } = useLms();
@@ -141,9 +142,6 @@ export default function DashboardPage() {
     setSelectedCalendarDay(new Date(newDate.getFullYear(), newDate.getMonth(), targetDay));
   };
 
-
-
-  // Keep Clock updating real-time
   useEffect(() => {
     const updateClock = () => {
       const now = new Date();
@@ -154,9 +152,17 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    animate(".anime-card", {
+      translateY: [24, 0],
+      opacity: [0, 1],
+      delay: stagger(80),
+      duration: 800,
+      easing: "easeOutQuad"
+    });
+  }, []);
+
   const today = new Date();
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const currentDayName = dayNames[today.getDay()];
 
   const filteredSubjects = subjects.filter((subject) =>
     subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -198,7 +204,6 @@ export default function DashboardPage() {
     );
   };
 
-  // HORIZONTAL SCHEDULER CONSTANTS & ALGORITHMS (Identical to Schedule page)
   const HOURS = [
     "07:00",
     "08:00",
@@ -227,7 +232,6 @@ export default function DashboardPage() {
     return totalMins - startMins;
   };
 
-  // Filter and map events active for today's scheduler view (With fallback populator to avoid blank state)
   const todayDayIdx = today.getDay() === 0 ? 6 : today.getDay() - 1;
   const todayTimelineEvents = React.useMemo(() => {
     const mapped = events.map((event) => {
@@ -244,7 +248,6 @@ export default function DashboardPage() {
 
     const todayEvts = mapped.filter((event) => !event.deletedAt && event.dayIndex === todayDayIdx);
 
-    // Dynamic Mock Populator: If today's list is empty, map user subjects to slots so the timetable is never blank
     if (todayEvts.length === 0 && subjects.length > 0) {
       const mockSlots = [
         { startTime: "09:30", endTime: "11:30", title: "Calculus Seminar" },
@@ -271,7 +274,6 @@ export default function DashboardPage() {
     return todayEvts;
   }, [events, todayDayIdx, subjects]);
 
-  // Compute tracks algorithm for overlapping timeline items (to prevent collisions)
   const { timelineGridEvents, totalTracks } = React.useMemo(() => {
     const sorted = [...todayTimelineEvents].sort((a, b) => {
       const aMin = getMinutesFromStart(a.timeStart);
@@ -318,15 +320,11 @@ export default function DashboardPage() {
       <Header />
 
       <div className="flex-grow overflow-y-auto pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full no-scrollbar">
-        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+        <div className="w-full px-2 md:px-4 flex flex-col gap-6">
 
+          <div className="grid grid-cols-1 lg:grid-cols-10 2xl:grid-cols-4 gap-5 w-full auto-rows-[270px]">
 
-
-          {/* 4-Column Bento Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-10 gap-5 w-full auto-rows-[270px]">
-
-            {/* Activity in a Week */}
-            <div className="lg:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col justify-between text-left transition-all duration-300 h-[270px] max-h-[270px] relative overflow-hidden group">
+            <div className="anime-card opacity-0 lg:col-span-2 2xl:col-span-1 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col justify-between text-left transition-all duration-300 h-[270px] max-h-[270px] relative overflow-hidden group">
               <div className="absolute right-0 top-0 w-24 h-24 bg-[#facc15]/10 rounded-full filter blur-[20px] pointer-events-none transition-all duration-500" />
               <div className="flex justify-between items-start">
                 <span className="text-[9.5px] font-semibold text-zinc-400 tracking-wider"></span>
@@ -334,7 +332,7 @@ export default function DashboardPage() {
               </div>
               <div className="justify-end h-full flex flex-col items-start">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-[42px] font-semibold text-zinc-800 leading-none tracking-tight">{stats?.weeklyActivity.total ?? 0}</span>
+                  <span className="text-2xl font-semibold text-zinc-800 leading-none tracking-tight">{stats?.weeklyActivity.total ?? 0}</span>
                   <span className="text-[12px] font-semibold text-zinc-455">actions</span>
                   <span className="bg-[#facc15]/40 text-zinc-800 text-[9px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5 self-center">Live</span>
                 </div>
@@ -356,21 +354,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Cloud Storage */}
-            <div className="lg:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-3 text-left transition-all duration-300 h-[270px] max-h-[270px] justify-between overflow-hidden group">
+            <div className="anime-card opacity-0 lg:col-span-2 2xl:col-span-1 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-3 text-left transition-all duration-300 h-[270px] max-h-[270px] justify-between overflow-hidden group">
               <div className="flex justify-between items-center">
                 <span className="text-[9.5px] font-semibold text-zinc-400 tracking-wider"></span>
                 <span className="text-[10px] text-zinc-455 font-semibold bg-zinc-50 border border-zinc-200/50 px-2.5 py-0.5 rounded-full">200 MB Limit</span>
               </div>
               <div className="flex flex-col gap-3.5 w-full h-full justify-end">
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-[32px] font-semibold text-zinc-800 leading-none">{stats ? formatFileSize(stats.storage.usedBytes) : "82 MB"}</span>
-                  <span className="text-[13px] font-semibold text-zinc-455">/ {stats ? formatFileSize(stats.storage.maxBytes) : "200 MB"} used</span>
+                  <span className="text-2xl font-semibold text-zinc-800 leading-none">{stats ? formatFileSize(stats.storage.usedBytes) : "82 MB"}</span>
+                  <span className="text-[11.5px] font-semibold text-zinc-455">/ {stats ? formatFileSize(stats.storage.maxBytes) : "200 MB"} used</span>
                 </div>
                 <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden mt-1">
                   <div className="bg-[#facc15] h-full rounded-full transition-all duration-500 shadow-sm" style={{ width: `${stats ? Math.round((stats.storage.usedBytes / stats.storage.maxBytes) * 100) : 41}%` }} />
                 </div>
-                <span className="text-[10px] text-zinc-400 font-semibold">{stats ? Math.round((stats.storage.usedBytes / stats.storage.maxBytes) * 100) : 41}% storage quota utilized</span>
+                <span className="text-[9px] text-zinc-400 font-semibold">{stats ? Math.round((stats.storage.usedBytes / stats.storage.maxBytes) * 100) : 41}% storage quota utilized</span>
               </div>
               <div className="flex items-center gap-2 pt-2">
                 <button className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-[10.5px] font-semibold transition-all">Manage Files</button>
@@ -378,32 +375,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Study Activity Chart */}
-            <div className="lg:col-span-4 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col justify-between text-left transition-all duration-300 relative">
+            <div className="anime-card opacity-0 lg:col-span-4 2xl:col-span-2 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col justify-between text-left transition-all duration-300 relative">
               <div className="w-full flex-grow min-h-[160px] flex flex-col justify-between h-full">
                 <StudyActivityChart events={events} />
               </div>
             </div>
 
-
-
-            {/* New Slot */}
-            <div className="lg:col-span-2 row-span-1 bg-white border border-dashed border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col text-left transition-all duration-300 h-[270px] max-h-[270px] overflow-hidden group">
+            <div className="anime-card opacity-0 lg:col-span-2 2xl:col-span-1 row-span-1 bg-white border border-dashed border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col text-left transition-all duration-300 h-[270px] max-h-[270px] overflow-hidden group">
               <span className="text-[9.5px] font-semibold text-zinc-400 tracking-wider">New Slot</span>
               <div className="flex-1 flex items-center justify-center text-zinc-300">
                 <span className="text-[12px] font-medium">Placeholder</span>
               </div>
             </div>
 
-            {/* Schedule */}
-            <div className="lg:col-span-4 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-4 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col text-left transition-all duration-300 h-[270px] max-h-[270px] overflow-hidden">
-              {/* <div className="flex items-center justify-between mb-2 px-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 bg-[#facc15] rounded-full" />
-                  <span className="text-[13px] font-semibold text-zinc-800">Schedule</span>
-                </div>
-                <span className="text-[9.5px] text-zinc-400 font-medium">{currentDayName}</span>
-              </div> */}
+            <div className="anime-card opacity-0 lg:col-span-4 2xl:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-xl p-4 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col text-left transition-all duration-300 h-[270px] max-h-[270px] overflow-hidden">
               <div className="relative flex flex-col flex-1 overflow-hidden">
                 <div className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar">
                   <div className="relative" style={{ width: `${HOURS.length * HOUR_WIDTH}px`, height: "100%", minHeight: `${totalTracks * TRACK_HEIGHT + 20}px` }}>
@@ -439,44 +424,74 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Calendar - Minimal iPhone-style Dot Grid */}
-            <div className="lg:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-4 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col text-left transition-all duration-300 h-[270px] max-h-[270px] relative overflow-hidden">
-              <div className="flex items-center justify-between mb-2.5 px-0.5">
-                <span className="text-[13px] font-semibold text-zinc-800">{monthNames[currentCalendarDate.getMonth()].slice(0, 3)} {currentCalendarDate.getFullYear()}</span>
-                <div className="flex items-center gap-3">
-                  <button onClick={prevMonth} className="text-zinc-300 hover:text-zinc-500 transition-all cursor-pointer active:scale-90" title="Previous Month"><ChevronLeft className="w-3.5 h-3.5 stroke-[2]" /></button>
-                  <button onClick={nextMonth} className="text-zinc-300 hover:text-zinc-500 transition-all cursor-pointer active:scale-90" title="Next Month"><ChevronRight className="w-3.5 h-3.5 stroke-[2]" /></button>
+            <div className="anime-card opacity-0 lg:col-span-2 2xl:col-span-1 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col justify-between text-left transition-all duration-300 h-[270px] max-h-[270px] relative overflow-hidden group">
+              <div className="flex justify-between items-start">
+                <span className="text-[9.5px] font-semibold text-zinc-400 tracking-wider">Calendar</span>
+                <div className="flex items-center gap-2">
+                  <button onClick={prevMonth} className="text-zinc-400 hover:text-zinc-650 transition-all cursor-pointer active:scale-95 p-1 rounded-lg hover:bg-zinc-50 border border-zinc-200/50" title="Previous Month">
+                    <ChevronLeft className="w-3.5 h-3.5 stroke-[2]" />
+                  </button>
+                  <button onClick={nextMonth} className="text-zinc-400 hover:text-zinc-650 transition-all cursor-pointer active:scale-95 p-1 rounded-lg hover:bg-zinc-50 border border-zinc-200/50" title="Next Month">
+                    <ChevronRight className="w-3.5 h-3.5 stroke-[2]" />
+                  </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-2.5 flex-1">
+
+              <div className="flex flex-col gap-0.5 mt-1 select-none">
+                <span className="text-2xl font-semibold text-zinc-800 tracking-tight leading-none uppercase">
+                  {monthNames[currentCalendarDate.getMonth()].slice(0, 3)} {currentCalendarDate.getFullYear()}
+                </span>
+                <span className="text-[10px] text-zinc-400 font-semibold mt-1">
+                  Selected: {selectedCalendarDay.getDate()} {monthNames[selectedCalendarDay.getMonth()].slice(0, 3)} {selectedCalendarDay.getFullYear()}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2 w-full mt-3">
                 <div className="grid grid-cols-7 text-center select-none">
-                  {calendarColHeaders.map((h, i) => (<span key={i} className="text-[8.5px] font-medium text-zinc-400/70">{h}</span>))}
+                  {calendarColHeaders.map((h, i) => (
+                    <span key={i} className="text-[8.5px] font-bold text-zinc-400/60 uppercase">
+                      {h}
+                    </span>
+                  ))}
                 </div>
-                <div className="grid grid-cols-7 gap-y-2.5 justify-items-center">
+                <div className="grid grid-cols-7 gap-y-2 justify-items-center">
                   {getCalendarDays().map((cell, idx) => {
-                    const isSelected = selectedCalendarDay.getDate() === cell.dayNum && selectedCalendarDay.getMonth() === cell.date.getMonth() && selectedCalendarDay.getFullYear() === cell.date.getFullYear();
+                    const isSelected = selectedCalendarDay.getDate() === cell.dayNum &&
+                      selectedCalendarDay.getMonth() === cell.date.getMonth() &&
+                      selectedCalendarDay.getFullYear() === cell.date.getFullYear();
                     const isToday = cell.date.toDateString() === today.toDateString();
-                    let dotStyle = "w-[18px] h-[18px] rounded-full transition-all duration-200 cursor-pointer active:scale-90 select-none";
+                    let dotStyle = "w-[12px] h-[12px] rounded-full transition-all duration-200 cursor-pointer active:scale-95 select-none";
                     if (!cell.isCurrentMonth) {
                       dotStyle += " opacity-20";
                     }
                     if (isSelected) {
-                      dotStyle += " bg-[#facc15] shadow-[0_2px_8px_rgba(250,204,21,0.4)]";
+                      dotStyle += " bg-[#facc15] shadow-[0_2px_8px_rgba(250,204,21,0.5)] scale-110";
                     } else if (isToday && cell.isCurrentMonth) {
                       dotStyle += " border-2 border-zinc-800 bg-transparent";
                     } else if (cell.isCurrentMonth) {
-                      dotStyle += " bg-zinc-100 hover:bg-zinc-200";
+                      dotStyle += " bg-zinc-200 hover:bg-zinc-300";
                     } else {
-                      dotStyle += " bg-transparent";
+                      dotStyle += " bg-zinc-100 hover:bg-zinc-200";
                     }
-                    return (<button key={idx} onClick={() => { setSelectedCalendarDay(cell.date); if (!cell.isCurrentMonth) setCurrentCalendarDate(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1)); }} className={dotStyle} title={cell.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} />);
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setSelectedCalendarDay(cell.date);
+                          if (!cell.isCurrentMonth) {
+                            setCurrentCalendarDate(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1));
+                          }
+                        }}
+                        className={dotStyle}
+                        title={cell.date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      />
+                    );
                   })}
                 </div>
               </div>
             </div>
 
-            {/* Active Classes */}
-            <div className="lg:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-3 text-left transition-all duration-300 h-[270px] max-h-[270px]">
+            <div className="anime-card opacity-0 lg:col-span-2 2xl:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-3 text-left transition-all duration-300 h-[270px] max-h-[270px]">
               <div className="flex justify-between items-center">
                 <span className="text-[13px] font-semibold text-zinc-800">Active Classes</span>
                 <span className="text-[10px] text-zinc-400 font-semibold">{joinedSubjects.length} Courses</span>
@@ -500,8 +515,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* My Classes */}
-            <div className="lg:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-3 text-left transition-all duration-300 h-[270px] max-h-[270px]">
+            <div className="anime-card opacity-0 lg:col-span-2 2xl:col-span-2 row-span-1 bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-3 text-left transition-all duration-300 h-[270px] max-h-[270px]">
               <div className="flex justify-between items-center">
                 <span className="text-[13px] font-semibold text-zinc-800">My Classes</span>
                 <span className="text-[10px] text-zinc-400 font-semibold">{createdSubjects.length} Courses</span>
