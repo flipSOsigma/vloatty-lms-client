@@ -54,7 +54,7 @@ export default function DangerZoneSection({
           <select
             value={statusInput}
             onChange={(e) => setStatusInput(e.target.value)}
-            className="px-4 py-2 rounded-xl border border-zinc-200 text-[13.5px] font-semibold bg-white outline-none cursor-pointer focus:border-[#f25c88]"
+            className="px-4 py-2 rounded-xl border border-zinc-200 text-[13.5px] font-semibold bg-white outline-none cursor-pointer focus:border-[#f97316]"
           >
             <option value="free">Free Tier</option>
             <option value="premium">Premium</option>

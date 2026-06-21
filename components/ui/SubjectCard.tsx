@@ -17,7 +17,7 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
 
-  const subjectColor = "#f25c88";
+  const subjectColor = "#facc15";
   const isHexColor = true;
 
   let colorTheme = {

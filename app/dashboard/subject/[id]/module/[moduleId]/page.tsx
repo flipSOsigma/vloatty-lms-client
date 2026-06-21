@@ -48,13 +48,13 @@ export default function ModuleDetailPage({ params }: PageProps) {
 
   if (!selectedSubject || !selectedModule) {
     return (
-      <div className="flex flex-col gap-6 text-left animate-in fade-in duration-300">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
         <Header />
-        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl p-6 bg-white/10 select-none">
+        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/10 select-none">
           <span className="text-[14px] text-zinc-400 font-semibold">Module not found.</span>
           <Link
             href="/dashboard"
-            className="mt-4 px-5 py-2.5 bg-[#121212] text-white font-bold rounded-full text-[12px] shadow-sm hover:bg-zinc-800 transition-colors"
+            className="mt-4 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all"
           >
             Go back to Dashboard
           </Link>
@@ -72,36 +72,35 @@ export default function ModuleDetailPage({ params }: PageProps) {
     <>
       <Header />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
         <div className="flex items-center justify-between mt-1">
           <Link
             href={`/dashboard/subject/${selectedSubject.id}`}
-            className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-zinc-100 font-bold text-[12px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/50"
+            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Subject</span>
+            <ArrowLeft className="w-4 h-4" />
           </Link>
 
-          <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+          <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
             Module Overview
           </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
           <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0">
-            <div className="bg-white/40 border border-[#E5E1D8]/60 p-6 rounded-3xl flex flex-col gap-5 shadow-sm">
+            <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-6 flex flex-col gap-5">
               <div className="flex flex-col gap-1">
                 <span
                   className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit"
                   style={{
-                    backgroundColor: "#f25c8815",
-                    color: "#f25c88",
-                    border: "1px solid #f25c8830"
+                    backgroundColor: "#facc1515",
+                    color: "#facc15",
+                    border: "1px solid #facc1530"
                   }}
                 >
                   {selectedSubject.name}
                 </span>
-                <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
+                <h2 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
                   {selectedModule.title}
                 </h2>
                 <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
@@ -111,29 +110,29 @@ export default function ModuleDetailPage({ params }: PageProps) {
               </div>
 
               {selectedModule.desc && (
-                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-zinc-50 p-4 border border-[#E5E1D8]/70 rounded-2xl">
                   {selectedModule.desc}
                 </p>
               )}
 
-              <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+              <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/70">
+                <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider mb-1">
                   Module Summary
                 </span>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                  <div className="flex justify-between items-center text-[12px] font-semibold text-zinc-800 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl">
                     <span>Total Lessons</span>
                     <span className="text-zinc-500 text-[11px]">{lessonsCount}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                  <div className="flex justify-between items-center text-[12px] font-semibold text-zinc-800 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl">
                     <span>Learning Lessons</span>
                     <span className="text-zinc-500 text-[11px]">{learningCount}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                  <div className="flex justify-between items-center text-[12px] font-semibold text-zinc-800 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl">
                     <span>Assignments</span>
                     <span className="text-zinc-500 text-[11px]">{assignmentCount}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl">
+                  <div className="flex justify-between items-center text-[12px] font-semibold text-zinc-800 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl">
                     <span>Quizzes</span>
                     <span className="text-zinc-500 text-[11px]">{quizCount}</span>
                   </div>
@@ -144,13 +143,13 @@ export default function ModuleDetailPage({ params }: PageProps) {
 
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
+              <h3 className="text-[17px] font-semibold text-zinc-800 tracking-tight">
                 Lessons inside this Module
               </h3>
               {canEdit && (
                 <Link
                   href={`/dashboard/subject/${selectedSubject.id}/lesson/create?moduleId=${selectedModule.id}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5E1D8] hover:bg-zinc-100 font-bold text-[11px] text-[#f25c88] cursor-pointer transition-colors shadow-sm bg-white/50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E5E1D8]/70 text-zinc-700 hover:text-zinc-800 font-semibold text-[11px] cursor-pointer transition-all bg-white"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Lesson</span>
@@ -171,16 +170,16 @@ export default function ModuleDetailPage({ params }: PageProps) {
                       key={lesson.id}
                       className="relative pl-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full"
                     >
-                      <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-[#FAF7F2] bg-[#f25c88] z-10 shadow-sm" />
+                      <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-zinc-50 bg-[#facc15] z-10 shadow-sm" />
                       {idx < sortedLessons.length - 1 && (
                         <div className="absolute left-0 top-[12px] bottom-[-40px] w-[2px] bg-zinc-300 -translate-x-1/2 z-0" />
                       )}
                       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                         <div className="flex flex-col items-start gap-1.5">
-                          <span className="p-1 bg-[#121212] rounded text-white text-[9px] font-bold uppercase tracking-wide w-fit">
+                          <span className="p-1 bg-zinc-800 rounded text-white text-[9px] font-semibold uppercase tracking-wide w-fit">
                             {lesson.type || "learning"}
                           </span>
-                          <h4 className="text-[14px] font-bold text-zinc-950 truncate">
+                          <h4 className="text-[14px] font-semibold text-zinc-800 truncate">
                             {lesson.title}
                           </h4>
                         </div>
@@ -191,7 +190,7 @@ export default function ModuleDetailPage({ params }: PageProps) {
 
                       <Link
                         href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
-                        className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-white font-bold text-[11px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/40 w-fit shrink-0"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E1D8]/70 text-zinc-700 hover:text-zinc-800 font-semibold text-[11px] cursor-pointer transition-all bg-white w-fit shrink-0"
                       >
                         <span>Go to Lesson</span>
                         <ArrowRight className="w-3.5 h-3.5" />

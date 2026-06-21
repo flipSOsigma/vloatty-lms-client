@@ -171,9 +171,9 @@ export default function ProfilePage() {
     },
     premium: {
       label: "Premium",
-      color: "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/20",
-      accent: "text-[#f25c88]",
-      bgLight: "bg-[#f25c88]/5",
+      color: "bg-[#facc15]/10 text-[#d97706] border-[#f97316]/20",
+      accent: "text-[#d97706]",
+      bgLight: "bg-[#facc15]/5",
     },
     professional: {
       label: "Professional",
@@ -186,21 +186,22 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
       {/* Header Panel */}
-      <Header />
+      <Header title="Profile Settings" subtitle="User Settings" />
 
       {/* Navigation and Title */}
-      <div className="flex items-center justify-between mt-1 text-left">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-zinc-100 font-bold text-[12px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/50"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Dashboard</span>
-        </Link>
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-          User Settings
-        </span>
-      </div>
+      <div className="px-2 md:px-4 flex flex-col gap-6 w-full">
+        <div className="flex items-center justify-between mt-1 text-left">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-zinc-100 font-bold text-[12px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/50"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Dashboard</span>
+          </Link>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+            User Settings
+          </span>
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
         {/* Left Column: Premium User Card & Profile Summary */}
@@ -544,6 +545,7 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

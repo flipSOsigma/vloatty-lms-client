@@ -282,6 +282,11 @@ export default function ManageInstitutionPage({ params }: PageProps) {
   };
 
   const handleUpload = async (file: File) => {
+    const limitBytes = 200 * 1024 * 1024;
+    if (file.size > limitBytes) {
+      showToast("File size exceeds the 200 MB storage limit.", "error");
+      return;
+    }
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -455,27 +460,26 @@ export default function ManageInstitutionPage({ params }: PageProps) {
     <>
       <Header />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 text-left select-none w-full animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <div className="flex items-center gap-3">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
+        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+        <div className="flex items-center gap-3 mt-1">
           <Link
             href={`/dashboard/institutions/${id}`}
-            className="w-10 h-10 rounded-full border border-[#E5E1D8] flex items-center justify-center text-zinc-600 hover:bg-white hover:border-zinc-400 transition-all duration-200"
+            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#121212] tracking-tight">
+            <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">Institution</span>
+            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
               Manage Institution
             </h1>
-            <p className="text-[12px] text-zinc-500 font-medium -mt-1">
-              Update organization identity, custom profile picture, linked classes, and subscription level.
-            </p>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="w-full h-64 flex items-center justify-center bg-white border border-[#E5E1D8]/60 rounded-3xl p-8">
-            <span className="text-[13px] font-bold text-zinc-400">Loading details...</span>
+          <div className="w-full h-64 flex items-center justify-center bg-white border border-[#E5E1D8]/70 rounded-3xl p-8 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]">
+            <span className="text-[13px] font-semibold text-zinc-400">Loading details...</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
@@ -575,7 +579,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
                         isActive
                           ? sec.isDanger
                             ? "bg-red-50 text-red-600 border-l-2 border-red-500 rounded-l-none -ml-[25px] pl-[23px]"
-                            : "bg-[#f25c88]/5 text-[#f25c88] border-l-2 border-[#f25c88] rounded-l-none -ml-[25px] pl-[23px]"
+                            : "bg-[#facc15]/5 text-[#d97706] border-l-2 border-[#f97316] rounded-l-none -ml-[25px] pl-[23px]"
                           : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50/80"
                       }`}
                     >
@@ -584,7 +588,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
                           isActive
                             ? sec.isDanger
                               ? "text-red-500"
-                              : "text-[#f25c88]"
+                              : "text-[#d97706]"
                             : "text-zinc-400 group-hover:text-zinc-600"
                         }`}
                       />
@@ -597,6 +601,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
           </div>
         )}
       </div>
+    </div>
 
       <ConfirmModal
         isOpen={isDeleteModalOpen}

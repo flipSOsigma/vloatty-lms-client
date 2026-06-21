@@ -42,7 +42,12 @@ export default function EmailCTA() {
             type="submit"
             className="lp-btn lp-btn--primary lp-btn--lg"
           >
-            Get Started Free
+            <span className="lp-btn__text-container">
+              <span className="lp-btn__text-track">
+                <span className="lp-btn__text-normal">Get Started Free</span>
+                <span className="lp-btn__text-hover">Get Started Free</span>
+              </span>
+            </span>
           </button>
         </form>
       )}

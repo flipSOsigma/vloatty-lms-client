@@ -4,6 +4,7 @@ import React from "react";
 import { useLms } from "../../context/LmsContext";
 import { LmsEvent } from "../../types/lms";
 import { MapPin, GraduationCap, Plus, Calendar, Clock, Search } from "lucide-react";
+import { animate, stagger } from "animejs";
 
 const getWeekNumber = (d: Date): number => {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -39,6 +40,151 @@ const getWeekDates = (): { label: string; date: string; fullDate: string; isPink
   });
 };
 
+const getEventHours = (event: LmsEvent): number => {
+  try {
+    const [sh, sm] = event.timeStart.split(":").map(Number);
+    const [eh, em] = event.timeEnd.split(":").map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+    return Math.max(0, (endMins - startMins) / 60);
+  } catch (e) {
+    return 0;
+  }
+};
+
+const getTimelineDates = (): { label: string; date: string; fullDate: string; isWeekend?: boolean }[] => {
+  const today = new Date();
+  const startDay = new Date(today);
+  startDay.setDate(today.getDate() - 10); // Start 10 days ago
+
+  const weekdayLabels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  return Array.from({ length: 30 }).map((_, idx) => {
+    const d = new Date(startDay);
+    d.setDate(startDay.getDate() + idx);
+    const dateStr = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const dateVal = String(d.getDate()).padStart(2, "0");
+    const fullDate = `${year}-${month}-${dateVal}`;
+    const dayOfWeek = d.getDay();
+    return {
+      label: weekdayLabels[dayOfWeek],
+      date: dateStr,
+      fullDate,
+      isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+    };
+  });
+};
+
+const getEventDayBounds = (event: LmsEvent, DAYS: { fullDate: string }[], subjects: any[]) => {
+  let startDayIdx = -1;
+  let endDayIdx = -1;
+
+  if (event.dateStr) {
+    startDayIdx = DAYS.findIndex((d) => d.fullDate === event.dateStr);
+    endDayIdx = startDayIdx;
+  }
+
+  if (event.id && (event.id.startsWith("open-") || event.id.startsWith("deadline-"))) {
+    const isOpen = event.id.startsWith("open-");
+    const lessonId = event.id.substring(isOpen ? 5 : 9);
+    
+    const subject = subjects.find((s) => s.id === event.subjectId);
+    let lesson: any = null;
+    subject?.modules?.forEach((mod: any) => {
+      mod.lessons?.forEach((les: any) => {
+        if (les.id === lessonId) {
+          lesson = les;
+        }
+      });
+    });
+
+    if (lesson) {
+      const openDStr = lesson.openDate ? new Date(lesson.openDate).toISOString().split("T")[0] : null;
+      const closeDStr = lesson.closeDate ? new Date(lesson.closeDate).toISOString().split("T")[0] : null;
+
+      if (openDStr && closeDStr) {
+        const openD = new Date(openDStr);
+        const closeD = new Date(closeDStr);
+        const startD = new Date(DAYS[0].fullDate);
+        const endD = new Date(DAYS[DAYS.length - 1].fullDate);
+
+        if (closeD < startD || openD > endD) {
+          return { startDayIdx: -1, endDayIdx: -1 };
+        }
+
+        if (openD < startD) {
+          startDayIdx = 0;
+        } else {
+          startDayIdx = DAYS.findIndex((d) => d.fullDate === openDStr);
+        }
+
+        if (closeD > endD) {
+          endDayIdx = DAYS.length - 1;
+        } else {
+          endDayIdx = DAYS.findIndex((d) => d.fullDate === closeDStr);
+        }
+      } else if (openDStr) {
+        const openD = new Date(openDStr);
+        const startD = new Date(DAYS[0].fullDate);
+        const endD = new Date(DAYS[DAYS.length - 1].fullDate);
+        if (openD >= startD && openD <= endD) {
+          startDayIdx = DAYS.findIndex((d) => d.fullDate === openDStr);
+          endDayIdx = startDayIdx;
+        } else {
+          return { startDayIdx: -1, endDayIdx: -1 };
+        }
+      } else if (closeDStr) {
+        const closeD = new Date(closeDStr);
+        const startD = new Date(DAYS[0].fullDate);
+        const endD = new Date(DAYS[DAYS.length - 1].fullDate);
+        if (closeD >= startD && closeD <= endD) {
+          startDayIdx = DAYS.findIndex((d) => d.fullDate === closeDStr);
+          endDayIdx = startDayIdx;
+        } else {
+          return { startDayIdx: -1, endDayIdx: -1 };
+        }
+      }
+    }
+  }
+
+  if (startDayIdx === -1) {
+    if (event.dayIndex !== undefined && event.dayIndex >= 0 && event.dayIndex < 30) {
+      startDayIdx = event.dayIndex;
+      endDayIdx = event.dayIndex;
+    }
+  }
+
+  return { startDayIdx, endDayIdx };
+};
+
+const formatEventDate = (event: any) => {
+  if (event.openDateVal && event.closeDateVal) {
+    try {
+      const startD = new Date(event.openDateVal);
+      const endD = new Date(event.closeDateVal);
+      if (!isNaN(startD.getTime()) && !isNaN(endD.getTime())) {
+        const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+        return `${startD.toLocaleDateString("en-US", options)} - ${endD.toLocaleDateString("en-US", options)}`;
+      }
+    } catch (e) {
+      // fallback
+    }
+  }
+  if (event.dateStr) {
+    try {
+      const d = new Date(event.dateStr);
+      if (!isNaN(d.getTime())) {
+        const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+        return d.toLocaleDateString("en-US", options);
+      }
+    } catch (e) {
+      // fallback
+    }
+  }
+  return `${event.timeStart} - ${event.timeEnd}`;
+};
+
 const HOURS = [
   "07:00",
   "08:00",
@@ -60,14 +206,6 @@ const HOURS = [
 const START_HOUR = 7;
 const HOUR_WIDTH = 180;
 const MINUTE_WIDTH = HOUR_WIDTH / 60;
-const TRACK_HEIGHT = 85;
-
-const getMinutesFromStart = (timeStr: string): number => {
-  const [h, m] = timeStr.split(":").map(Number);
-  const totalMins = h * 60 + m;
-  const startMins = START_HOUR * 60;
-  return totalMins - startMins;
-};
 
 export default function ScheduleView() {
   const {
@@ -84,6 +222,8 @@ export default function ScheduleView() {
   const [mounted, setMounted] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
 
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
     setMounted(true);
     setIsMobile(window.innerWidth < 640);
@@ -91,44 +231,80 @@ export default function ScheduleView() {
       setIsMobile(window.innerWidth < 640);
     };
     window.addEventListener("resize", handleResize);
+
+    animate(".anime-card", {
+      translateY: [24, 0],
+      opacity: [0, 1],
+      delay: stagger(150),
+      duration: 800,
+      easing: "easeOutQuad"
+    });
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const DAYS = React.useMemo(() => {
-    if (!mounted) {
-      return [
-        { label: "MON", date: "11/05", fullDate: "2026-05-11" },
-        { label: "TUE", date: "12/05", fullDate: "2026-05-12" },
-        { label: "WED", date: "13/05", fullDate: "2026-05-13" },
-        { label: "THU", date: "14/05", fullDate: "2026-05-14" },
-        { label: "FRI", date: "15/05", fullDate: "2026-05-15" },
-        { label: "SAT", date: "16/05", fullDate: "2026-05-16" },
-        { label: "SUN", date: "17/05", fullDate: "2026-05-17", isPink: true },
-      ];
-    }
-    return getWeekDates();
-  }, [mounted]);
+    return getTimelineDates();
+  }, []);
 
-  const currentWeekNumber = React.useMemo(() => {
-    if (!mounted) return 24;
-    return getWeekNumber(new Date());
-  }, [mounted]);
+  const todayIndex = React.useMemo(() => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    return DAYS.findIndex((d) => d.fullDate === todayStr);
+  }, [DAYS]);
+
+  const scrollToToday = () => {
+    if (scrollContainerRef.current && todayIndex !== -1) {
+      const scrollPos = todayIndex * 200 - scrollContainerRef.current.clientWidth / 2 + 100;
+      scrollContainerRef.current.scrollTo({ left: scrollPos, behavior: "smooth" });
+    }
+  };
+
+  React.useEffect(() => {
+    if (todayIndex !== -1) {
+      setActiveDayIndex(todayIndex);
+      setTimeout(scrollToToday, 300);
+    }
+  }, [todayIndex]);
 
   const filteredEvents = React.useMemo(() => {
     const mapped = events.map((event) => {
-      if (event.dateStr) {
-        const dayIdx = DAYS.findIndex((d) => d.fullDate === event.dateStr);
-        if (dayIdx !== -1) {
-          return { ...event, dayIndex: dayIdx };
-        }
-        return { ...event, dayIndex: -1 };
+      const { startDayIdx, endDayIdx } = getEventDayBounds(event, DAYS, subjects);
+      
+      let openDateVal = "";
+      let closeDateVal = "";
+      if (event.id && (event.id.startsWith("open-") || event.id.startsWith("deadline-"))) {
+        const isOpen = event.id.startsWith("open-");
+        const lessonId = event.id.substring(isOpen ? 5 : 9);
+        const subject = subjects.find((s) => s.id === event.subjectId);
+        subject?.modules?.forEach((mod: any) => {
+          mod.lessons?.forEach((les: any) => {
+            if (les.id === lessonId) {
+              openDateVal = les.openDate || "";
+              closeDateVal = les.closeDate || "";
+            }
+          });
+        });
       }
-      return event;
+
+      return {
+        ...event,
+        startDayIdx,
+        endDayIdx,
+        durationDays: startDayIdx !== -1 && endDayIdx !== -1 ? endDayIdx - startDayIdx + 1 : 0,
+        openDateVal,
+        closeDateVal,
+      };
     });
 
     return mapped.filter((event) => {
-      if (event.dateStr && event.dayIndex === -1) {
+      if (event.startDayIdx === -1 || event.endDayIdx === -1) {
         return false;
+      }
+
+      if (event.id.startsWith("open-")) {
+        const lessonId = event.id.substring(5);
+        const hasDeadline = events.some((e) => e.id === `deadline-${lessonId}`);
+        if (hasDeadline) return false;
       }
 
       const matchesSearch =
@@ -137,10 +313,12 @@ export default function ScheduleView() {
         (event.subtitle && event.subtitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      if (selectedCategories.length === 0) return matchesSearch;
+      if (!matchesSearch) return false;
+
+      if (selectedCategories.length === 0) return true;
       
       const eventCategory = event.tag?.text || "";
-      const isMatchedCat = selectedCategories.some((cat) => {
+      return selectedCategories.some((cat) => {
         const titleLower = event.title.toLowerCase();
         if (cat === "Lectures" && titleLower.includes("lecture")) return true;
         if (cat === "Labs" && titleLower.includes("lab")) return true;
@@ -148,41 +326,59 @@ export default function ScheduleView() {
         if (cat === "Quizzes" && (titleLower.includes("quiz") || titleLower.includes("exam") || titleLower.includes("test"))) return true;
         return eventCategory.toLowerCase().includes(cat.toLowerCase());
       });
-
-      return matchesSearch && isMatchedCat;
     });
-  }, [events, DAYS, searchQuery, selectedCategories]);
+  }, [events, DAYS, subjects, searchQuery, selectedCategories]);
 
   // Filter events active for the selected day
   const activeDayEvents = React.useMemo(() => {
-    return filteredEvents.filter((e) => e.dayIndex === activeDayIndex);
+    return filteredEvents.filter((e) => e.startDayIdx <= activeDayIndex && e.endDayIdx >= activeDayIndex);
   }, [filteredEvents, activeDayIndex]);
 
-  // Compute tracks algorithm for overlapping timeline items
-  const { events: timelineEvents, totalTracks } = React.useMemo(() => {
-    const sorted = [...activeDayEvents].sort((a, b) => {
-      const aMin = getMinutesFromStart(a.timeStart);
-      const bMin = getMinutesFromStart(b.timeStart);
-      return aMin - bMin;
+  const DAY_WIDTH = 200;
+  const TRACK_HEIGHT = 90;
+
+  const getMonthName = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "long" }).toLowerCase();
+  };
+
+  const monthHeaders = React.useMemo(() => {
+    const headers: { monthName: string; startIndex: number; span: number }[] = [];
+    DAYS.forEach((day, idx) => {
+      const mName = getMonthName(day.fullDate);
+      if (headers.length === 0 || headers[headers.length - 1].monthName !== mName) {
+        if (headers.length > 0) {
+          headers[headers.length - 1].span = idx - headers[headers.length - 1].startIndex;
+        }
+        headers.push({ monthName: mName, startIndex: idx, span: 30 - idx });
+      }
+    });
+    return headers;
+  }, [DAYS]);
+
+  // Compute tracks algorithm for overlapping timeline items across all 30 days globally
+  const timelineEvents = React.useMemo(() => {
+    const sorted = [...filteredEvents].sort((a, b) => {
+      if (a.durationDays !== b.durationDays) {
+        return a.durationDays - b.durationDays; // shortest duration first
+      }
+      return a.startDayIdx - b.startDayIdx; // then start day ascending
     });
 
-    const tracks: { endMin: number }[] = [];
+    const tracks: { endDayIdx: number }[] = [];
     const eventWithTracks = sorted.map((event) => {
-      const startMin = getMinutesFromStart(event.timeStart);
-      const endMin = getMinutesFromStart(event.timeEnd);
-
       let assignedTrack = -1;
       for (let i = 0; i < tracks.length; i++) {
-        if (tracks[i].endMin + 5 <= startMin) {
+        if (tracks[i].endDayIdx < event.startDayIdx) {
           assignedTrack = i;
-          tracks[i].endMin = endMin;
+          tracks[i].endDayIdx = event.endDayIdx;
           break;
         }
       }
 
       if (assignedTrack === -1) {
         assignedTrack = tracks.length;
-        tracks.push({ endMin });
+        tracks.push({ endDayIdx: event.endDayIdx });
       }
 
       return {
@@ -193,232 +389,176 @@ export default function ScheduleView() {
 
     return {
       events: eventWithTracks,
-      totalTracks: Math.max(1, tracks.length),
+      totalTracks: Math.max(6, tracks.length),
     };
-  }, [activeDayEvents]);
-
-  const curMins = getMinutesFromStart(currentTime);
-  const timeLineLeft = curMins * MINUTE_WIDTH;
+  }, [filteredEvents]);
 
   return (
-    <div className="flex flex-col flex-1 select-none relative gap-6 no-scrollbar ">
+    <div className="flex flex-col flex-1 select-none relative w-full h-[calc(100vh-190px)] no-scrollbar">
       
-      {/* Title section */}
-      {/* <div className="flex flex-col text-left select-none pb-1 border-b border-zinc-100">
-        <h1 className="text-2xl font-black text-[#121212] tracking-tight">Schedule Timeline</h1>
-        <span className="text-[11.5px] text-zinc-400 font-bold mt-0.5">
-          Tuesday 10 November 2026
-        </span>
-      </div> */}
-
-      {/* Top row of event card summaries */}
-      {activeDayEvents.length > 0 && (
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-3 select-none">
-          {activeDayEvents.map((event) => {
-            const subject = subjects.find((s) => s.id === event.subjectId);
-            return (
-              <div
-                key={`top-${event.id}`}
-                onClick={() => setSelectedEvent(event)}
-                className="min-w-60 bg-white border border-[#E5E1D8]/80 hover:border-zinc-350 rounded-2xl p-4.5 flex flex-col justify-between cursor-pointer transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.01)] text-left group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-full bg-[#f25c88]/10 text-[#f25c88] flex items-center justify-center font-black text-[10px]">
-                    {subject?.name?.slice(0, 2).toUpperCase() || "EV"}
-                  </div>
-                  <span className="text-[8.5px] font-black text-zinc-400 bg-zinc-50 border border-zinc-150 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    {event.tag?.text || "Class"}
-                  </span>
-                </div>
-                <div className="mt-4 flex flex-col gap-0.5">
-                  <h4 className="text-[13px] font-extrabold text-zinc-800 leading-snug truncate group-hover:text-[#f25c88] transition-colors">
-                    {event.title}
-                  </h4>
-                  <span className="text-[9.5px] text-zinc-400 font-bold">
-                    Last update: Today, {event.timeStart}
-                  </span>
-                </div>
-                <div className="mt-4 pt-3 border-t border-zinc-100/60 flex items-center justify-between text-[10px] font-extrabold">
-                  <span className="text-[#f25c88] tracking-wide">
-                    {event.timeStart} - {event.timeEnd}
-                  </span>
-                  <span className="text-zinc-550 truncate max-w-20">
-                    {event.subtitle || "Online"}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Week Day strip selector */}
-      <div className="flex items-center pb-2 justify-between rounded-2xl shrink-0">
-        <div className="flex flex-1 justify-center gap-8 overflow-x-auto no-scrollbar scroll-smooth">
-          {DAYS.map((day, idx) => {
-            const isActive = idx === activeDayIndex;
-            const label = day.label.charAt(0) + day.date.split("/")[0];
-            return (
-              <div
-                key={day.label}
-                onClick={() => setActiveDayIndex(idx)}
-                className="flex justify-center items-center cursor-pointer select-none transition-all py-1"
-              >
-                {isActive ? (
-                  <div className="flex flex-col items-center justify-center px-2 relative">
-                    <span className="text-[12.5px] font-black text-[#f25c88] tracking-widest">
-                      {label}
-                    </span>
-                    <span className="absolute -bottom-1 w-6 h-0.75 bg-[#f25c88] rounded-full" />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center px-2 hover:opacity-80">
-                    <span className="text-[12.5px] font-bold text-zinc-400 tracking-widest hover:text-zinc-650 transition-colors">
-                      {label}
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+      {/* Title & Today Button Bar */}
+      <div className="anime-card opacity-0 flex justify-between items-center w-full mb-4 px-0.5">
+        <div></div>
+        <button
+          onClick={scrollToToday}
+          className="flex items-center gap-1.5 px-4 py-2 bg-zinc-950 hover:bg-zinc-850 text-[#facc15] font-bold rounded-xl text-[10.5px] cursor-pointer transition-all shadow-sm active:scale-95 border border-zinc-900"
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>Jump to Today</span>
+        </button>
       </div>
 
-      {/* Horizontal timeline scheduler container */}
-      <div className="flex-1 border border-[#E5E1D8]/80 bg-white rounded-3xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.003)] relative flex flex-col">
+      {/* Horizontal Timeline Grid (Matching ref.jpg style, full width & height) */}
+      <div className="anime-card opacity-0 flex-grow bg-transparent rounded-3xl overflow-hidden relative flex flex-col w-full h-full">
         {/* Faded watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.015] z-0">
-          <span className="text-[180px] font-black tracking-tight text-zinc-950 uppercase">
-            Schedule
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden opacity-[0.01] z-0">
+          <span className="text-[140px] font-black tracking-tight text-zinc-950 uppercase">
+            Timeline
           </span>
         </div>
 
         {/* Horizontal scroll view wrapper */}
-        <div className="flex-1 overflow-x-auto overflow-y-auto no-scrollbar flex flex-col relative z-10">
+        <div 
+          ref={scrollContainerRef}
+          className="flex-grow overflow-x-auto overflow-y-auto no-scrollbar flex flex-col relative z-10"
+        >
           
-          {/* Hour Headers */}
-          <div
-            className="flex border-b border-[#E5E1D8]/60 bg-zinc-55 bg-zinc-50/70 backdrop-blur-sm sticky top-0 z-30"
-            style={{ width: `${HOURS.length * HOUR_WIDTH}px` }}
+          {/* Header Container (80px height: 35px Month + 45px Day) */}
+          <div 
+            className="relative border-b border-[#E5E1D8]/60 bg-transparent sticky top-0 z-30 shrink-0"
+            style={{ width: `${30 * DAY_WIDTH}px`, height: "80px" }}
           >
-            {HOURS.map((hour, idx) => (
-              <div
-                key={hour}
-                className="text-left font-extrabold text-[10.5px] text-zinc-400 py-3 pl-4 border-r border-[#E5E1D8]/20 select-none shrink-0"
-                style={{ width: `${HOUR_WIDTH}px` }}
-              >
-                {hour}
-              </div>
-            ))}
+            {/* Month Headers (Top 35px) */}
+            <div className="absolute top-0 left-0 right-0 h-[35px] border-b border-[#E5E1D8]/30 flex items-center">
+              {monthHeaders.map((header) => (
+                <div
+                  key={header.monthName}
+                  className="absolute text-left font-bold text-[10px] text-zinc-400 uppercase tracking-wider pl-4"
+                  style={{
+                    left: `${header.startIndex * DAY_WIDTH}px`,
+                    width: `${header.span * DAY_WIDTH}px`,
+                  }}
+                >
+                  {header.monthName}
+                </div>
+              ))}
+            </div>
+
+            {/* Day Headers (Bottom 45px) */}
+            <div className="absolute bottom-0 left-0 right-0 h-[45px]">
+              {DAYS.map((day, idx) => {
+                const isSelected = idx === activeDayIndex;
+                const isToday = idx === todayIndex;
+                const dateNum = new Date(day.fullDate).getDate();
+                const weekdayShort = day.label.toLowerCase();
+                return (
+                  <div
+                    key={day.fullDate}
+                    onClick={() => setActiveDayIndex(idx)}
+                    className="absolute h-full flex flex-col justify-center items-start pl-4 cursor-pointer group"
+                    style={{
+                      left: `${idx * DAY_WIDTH}px`,
+                      width: `${DAY_WIDTH}px`,
+                    }}
+                  >
+                    <span className={`text-[8.5px] font-bold uppercase tracking-wider transition-colors ${isSelected ? "text-zinc-800" : "text-zinc-400 group-hover:text-zinc-650"}`}>
+                      {weekdayShort}
+                    </span>
+                    <div className="mt-0.5 flex items-center justify-center h-7 w-7 relative">
+                      {isToday ? (
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] shadow-sm select-none z-10 ${
+                          isSelected ? "bg-zinc-950 text-white" : "border-2 border-zinc-950 text-zinc-950 bg-transparent"
+                        }`}>
+                          {dateNum}
+                        </div>
+                      ) : isSelected ? (
+                        <div className="w-7 h-7 rounded-full bg-zinc-950/80 text-white flex items-center justify-center font-bold text-[11px] shadow-sm select-none z-10">
+                          {dateNum}
+                        </div>
+                      ) : (
+                        <span className="text-[11.5px] font-bold text-zinc-700 group-hover:text-zinc-950 transition-colors">
+                          {dateNum}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Timeline Body grid content */}
+          {/* Timeline Body */}
           <div
-            className="relative flex-1"
+            className="relative flex-grow bg-transparent"
             style={{
-              width: `${HOURS.length * HOUR_WIDTH}px`,
-              height: `${totalTracks * TRACK_HEIGHT + 60}px`,
-              backgroundImage: "radial-gradient(#E5E1D8 1px, transparent 0)",
-              backgroundSize: "24px 24px"
+              width: `${30 * DAY_WIDTH}px`,
+              height: `${Math.max(6, timelineEvents.totalTracks) * TRACK_HEIGHT + 20}px`,
             }}
           >
-            {/* Vertical hour marker lines */}
-            {HOURS.map((hour, idx) => (
+            {/* Vertical day columns separator lines */}
+            {DAYS.map((_, idx) => (
               <div
-                key={`line-${hour}`}
+                key={`line-${idx}`}
                 className="absolute top-0 bottom-0 border-r border-[#E5E1D8]/20 pointer-events-none z-10"
-                style={{ left: `${idx * HOUR_WIDTH}px` }}
+                style={{ left: `${idx * DAY_WIDTH}px` }}
               />
             ))}
 
-            {/* Current Time red indicator line */}
-            {timeLineLeft >= 0 && timeLineLeft <= HOURS.length * HOUR_WIDTH && (
-              <div
-                className="absolute top-0 bottom-0 border-l-2 border-dashed border-[#f25c88] z-25 pointer-events-none transition-all duration-500"
-                style={{ left: `${timeLineLeft}px` }}
-              >
-                {/* indicator dot at top */}
-                <div
-                  className="absolute w-2.5 h-2.5 bg-[#f25c88] rounded-full z-30 transition-all duration-500 shadow-sm"
-                  style={{ top: "0px", transform: "translate(-50%, -50%)" }}
-                >
-                  <div className="absolute w-full h-full bg-[#f25c88] rounded-full animate-ping opacity-75" />
-                </div>
-                {/* indicator badge at top */}
-                <div
-                  className="absolute bg-[#f25c88] text-white text-[9.5px] font-black px-2.5 py-0.5 rounded-full shadow-md z-30 transition-all duration-500"
-                  style={{ top: "10px", transform: "translateX(-50%)" }}
-                >
-                  {currentTime}
-                </div>
-              </div>
-            )}
+            {/* Active day solid vertical line indicator stretching down */}
+            <div
+              className="absolute top-0 bottom-0 border-l border-zinc-950/60 z-20 pointer-events-none transition-all duration-300"
+              style={{ left: `${activeDayIndex * DAY_WIDTH + DAY_WIDTH / 7}px` }}
+            />
 
-            {/* Event Pill Cards */}
-            <div className="absolute inset-0 pt-6 px-1">
-              {timelineEvents.map((event) => {
-                const startMins = getMinutesFromStart(event.timeStart);
-                const endMins = getMinutesFromStart(event.timeEnd);
-                const duration = endMins - startMins;
+            {/* Event Cards */}
+            <div className="absolute inset-0 pt-4">
+              {timelineEvents.events.map((event) => {
+                const top = event.trackIndex * TRACK_HEIGHT + 4;
+                const left = event.startDayIdx * DAY_WIDTH + 4;
+                const width = (event.endDayIdx - event.startDayIdx + 1) * DAY_WIDTH - 8;
+                const height = TRACK_HEIGHT - 8;
 
-                const left = startMins * MINUTE_WIDTH;
-                const width = duration * MINUTE_WIDTH;
-                const top = event.trackIndex * TRACK_HEIGHT;
+                let cardClass = "";
+                let metaColorClass = "";
 
-                const subject = subjects.find((s) => s.id === event.subjectId);
-                const lecturerName = subject ? subject.lecturers.map((l) => l.name).join(", ") : undefined;
-
-                const isHexColor = event.color && event.color.startsWith("#");
-                
-                let accentColor = "#f25c88";
-                let badgeClass = "bg-[#f25c88]/10 text-[#f25c88] border-[#f25c88]/20";
-                
                 if (event.color === "yellow") {
-                  accentColor = "#E6A23C";
-                  badgeClass = "bg-amber-100 text-amber-800 border-amber-200";
-                } else if (event.color === "blue") {
-                  accentColor = "#409EFF";
-                  badgeClass = "bg-blue-100 text-blue-800 border-blue-200";
-                } else if (isHexColor) {
-                  accentColor = event.color;
-                  badgeClass = "bg-zinc-100 text-zinc-800 border-zinc-200";
+                  cardClass = "bg-[#facc15] border border-zinc-950/20 text-zinc-950 hover:bg-[#eab308] shadow-sm";
+                  metaColorClass = "text-zinc-800";
+                } else if (event.id.startsWith("deadline-") || event.color === "blue") {
+                  cardClass = "bg-zinc-950 border border-zinc-900 text-white hover:bg-zinc-900 shadow-md";
+                  metaColorClass = "text-zinc-400";
+                } else {
+                  cardClass = "bg-white border border-zinc-200 text-zinc-950 hover:bg-zinc-50 shadow-sm";
+                  metaColorClass = "text-zinc-500";
                 }
+
+                const hasDate = !!(event.openDateVal || event.dateStr);
 
                 return (
                   <div
                     key={event.id}
                     onClick={() => setSelectedEvent(event)}
-                    className="absolute bg-white hover:bg-zinc-50 border border-[#E5E1D8]/80 hover:border-zinc-300 shadow-sm rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer select-none transition-all duration-200 group text-left min-w-0 z-20"
+                    className={`absolute rounded-xl p-4 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 hover:scale-[1.01] hover:shadow-md group text-left min-w-0 z-20 ${cardClass}`}
                     style={{
                       left: `${left}px`,
                       width: `${width}px`,
                       top: `${top}px`,
-                      height: `${TRACK_HEIGHT - 12}px`,
-                      borderLeft: `4px solid ${accentColor}`
+                      height: `${height}px`,
                     }}
                   >
                     <div className="flex flex-col justify-between h-full min-w-0">
-                      <div className="flex items-start justify-between gap-2.5 min-w-0">
-                        <span className="text-[12px] font-extrabold text-zinc-850 leading-tight line-clamp-1 truncate group-hover:text-[#f25c88] transition-colors" title={event.title}>
-                          {event.title}
-                        </span>
-                        <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-full border shrink-0 ${badgeClass}`}>
-                          {event.tag?.text || "Class"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col gap-0.5 mt-auto">
-                        <div className="flex items-center gap-1.5 text-zinc-500 text-[9px] font-semibold truncate">
-                          <Clock className="w-3 h-3 text-zinc-400 shrink-0" />
-                          <span>
-                            {event.timeStart} - {event.timeEnd}
-                          </span>
-                        </div>
-                        {event.subtitle && (
-                          <div className="flex items-center gap-1.5 text-zinc-500 text-[9px] font-semibold truncate">
-                            <MapPin className="w-3 h-3 text-zinc-400 shrink-0" />
-                            <span className="truncate text-left">{event.subtitle}</span>
-                          </div>
+                      <span className="text-[12px] font-bold leading-snug break-words line-clamp-2" title={event.title}>
+                        {event.title}
+                      </span>
+                      <div className={`flex items-center gap-1.5 text-[9px] font-semibold mt-auto ${metaColorClass}`}>
+                        {hasDate ? (
+                          <Calendar className="w-3 h-3 shrink-0" />
+                        ) : (
+                          <Clock className="w-3 h-3 shrink-0" />
                         )}
+                        <span>
+                          {formatEventDate(event)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -426,6 +566,7 @@ export default function ScheduleView() {
               })}
             </div>
           </div>
+
         </div>
       </div>
     </div>

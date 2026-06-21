@@ -2,25 +2,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAF7F2;
-  --foreground: #121212;
+  --background: 46 30% 97%; /* #FAF7F2 (warm cream background) */
+  --foreground: 0 0% 7%; /* #121212 (dark slate text) */
   --font-poppins: 'Poppins', system-ui, -apple-system, sans-serif;
+  
+  /* Complete Shadcn HSL color variables */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7%;
+  
+  --primary: 38 92% 50%; /* Gold (#d97706) */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 48 96% 53%; /* Yellow (#facc15) */
+  --secondary-foreground: 0 0% 7%;
+  
+  --accent: 24 95% 53%; /* Orange (#f97316) */
+  --accent-foreground: 0 0% 100%;
+  
+  --muted: 40 10% 95%;
+  --muted-foreground: 0 0% 45%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 40 10% 89%;
+  --input: 40 10% 89%;
+  --ring: 38 92% 50%;
+  
+  --radius: 1.5rem; /* Large rounded corners for premium bento style */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-poppins);
+  
+  /* Shadcn variables mapped into Tailwind v4 classes */
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  /* Brand-specific semantic aliases */
+  --color-brand-gold: #d97706;
+  --color-brand-yellow: #facc15;
+  --color-brand-orange: #f97316;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 
@@ -30,27 +85,27 @@ h1, h2, h3, h4, h5, h6 {
 
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E5E1D8;
+  background: #d4d4d8;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D5D1C8;
+  background: #a1a1aa;
 }
 
 
 ::selection {
   background-color: rgba(242, 92, 136, 0.2);
-  color: #f25c88;
+  color: #facc15;
 }
 
 
@@ -91,4 +146,223 @@ h1, h2, h3, h4, h5, h6 {
   -ms-overflow-style: none;  
   scrollbar-width: none;  
 }
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* LP Button styling for custom hover animations */
+.lp-btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.lp-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  padding-bottom: 150%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.65s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index: -1;
+}
+
+.lp-btn--primary {
+  background: #facc15;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(242, 92, 136, 0.22);
+}
+
+.lp-btn--primary::before {
+  background: #121212;
+}
+
+.lp-btn--primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(18, 18, 18, 0.25);
+  color: #ffffff;
+}
+
+.lp-btn--primary:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.lp-btn--primary:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.lp-btn--ghost {
+  background: rgba(18, 18, 18, 0.02);
+  color: #121212;
+  border: 1.5px solid rgba(18, 18, 18, 0.12);
+}
+
+.lp-btn--ghost::before {
+  background: #facc15;
+}
+
+.lp-btn--ghost:hover {
+  border-color: #facc15;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(242, 92, 136, 0.15);
+  color: #ffffff;
+}
+
+.lp-btn--ghost:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.lp-btn--sm {
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+
+.lp-btn--md {
+  font-size: 0.95rem;
+  padding: 12px 24px;
+}
+
+.lp-btn--lg {
+  font-size: 1rem;
+  padding: 15px 32px;
+  border-radius: 14px;
+}
+
+.lp-btn--full {
+  width: 100%;
+}
+
+.lp-btn__text-container {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  height: 1.3em;
+  line-height: 1.3em;
+  pointer-events: none;
+}
+
+.lp-btn__text-track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.55s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.lp-btn:hover .lp-btn__text-track {
+  transform: translateY(-50%);
+}
+
+.lp-btn__text-normal,
+.lp-btn__text-hover {
+  display: block;
+  height: 1.3em;
+  line-height: 1.3em;
+  white-space: nowrap;
+}
+
+.lp-btn__text-normal {
+  color: currentColor;
+  transition: color 0.4s ease;
+}
+
+.lp-btn--primary:hover .lp-btn__text-normal {
+  color: #ffffff;
+}
+
+.lp-btn--primary .lp-btn__text-hover {
+  color: #facc15;
+}
+
+.lp-btn--ghost:hover .lp-btn__text-normal {
+  color: #ffffff;
+}
+
+.lp-btn--ghost .lp-btn__text-hover {
+  color: #ffffff;
+}
+
+.lp-btn__icon {
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  color: currentColor;
+  position: relative;
+  z-index: 2;
+}
+
+.lp-btn:hover .lp-btn__icon {
+  transform: translateX(4px) scale(1.1);
+}
+
+/* Custom interactive card animation matching lp-btn style */
+.lp-card-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.lp-card-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  padding-bottom: 150%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.65s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index: -1;
+  background: #facc15;
+}
+
+.lp-card-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(242, 92, 136, 0.18);
+  border-color: #facc15;
+}
+
+.lp-card-btn:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Reverse spin animation for concentric loading rings */
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 1.2s linear infinite;
+}
+
 

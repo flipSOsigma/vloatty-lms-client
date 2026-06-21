@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { LmsEvent, CalendarViewType, LmsState, Subject } from "../types/lms";
-import { Check, AlertTriangle } from "lucide-react";
 import { ToastItem, ToastStyles } from "../components/ui/Toast";
 
 export interface UserProfile {
@@ -132,7 +131,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const closeD = new Date(lesson.closeDate);
             const isPastDeadline = !isNaN(closeD.getTime()) && now > closeD;
 
-            // 1. Add Lesson Release/Open Event on openDate (if not past deadline)
             if (lesson.openDate && !isPastDeadline) {
               const openD = new Date(lesson.openDate);
               if (!isNaN(openD.getTime())) {
@@ -162,7 +160,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               }
             }
 
-            // 2. Existing Deadline Event (if not past deadline)
             if (lesson.type !== "learning" && lesson.closeDate && !isPastDeadline) {
               const d = new Date(lesson.closeDate);
               if (!isNaN(d.getTime())) {
@@ -241,9 +238,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
   }, []);
 
-
   useEffect(() => {
-
     let currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     
     const fetchUser = (tokenToUse: string | null) => {
@@ -287,7 +282,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-
   useEffect(() => {
     const updateRealTimeAndDay = () => {
       const now = new Date();
@@ -324,7 +318,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteEvent = (id: string) => {
-
     const now = new Date().toISOString();
     setEvents((prev) =>
       prev.map((e) => (e.id === id ? { ...e, deletedAt: now } : e))
@@ -421,7 +414,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast(err.message || "Failed to update subject", "error");
     }
   };
-
 
   const activeSubjects = subjects.filter((s) => !s.deletedAt);
   const activeEvents = events.filter((e) => {

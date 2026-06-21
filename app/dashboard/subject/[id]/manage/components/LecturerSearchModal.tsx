@@ -46,7 +46,7 @@ export default function LecturerSearchModal({
               placeholder="Search by name or email..."
               value={lecturerSearchQuery}
               onChange={(e) => setLecturerSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 bg-white text-[13.5px] focus:outline-none focus:ring-2 focus:ring-[#f25c88]/20 focus:border-[#f25c88] transition-all"
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border border-zinc-200 bg-white text-[13.5px] focus:outline-none focus:ring-2 focus:ring-[#d97706]/20 focus:border-[#f97316] transition-all"
               autoFocus
             />
             <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-zinc-400" />
@@ -71,7 +71,7 @@ export default function LecturerSearchModal({
                   onClick={() => onSelectLecturer(faculty)}
                   className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-zinc-50 text-left transition-all group active:scale-[0.99] cursor-pointer"
                 >
-                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#f25c88]/10 border border-[#f25c88]/15 text-[#f25c88] text-[11px] font-black group-hover:bg-[#f25c88]/20 transition-colors">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#facc15]/10 border border-[#f97316]/15 text-[#d97706] text-[11px] font-black group-hover:bg-[#facc15]/20 transition-colors">
                     {initials}
                   </div>
                   <div className="flex flex-col min-w-0 flex-1">
@@ -82,7 +82,7 @@ export default function LecturerSearchModal({
                       {faculty.email}
                     </span>
                   </div>
-                  <Plus className="w-4 h-4 text-zinc-300 group-hover:text-[#f25c88] transition-colors mr-1" />
+                  <Plus className="w-4 h-4 text-zinc-300 group-hover:text-[#d97706] transition-colors mr-1" />
                 </button>
               );
             })
@@ -113,7 +113,7 @@ export default function LecturerSearchModal({
                     }
                     onSelectLecturer({ name, email });
                   }}
-                  className="mt-4 px-4 py-2 border border-dashed border-[#f25c88]/40 hover:border-[#f25c88] text-[#f25c88] rounded-full text-[11px] font-bold bg-[#f25c88]/5 hover:bg-[#f25c88]/10 transition-all cursor-pointer flex items-center gap-1"
+                  className="mt-4 px-4 py-2 border border-dashed border-[#f97316]/40 hover:border-[#f97316] text-[#d97706] rounded-full text-[11px] font-bold bg-[#facc15]/5 hover:bg-[#facc15]/10 transition-all cursor-pointer flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add &quot;{lecturerSearchQuery.trim()}&quot; custom

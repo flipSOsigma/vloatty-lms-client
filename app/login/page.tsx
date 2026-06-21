@@ -89,16 +89,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-screen bg-[#FAF7F2] flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden select-none">
       {/* Decorative background shapes */}
-      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#f25c88]/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#f25c88]/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#facc15]/5 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-72 h-72 md:w-96 md:h-96 rounded-full bg-[#facc15]/5 blur-3xl pointer-events-none" />
 
       {/* Login Card */}
-      <div className="w-full max-w-[460px] bg-white border border-[#EFECE6]/80 rounded-[32px] p-6 md:p-10 shadow-sm relative z-10 transition-all duration-300">
+      <div className="w-full max-w-[460px] bg-white border border-[#E5E1D8]/70 rounded-3xl p-6 md:p-10 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] relative z-10 transition-all duration-300">
         
         {/* Brand Header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-[#f25c88]/10 flex items-center justify-center mb-3">
-            <Library className="w-6 h-6 text-[#f25c88]" />
+          <div className="w-12 h-12 rounded-2xl bg-[#facc15]/10 flex items-center justify-center mb-3">
+            <Library className="w-6 h-6 text-[#d97706]" />
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#121212] tracking-tight">
             Vloatty LMS
@@ -111,23 +111,23 @@ export default function LoginPage() {
         {/* Quick Demo Info Box */}
         <div 
           onClick={handleQuickLogin}
-          className="mb-6 p-4 bg-[#FAF7F2] border border-[#EFECE6] rounded-2xl cursor-pointer hover:border-[#f25c88]/30 group transition-all duration-200 active:scale-98"
+          className="mb-6 p-4 bg-zinc-50 border border-[#E5E1D8]/70 rounded-xl cursor-pointer hover:border-[#f97316]/30 group transition-all duration-200 active:scale-98"
         >
-          <div className="flex items-center gap-1.5 text-[11px] text-[#f25c88] font-extrabold tracking-wide uppercase mb-1">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1.5 text-[10px] text-[#d97706] font-semibold tracking-wide uppercase mb-1">
+            <Sparkles className="w-3 h-3" />
             Quick Demo Login (Click here)
           </div>
-          <div className="text-[12px] text-zinc-500 font-medium group-hover:text-zinc-700 transition-colors">
-            Email: <span className="font-bold text-[#121212]">turing.y@vloatty.edu</span>
+          <div className="text-[11px] text-zinc-500 font-medium group-hover:text-zinc-700 transition-colors">
+            Email: <span className="font-semibold text-zinc-800">turing.y@vloatty.edu</span>
             <br />
-            Password: <span className="font-bold text-[#121212]">password123</span>
+            Password: <span className="font-semibold text-zinc-800">password123</span>
           </div>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-2.5 text-[12px] text-red-600 font-semibold">
-            <AlertCircle className="w-4.5 h-4.5 shrink-0 mt-0.5" />
+          <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2.5 text-[11px] text-red-600 font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
@@ -135,37 +135,37 @@ export default function LoginPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5 text-left">
-            <label className="text-[11px] font-extrabold text-[#121212] uppercase tracking-wider pl-1">
+            <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider pl-1">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-400" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your academic email"
-                className="w-full pl-11 pr-4 py-3 bg-[#FAF7F2] border border-[#EFECE6] focus:border-[#f25c88]/50 focus:bg-white rounded-2xl text-[13px] text-[#121212] font-semibold outline-none transition-all placeholder:text-zinc-400"
+                className="w-full pl-10 pr-4 py-3 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 focus:bg-white rounded-xl text-[13px] text-zinc-800 font-semibold outline-none transition-all placeholder:text-zinc-400"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5 text-left">
             <div className="flex items-center justify-between pl-1">
-              <label className="text-[11px] font-extrabold text-[#121212] uppercase tracking-wider">
+              <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">
                 Password
               </label>
             </div>
             <div className="relative">
-              <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-400" />
+              <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-4 py-3 bg-[#FAF7F2] border border-[#EFECE6] focus:border-[#f25c88]/50 focus:bg-white rounded-2xl text-[13px] text-[#121212] font-semibold outline-none transition-all placeholder:text-zinc-400"
+                className="w-full pl-10 pr-4 py-3 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 focus:bg-white rounded-xl text-[13px] text-zinc-800 font-semibold outline-none transition-all placeholder:text-zinc-400"
               />
             </div>
           </div>
@@ -174,21 +174,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-4 py-3.5 px-6 bg-[#121212] text-white hover:bg-zinc-800 disabled:bg-zinc-300 rounded-full text-[13px] font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 select-none"
+            className="w-full mt-4 py-3.5 px-6 bg-zinc-800 text-white hover:bg-zinc-700 disabled:bg-zinc-300 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98 select-none"
           >
             {loading ? "Signing in..." : "Sign In"}
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
 
-        <div className="text-center mt-6 text-[12px] font-semibold text-zinc-500">
+        <div className="text-center mt-6 text-[11px] font-semibold text-zinc-400">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-[#f25c88] hover:underline">
+          <Link href="/register" className="text-[#d97706] hover:underline">
             Sign Up
           </Link>
         </div>
 
-        <p className="text-[11px] text-zinc-400 font-semibold mt-8 text-center">
+        <p className="text-[10px] text-zinc-400 font-semibold mt-8 text-center">
           Protected portal. Managed credentials required.
         </p>
 

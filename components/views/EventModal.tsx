@@ -145,7 +145,7 @@ export default function EventModal() {
                     <span
                       className={`px-3 py-1 text-[11px] font-bold rounded-full ${
                         selectedEvent.tag.type === "pink"
-                          ? "bg-[#f25c88]/15 text-[#f25c88]"
+                          ? "bg-[#facc15]/15 text-[#d97706]"
                           : "bg-blue-500/15 text-blue-600"
                       }`}
                     >
@@ -153,7 +153,7 @@ export default function EventModal() {
                     </span>
                   )}
                   {selectedEvent.status === "in-progress" && (
-                    <span className="bg-[#f25c88] text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                    <span className="bg-[#facc15] text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
                       In progress..
                     </span>
                   )}
@@ -165,11 +165,11 @@ export default function EventModal() {
 
               <div className="grid grid-cols-2 gap-4 bg-white/50 border border-[#E5E1D8]/40 p-4 rounded-2xl">
                 <div className="flex items-center gap-2 text-zinc-600 text-[13px] font-semibold">
-                  <Calendar className="w-4 h-4 text-[#f25c88]" />
+                  <Calendar className="w-4 h-4 text-[#d97706]" />
                   <span>{DAYS_OF_WEEK[selectedEvent.dayIndex]}</span>
                 </div>
                 <div className="flex items-center gap-2 text-zinc-600 text-[13px] font-semibold">
-                  <Clock className="w-4 h-4 text-[#f25c88]" />
+                  <Clock className="w-4 h-4 text-[#d97706]" />
                   <span>
                     {selectedEvent.timeStart} - {selectedEvent.timeEnd}
                   </span>
@@ -335,7 +335,7 @@ export default function EventModal() {
                       type="button"
                       onClick={() => setColor(c.id as any)}
                       className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all cursor-pointer ${
-                        color === c.id ? "border-[#f25c88] scale-[1.03]" : "border-[#E5E1D8] hover:border-zinc-400"
+                        color === c.id ? "border-[#f97316] scale-[1.03]" : "border-[#E5E1D8] hover:border-zinc-400"
                       } ${c.bg}`}
                     >
                       <span className="text-[10px] font-bold text-zinc-800">{c.label}</span>

@@ -335,17 +335,19 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
   if (!selectedSubject) {
     return (
-      <div className="flex flex-col gap-6 text-left animate-in fade-in duration-300">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
         <Header />
-        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl p-6 bg-white/10 select-none">
+        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/40 select-none">
           <span className="text-[14px] text-zinc-400 font-semibold">Subject not found.</span>
           <Link
             href="/dashboard"
-            className="mt-4 px-5 py-2.5 bg-[#121212] text-white font-bold rounded-full text-[12px] shadow-sm hover:bg-zinc-800 transition-colors"
+            className="mt-4 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[11px] shadow-sm transition-colors"
           >
             Go back to Dashboard
           </Link>
         </div>
+      </div>
       </div>
     );
   }
@@ -357,19 +359,19 @@ export default function SubjectDetailPage({ params }: PageProps) {
       {}
       <Header />
 
-      {}
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-4 flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300">
-        {}
-        <div className="flex items-center justify-between mt-1">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1.5 px-4 py-2 border border-[#E5E1D8] rounded-full hover:bg-zinc-100 font-bold text-[12px] text-zinc-700 cursor-pointer transition-colors shadow-sm bg-white/50"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Subjects</span>
-        </Link>
+      {/* Shared scrollable main container */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
+        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+          {/* Back button and page status header */}
+          <div className="flex items-center justify-between mt-1">
+          <Link
+            href="/dashboard"
+            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+          </Link>
 
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+        <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
           Syllabus Detail
         </span>
       </div>
@@ -390,16 +392,16 @@ export default function SubjectDetailPage({ params }: PageProps) {
             )}
             <div className="flex flex-col gap-1">
               <span
-                className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit"
+                className="inline-block text-[9px] font-semibold px-3 py-1 rounded-full w-fit"
                 style={{
-                  backgroundColor: "#f25c8815",
-                  color: "#f25c88",
-                  border: "1px solid #f25c8830"
+                  backgroundColor: "#facc1515",
+                  color: "#facc15",
+                  border: "1px solid #facc1530"
                 }}
               >
                 {selectedSubject.room || "Room Online"}
               </span>
-              <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
+              <h2 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
                 {selectedSubject.name}
               </h2>
               <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
@@ -409,7 +411,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
 
             {selectedSubject.description && (
-              <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+              <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-zinc-50 p-4 border border-[#E5E1D8]/70 rounded-2xl">
                 {selectedSubject.description}
               </p>
             )}
@@ -417,14 +419,14 @@ export default function SubjectDetailPage({ params }: PageProps) {
             {}
             {selectedSubject.schedules && selectedSubject.schedules.length > 0 && (
               <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
-                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider mb-1">
+                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                   Class Schedule
                 </span>
                 <div className="flex flex-col gap-1.5">
                   {selectedSubject.schedules.map((sch, i) => (
                     <div
                       key={i}
-                      className="flex justify-between items-center text-[12px] font-bold text-zinc-700 bg-[#FAF7F2]/50 px-3.5 py-2 border border-[#E5E1D8]/30 rounded-xl"
+                      className="flex justify-between items-center text-[12px] font-semibold text-zinc-700 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl"
                     >
                       <span>{sch.day}</span>
                       <span className="text-zinc-500 text-[11px]">{sch.startTime} - {sch.endTime}</span>
@@ -479,11 +481,11 @@ export default function SubjectDetailPage({ params }: PageProps) {
             return (
               <div className="flex flex-col gap-4 w-full">
                 <div className="flex items-center justify-between border-b border-[#E5E1D8]/45 pb-2">
-                  <h3 className="text-[14px] font-extrabold text-[#121212] flex items-center gap-2 tracking-tight">
-                    <Users className="w-4.5 h-4.5 text-[#f25c88]" />
+                  <h3 className="text-[16px] font-semibold text-zinc-800 flex items-center gap-2 tracking-tight">
+                    <Users className="w-4.5 h-4.5 text-[#d97706]" />
                     Course Members
                   </h3>
-                  <span className="bg-zinc-800 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
+                  <span className="bg-zinc-800 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
                     {courseMembers.length}
                   </span>
                 </div>
@@ -500,20 +502,20 @@ export default function SubjectDetailPage({ params }: PageProps) {
                         : "?";
                       
                       return (
-                        <div key={member.userId} className="flex items-center justify-between p-1 rounded-xl">
+                        <div key={member.userId} className="flex items-center justify-between bg-zinc-50 border border-[#E5E1D8]/70 rounded-xl px-3 py-2">
                           <div className="flex items-center gap-3 min-w-0">
                             <div
-                              className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-black border shrink-0"
+                              className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-semibold border shrink-0"
                               style={{
                                 backgroundColor: "rgba(242, 92, 136, 0.08)",
-                                color: "#f25c88",
+                                color: "#facc15",
                                 borderColor: "rgba(242, 92, 136, 0.12)"
                               }}
                             >
                               {initials}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="text-[12.5px] font-bold text-zinc-950 truncate">
+                              <span className="text-[12.5px] font-semibold text-zinc-800 truncate">
                                 {member.name}
                               </span>
                               {member.email && (
@@ -526,17 +528,17 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
                           <div className="flex items-center gap-2 shrink-0 pl-2">
                             {member.role === "Owner" && (
-                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-[#f25c88]/10 text-[#f25c88] border border-[#f25c88]/15 uppercase tracking-wide">
+                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/15 uppercase tracking-wide">
                                 Owner
                               </span>
                             )}
                             {member.role === "Lecturer" && (
-                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wide">
+                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wide">
                                 Lecturer
                               </span>
                             )}
                             {member.role === "Participant" && (
-                              <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/50 uppercase tracking-wide">
+                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/50 uppercase tracking-wide">
                                 Student
                               </span>
                             )}
@@ -567,7 +569,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
           {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
             <Link
               href={`/dashboard/subject/${selectedSubject.id}/manage`}
-              className="w-full flex items-center justify-center gap-1.5 py-3 bg-[#f25c88] hover:bg-[#d84b72] text-white font-bold text-[12px] rounded-2xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
+              className="w-full flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11px] rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
             >
               <span>Manage Subject</span>
             </Link>
@@ -577,21 +579,21 @@ export default function SubjectDetailPage({ params }: PageProps) {
         {}
         <div className="lg:col-span-2 flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-            <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
+            <h3 className="text-[16px] font-semibold text-zinc-800 tracking-tight">
               Course Modules & Lessons
             </h3>
             {selectedSubject && currentUser && (selectedSubject.createdBy === currentUser.id || selectedSubject.lecturers.some((l) => l.userId === currentUser.id)) && (
               <div className="flex items-center gap-2">
                 <Link
                   href={`/dashboard/subject/${selectedSubject.id}/module/create`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5E1D8] hover:bg-zinc-100 font-bold text-[11px] text-[#f25c88] cursor-pointer transition-colors shadow-sm bg-white/50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E1D8]/70 rounded-xl hover:bg-zinc-100 font-semibold text-[11px] text-zinc-500 hover:text-zinc-800 cursor-pointer transition-colors bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Module</span>
                 </Link>
                 <Link
                   href={`/dashboard/subject/${selectedSubject.id}/lesson/create`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#E5E1D8] hover:bg-zinc-100 font-bold text-[11px] text-[#f25c88] cursor-pointer transition-colors shadow-sm bg-white/50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 border border-[#E5E1D8]/70 rounded-xl hover:bg-zinc-100 font-semibold text-[11px] text-zinc-500 hover:text-zinc-800 cursor-pointer transition-colors bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Lesson</span>
@@ -601,7 +603,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
           </div>
 
           {selectedSubject.modules.length === 0 ? (
-            <div className="w-full h-48 flex items-center justify-center border-2 border-dashed border-[#E5E1D8] rounded-3xl">
+            <div className="w-full h-48 flex items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl bg-white/40">
               <span className="text-[13px] text-zinc-400 font-semibold">No modules registered yet.</span>
             </div>
           ) : (
@@ -609,15 +611,15 @@ export default function SubjectDetailPage({ params }: PageProps) {
               {selectedSubject.modules.map((mod) => (
                 <div
                   key={mod.id}
-                  className="rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.01)] flex flex-col gap-4"
+                  className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-1">
                     <div className="flex flex-col gap-1 max-w-xl md:max-w-2xl">
                       <Link
                         href={`/dashboard/subject/${selectedSubject.id}/module/${mod.id}`}
-                        className="hover:text-[#f25c88] transition-colors"
+                        className="hover:text-[#d97706] transition-colors"
                       >
-                        <h4 className="text-[16px] font-extrabold text-[#121212]">
+                        <h4 className="text-[16px] font-semibold text-zinc-800">
                           {mod.title}
                         </h4>
                       </Link>
@@ -643,7 +645,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                           </button>
                         </div>
                       )}
-                      <div className="flex items-center gap-1 text-[11px] font-bold text-[#f25c88] bg-[#f25c88]/10 px-3 py-1 rounded-full w-fit">
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-[#d97706] bg-[#facc15]/10 px-3 py-1 rounded-full w-fit">
                         <Calendar className="w-3 h-3" />
                         <span>{formatDate(mod.date)}</span>
                       </div>
@@ -664,21 +666,21 @@ export default function SubjectDetailPage({ params }: PageProps) {
                             key={lesson.id}
                             className="relative pl-8 flex flex-col md:flex-row md:items-start justify-between gap-6 w-full"
                           >
-                            <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-[#FAF7F2] bg-[#f25c88] z-10 shadow-sm" />
+                            <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-white bg-[#facc15] z-10 shadow-sm" />
                             {idx < sortedLessons.length - 1 && (
                               <div className="absolute left-0 top-[12px] bottom-[-40px] w-[2px] bg-zinc-300 -translate-x-1/2 z-0" />
                             )}
                             <div className="flex flex-col gap-1.5 flex-1">
                             <div className="flex items-start justify-between w-full">
                               <div className="flex flex-col items-start gap-1.5">
-                                <span className="p-1 bg-[#121212] rounded text-white text-[9px] font-bold uppercase tracking-wide w-fit">
+                                <span className="px-2 py-0.5 bg-zinc-800 text-white text-[9px] font-semibold uppercase tracking-wide w-fit rounded-full">
                                   {lesson.type || "learning"}
                                 </span>
                                 <Link
                                   href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
-                                  className="hover:text-[#f25c88] transition-colors"
+                                  className="hover:text-[#d97706] transition-colors"
                                 >
-                                  <h5 className="text-[13.5px] font-bold text-zinc-950">
+                                  <h5 className="text-[13.5px] font-semibold text-zinc-800">
                                     {lesson.title}
                                   </h5>
                                 </Link>
@@ -717,9 +719,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
                               if (!showLboard || top3.length === 0) return null;
 
                               return (
-                                <div className="flex flex-col gap-2 mt-4 bg-white/40 border border-white/50 backdrop-blur-sm rounded-2xl p-4 w-full animate-in fade-in duration-200 text-left">
-                                  <span className="text-[10px] font-extrabold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                                    <Trophy className="w-3.5 h-3.5 text-[#f25c88]" /> Quiz Leaderboard (Top 3 Participants)
+                                <div className="flex flex-col gap-2 mt-4 bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-4 w-full text-left">
+                                  <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                                    <Trophy className="w-3.5 h-3.5 text-[#d97706]" /> Quiz Leaderboard (Top 3 Participants)
                                   </span>
                                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     {top3.map((att: any, idx: number) => {
@@ -738,7 +740,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                           key={att.id}
                                           className={`flex flex-col gap-2 p-3.5 rounded-xl border transition-all duration-300 hover:scale-[1.02] ${
                                             isMe
-                                              ? "bg-gradient-to-br from-[#f25c88]/10 to-white/70 border-[#f25c88]/30 shadow-sm shadow-[#f25c88]/5"
+                                              ? "bg-gradient-to-br from-[#facc15]/10 to-white/70 border-[#f97316]/30 shadow-sm shadow-[#facc15]/5"
                                               : "bg-white/60 hover:bg-white/85 border-white/50 shadow-sm shadow-black/[0.01]"
                                           }`}
                                         >
@@ -746,24 +748,24 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border flex items-center gap-1 ${medalColors[idx]}`}>
                                               {medals[idx]}
                                             </span>
-                                            <span className="text-[12px] font-black text-[#f25c88] tracking-tight">{pct}%</span>
+                                            <span className="text-[12px] font-black text-[#d97706] tracking-tight">{pct}%</span>
                                           </div>
                                           <div className="flex items-center gap-2 mt-1 min-w-0">
-                                            <div className="w-5 h-5 rounded-full bg-zinc-200/50 flex items-center justify-center text-[9px] font-black text-zinc-500 uppercase shrink-0">
+                                            <div className="w-5 h-5 rounded-full bg-zinc-200/50 flex items-center justify-center text-[9px] font-semibold text-zinc-500 uppercase shrink-0">
                                               {name.charAt(0)}
                                             </div>
                                             <div className="flex items-center gap-1.5 min-w-0">
                                               {!att.userId && (
-                                                <span className="bg-amber-100 text-amber-800 text-[8px] font-extrabold px-1 rounded border border-amber-200 uppercase shrink-0">Guest</span>
+                                                <span className="bg-amber-100 text-amber-800 text-[8px] font-semibold px-1 rounded border border-amber-200 uppercase shrink-0">Guest</span>
                                               )}
-                                              <span className={`text-[12.5px] truncate ${isMe ? "font-bold text-zinc-950" : "font-semibold text-zinc-800"}`} title={name}>
+                                              <span className={`text-[12.5px] truncate ${isMe ? "font-semibold text-zinc-800" : "font-semibold text-zinc-800"}`} title={name}>
                                                 {name}
                                               </span>
                                             </div>
                                           </div>
-                                          <div className="flex justify-between items-center text-[9.5px] text-zinc-400 font-bold border-t border-zinc-100/50 pt-2 mt-1">
+                                          <div className="flex justify-between items-center text-[9.5px] text-zinc-400 font-semibold border-t border-zinc-100/50 pt-2 mt-1">
                                             <span>Score</span>
-                                            <span className="text-zinc-650 font-extrabold">{att.score} / {att.totalPoints}</span>
+                                            <span className="text-zinc-650 font-semibold">{att.score} / {att.totalPoints}</span>
                                           </div>
                                         </div>
                                       );
@@ -777,24 +779,24 @@ export default function SubjectDetailPage({ params }: PageProps) {
                           <div className="w-full md:w-[260px] flex flex-col gap-2">
                             {lesson.type === "learning" ? (
                               <>
-                                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                                   Study Material
                                 </span>
                                 <Link
                                   href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
-                                  className="border border-[#E5E1D8] hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-3 flex items-center justify-center gap-2 text-zinc-700 font-bold text-[12px] transition-all"
+                                  className="border border-[#E5E1D8]/70 rounded-xl p-3 flex items-center justify-center gap-2 font-semibold text-[11px] text-zinc-500 hover:text-zinc-800 bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] hover:bg-zinc-100 transition-all cursor-pointer"
                                 >
                                   <span>View Lesson</span>
                                 </Link>
                               </>
                             ) : lesson.type === "quizzes" ? (
                               <>
-                                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                                   Quiz Launchpad
                                 </span>
                                 <Link
                                   href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
-                                  className="border border-[#E5E1D8] hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-3 flex items-center justify-center gap-2 text-zinc-700 font-bold text-[12px] transition-all"
+                                  className="border border-[#E5E1D8]/70 rounded-xl p-3 flex items-center justify-center gap-2 font-semibold text-[11px] text-zinc-500 hover:text-zinc-800 bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] hover:bg-zinc-100 transition-all cursor-pointer"
                                 >
                                   <span>Open Quiz</span>
                                 </Link>
@@ -827,8 +829,8 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                   return (
                                     showGrade && myAttemptObj && (
                                       <div className="flex justify-between items-center bg-emerald-500/[0.03] border border-emerald-500/15 rounded-xl px-3 py-1 mt-1 w-full animate-in fade-in duration-200">
-                                        <span className="text-[10px] font-bold text-zinc-650">Your Grade</span>
-                                        <span className="text-[10.5px] font-extrabold text-emerald-600">
+                                        <span className="text-[10px] font-semibold text-zinc-650">Your Grade</span>
+                                        <span className="text-[10.5px] font-semibold text-emerald-600">
                                           {myAttemptObj.score} / {myAttemptObj.totalPoints}
                                         </span>
                                       </div>
@@ -838,31 +840,31 @@ export default function SubjectDetailPage({ params }: PageProps) {
                               </>
                             ) : lesson.type === "presencion" ? (
                               <>
-                                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                                   Attendance Tracker
                                 </span>
                                 <Link
                                   href={`/dashboard/subject/${selectedSubject.id}/lesson/${lesson.id}`}
-                                  className="border border-[#E5E1D8] hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-3 flex items-center justify-center gap-2 text-zinc-700 font-bold text-[12px] transition-all"
+                                  className="border border-[#E5E1D8]/70 rounded-xl p-3 flex items-center justify-center gap-2 font-semibold text-[11px] text-zinc-500 hover:text-zinc-800 bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] hover:bg-zinc-100 transition-all cursor-pointer"
                                 >
                                   <span>View Attendance</span>
                                 </Link>
                               </>
                             ) : (
                               <>
-                                <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                                   Homework Submission
                                 </span>
 
                                 {isUploading ? (
-                                  <div className="border border-[#E5E1D8] bg-white rounded-xl p-3 flex flex-col gap-2">
-                                    <div className="flex justify-between items-center text-[10px] font-bold text-zinc-500">
+                                  <div className="border border-[#E5E1D8]/70 bg-white rounded-xl p-3 flex flex-col gap-2">
+                                    <div className="flex justify-between items-center text-[10px] font-semibold text-zinc-500">
                                       <span>Uploading file...</span>
                                       <span>{progress}%</span>
                                     </div>
                                     <div className="w-full h-1.5 rounded-full overflow-hidden bg-zinc-100">
                                       <div
-                                        className="h-full bg-[#f25c88] rounded-full transition-all duration-150"
+                                        className="h-full bg-[#facc15] rounded-full transition-all duration-150"
                                         style={{ width: `${progress}%` }}
                                       />
                                     </div>
@@ -872,7 +874,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                     <div className="flex items-center gap-2 min-w-0">
                                       <FileCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
                                       <div className="flex flex-col min-w-0">
-                                        <span className="text-[11px] font-bold text-zinc-800 truncate">
+                                        <span className="text-[11px] font-semibold text-zinc-800 truncate">
                                           {fileInfo.name}
                                         </span>
                                         <span className="text-[9px] text-zinc-400 font-semibold">
@@ -889,7 +891,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                     </button>
                                   </div>
                                 ) : (
-                                  <label className="border-2 border-dashed border-[#E5E1D8] hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group">
+                                  <label className="border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl bg-white/40 hover:bg-white/60 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group">
                                     <input
                                       type="file"
                                       className="hidden"
@@ -897,7 +899,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                                     />
                                     <UploadCloud className="w-6 h-6 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
                                     <div className="flex flex-col items-center">
-                                      <span className="text-[11px] font-bold text-zinc-800">
+                                      <span className="text-[11px] font-semibold text-zinc-800">
                                         Click to upload PDF
                                       </span>
                                       <span className="text-[9px] text-zinc-400 mt-0.5">
@@ -921,7 +923,8 @@ export default function SubjectDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      </div>
+      </div> {/* Closes w-full px-6 md:px-8 padding wrapper */}
+      </div> {/* Closes outer scrollable container */}
 
       <ContextMenu
         isOpen={menuOpen}
@@ -1006,9 +1009,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
       {showEditModuleModal && editingModule && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-200 text-left">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-4 text-left">
             <div className="flex justify-between items-center pb-2 border-b border-[#E5E1D8]/50">
-              <h3 className="text-[16px] font-black text-[#121212]">Edit Module</h3>
+              <h3 className="text-[16px] font-semibold text-zinc-800">Edit Module</h3>
               <button
                 onClick={() => {
                   setShowEditModuleModal(false);
@@ -1021,30 +1024,30 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Title</label>
+                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Title</label>
                 <input
                   type="text"
                   value={editingModule.title}
                   onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8]/70 text-[13px] bg-zinc-50 focus:bg-white focus:outline-none transition-all"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Description</label>
+                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Description</label>
                 <textarea
                   value={editingModule.desc}
                   onChange={(e) => setEditingModule({ ...editingModule, desc: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8]/70 text-[13px] bg-zinc-50 focus:bg-white focus:outline-none transition-all resize-none"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-zinc-500 uppercase">Date</label>
+                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Date</label>
                 <input
                   type="date"
                   value={editingModule.date}
                   onChange={(e) => setEditingModule({ ...editingModule, date: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-[13px] bg-[#FAF9F5] focus:bg-white focus:outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E5E1D8]/70 text-[13px] bg-zinc-50 focus:bg-white focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -1054,13 +1057,13 @@ export default function SubjectDetailPage({ params }: PageProps) {
                   setShowEditModuleModal(false);
                   setEditingModule(null);
                 }}
-                className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
+                className="px-4 py-2 border border-[#E5E1D8]/70 rounded-xl font-semibold text-[11px] text-zinc-500 hover:text-zinc-800 bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] hover:bg-zinc-100 cursor-pointer transition-all active:scale-95"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveModule}
-                className="px-4 py-2 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11px] rounded-xl cursor-pointer transition-all active:scale-95"
               >
                 Save
               </button>

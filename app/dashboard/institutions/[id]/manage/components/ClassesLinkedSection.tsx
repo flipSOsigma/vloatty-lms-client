@@ -51,7 +51,7 @@ export default function ClassesLinkedSection({
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-              <BookOpen className="w-4.5 h-4.5 text-[#f25c88]" />
+              <BookOpen className="w-4.5 h-4.5 text-[#d97706]" />
               Classes Linked
             </h3>
             <button
@@ -152,7 +152,7 @@ export default function ClassesLinkedSection({
                       .toUpperCase()
                   : "?";
 
-                let themeColor = "#f25c88";
+                let themeColor = "#facc15";
 
                 const schedulesText =
                   sub.schedules && sub.schedules.length > 0

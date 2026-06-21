@@ -45,14 +45,14 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
       return {
         logoBg: "bg-pink-100 text-pink-700",
         tagBg: "bg-pink-50 text-pink-700 border border-pink-100",
-        colorHex: "#f25c88"
+        colorHex: "#facc15"
       };
     }
     if (status === "professional") {
       return {
         logoBg: "bg-emerald-100 text-emerald-700",
         tagBg: "bg-emerald-50 text-emerald-700 border border-emerald-100",
-        colorHex: "#10b981"
+        colorHex: "#facc15"
       };
     }
     return {
@@ -89,7 +89,7 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
       <div
         onClick={() => router.push(`/dashboard/institutions/${inst.id}`)}
         onContextMenu={handleContextMenu}
-        className="bg-white rounded-3xl border border-zinc-200/80 p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer select-none h-full text-left"
+        className="bg-white rounded-3xl border border-[#E5E1D8]/70 p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.06)] cursor-pointer select-none h-full text-left shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
       >
         <div className="flex flex-col gap-6 h-full w-full justify-between">
           <div className="flex flex-col gap-4">
@@ -132,10 +132,10 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
             </div>
 
             <div className="flex flex-wrap gap-2 mt-1">
-              <span className={`text-[10px] font-bold px-3 py-1 rounded-lg tracking-wide ${theme.tagBg}`}>
+              <span className={`text-[10px] font-semibold px-3 py-1 rounded-lg ${theme.tagBg}`}>
                 {inst.subscriptionStatus.charAt(0).toUpperCase() + inst.subscriptionStatus.slice(1)}
               </span>
-              <span className="text-[10px] font-bold px-3 py-1 rounded-lg tracking-wide bg-zinc-50 border border-zinc-200/60 text-zinc-500">
+              <span className="text-[10px] font-semibold px-3 py-1 rounded-lg bg-zinc-50 border border-zinc-200/60 text-zinc-500">
                 {inst.users ? inst.users.length : 0} {inst.users && inst.users.length === 1 ? "User" : "Users"}
               </span>
             </div>
@@ -157,7 +157,7 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
                 e.stopPropagation();
                 router.push(`/dashboard/institutions/${inst.id}`);
               }}
-              className="bg-zinc-950 text-white font-bold text-[11px] px-4.5 py-2.5 rounded-xl hover:bg-zinc-800 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+              className="bg-zinc-800 text-white font-semibold text-[10.5px] px-4 py-2.5 rounded-xl hover:bg-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
             >
               View details
             </button>

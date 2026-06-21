@@ -71,7 +71,7 @@ export default function OrganizeFilesSection({
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <h3 className="text-[14.5px] font-bold text-[#121212] flex items-center gap-2">
-              <FileText className="w-4.5 h-4.5 text-[#f25c88]" />
+              <FileText className="w-4.5 h-4.5 text-[#d97706]" />
               Organize Files
             </h3>
             <button
@@ -98,6 +98,11 @@ export default function OrganizeFilesSection({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
+                  const limitBytes = 200 * 1024 * 1024;
+                  if (file.size > limitBytes) {
+                    showToast("File size exceeds the 200 MB storage limit.", "error");
+                    return;
+                  }
                   const newFile: InstitutionFile = {
                     id: Math.random().toString(36).substring(2, 9),
                     name: file.name,
@@ -124,7 +129,7 @@ export default function OrganizeFilesSection({
           </div>
         </div>
         <p className="text-[12px] text-zinc-400 font-medium -mt-1 pl-6">
-          Store, manage, and share official documentation, handbook assets, and policy resources.
+          Store, manage, and share official documentation, handbook assets, and policy resources. (Max 200 MB storage quota)
         </p>
       </div>
 
@@ -188,7 +193,7 @@ export default function OrganizeFilesSection({
               {paged.map((file) => (
                 <tr key={file.id} className="hover:bg-zinc-50/10 transition-colors">
                   <td className="py-3 pr-2">
-                    <div className="flex items-center justify-center w-8.5 h-8.5 rounded-xl bg-[#FAF9F5] border border-zinc-200/50 text-[#f25c88]">
+                    <div className="flex items-center justify-center w-8.5 h-8.5 rounded-xl bg-[#FAF9F5] border border-zinc-200/50 text-[#d97706]">
                       <FileIcon className="w-4 h-4" />
                     </div>
                   </td>
