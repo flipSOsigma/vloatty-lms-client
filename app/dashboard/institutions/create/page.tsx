@@ -63,13 +63,13 @@ export default function CreateInstitutionPage() {
         <div className="flex items-center gap-3 mt-1">
           <button
             onClick={() => router.push("/dashboard/institutions")}
-            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
+            className="w-10 h-10 rounded-full border border-[#EFECE6] hover:bg-zinc-50 flex items-center justify-center text-zinc-500 hover:text-zinc-950 transition-all cursor-pointer bg-white shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">Institution</span>
-            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
+            <h1 className="text-[34px] font-black text-zinc-950 tracking-tight leading-none mt-1">
               Create New Institution
             </h1>
           </div>
@@ -77,7 +77,7 @@ export default function CreateInstitutionPage() {
 
         <form onSubmit={handleCreate} className="flex flex-col gap-8 w-full">
           <div className="flex flex-col gap-5 w-full mb-8">
-            <h3 className="text-[14.5px] font-semibold text-zinc-800 flex items-center gap-2 pb-2 border-b border-[#E5E1D8]/70">
+            <h3 className="text-[14.5px] font-black text-zinc-950 flex items-center gap-2 pb-2 border-b border-[#EFECE6]">
               <Settings className="w-4.5 h-4.5 text-[#d97706]" />
               Basic Parameters
             </h3>
@@ -94,7 +94,7 @@ export default function CreateInstitutionPage() {
                       onChange={(e) => setNameInput(e.target.value)}
                       required
                       placeholder="e.g. Vloatty Technology"
-                      className="w-full pl-7 pr-1 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none transition-colors duration-200"
+                      className="w-full pl-7 pr-3 py-2 bg-white border border-[#EFECE6] focus:border-[#facc15]/50 focus:ring-1 focus:ring-[#facc15]/20 rounded-2xl text-zinc-850 font-semibold text-[13px] focus:outline-none transition-colors duration-200"
                     />
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export default function CreateInstitutionPage() {
                     <select
                       value={statusInput}
                       onChange={(e) => setStatusInput(e.target.value)}
-                      className="w-full pl-7 pr-1 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none transition-colors duration-200 cursor-pointer"
+                      className="w-full pl-7 pr-3 py-2 bg-white border border-[#EFECE6] focus:border-[#facc15]/50 focus:ring-1 focus:ring-[#facc15]/20 rounded-2xl text-zinc-850 font-semibold text-[13px] focus:outline-none transition-colors duration-200 cursor-pointer"
                     >
                       <option value="free">Free Tier</option>
                       <option value="premium">Premium</option>
@@ -126,7 +126,7 @@ export default function CreateInstitutionPage() {
                       onChange={(e) => setDescInput(e.target.value)}
                       rows={4}
                       placeholder="Write a brief overview of this organization..."
-                      className="w-full pl-7 pr-1 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none transition-colors duration-200 resize-none"
+                      className="w-full pl-7 pr-3 py-2 bg-white border border-[#EFECE6] focus:border-[#facc15]/50 focus:ring-1 focus:ring-[#facc15]/20 rounded-2xl text-zinc-850 font-semibold text-[13px] focus:outline-none transition-colors duration-200 resize-none"
                     />
                   </div>
                 </div>
@@ -134,18 +134,18 @@ export default function CreateInstitutionPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 justify-end pt-8 border-t border-[#E5E1D8]/70 mt-4">
+          <div className="flex items-center gap-3 justify-end pt-8 border-t border-[#EFECE6] mt-4">
             <button
               type="button"
               onClick={() => router.push("/dashboard/institutions")}
-              className="px-6 py-2.5 border border-[#E5E1D8]/70 text-zinc-700 hover:text-zinc-800 hover:border-zinc-300 font-semibold rounded-xl text-[11px] bg-white transition-all cursor-pointer active:scale-[0.98]"
+              className="px-6 py-2.5 border border-[#EFECE6] text-zinc-700 hover:text-zinc-950 hover:bg-zinc-50 font-extrabold rounded-full text-[12px] bg-white transition-all cursor-pointer active:scale-95 shadow-sm shadow-zinc-200/50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-8 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[11px] transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-[0.98]"
+              className="px-8 py-2.5 bg-[#121212] hover:bg-zinc-900 text-white font-black rounded-full text-[12px] transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 active:scale-95 shadow-sm shadow-zinc-800/10"
             >
               {isSubmitting ? (
                 <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />

@@ -1564,3 +1564,61 @@
 :global(.hero-animate) {
   opacity: 0;
 }
+
+/* ---- SEAMLESS SPONSORSHIPS ROTATOR ---- */
+
+@keyframes lp-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.sponsorships {
+  padding: 32px 24px;
+  background: #FAF9F5;
+  border-top: 1px solid rgba(18, 18, 18, 0.05);
+  border-bottom: 1px solid rgba(18, 18, 18, 0.05);
+  overflow: hidden;
+  position: relative;
+}
+
+.sponsorshipsInner {
+  display: flex;
+  width: max-content;
+  animation: lp-marquee 25s linear infinite;
+}
+
+.sponsorshipsTrack {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  padding: 0 40px;
+}
+
+.sponsorItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: rgba(18, 18, 18, 0.45);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+.sponsorItem:hover {
+  color: #121212;
+}
+
+.sponsorLogo {
+  width: 42px;
+  height: 42px;
+  opacity: 0.45;
+  color: rgba(18, 18, 18, 0.7);
+  transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.sponsorItem:hover .sponsorLogo {
+  opacity: 0.95;
+  color: #121212;
+  transform: scale(1.08);
+}

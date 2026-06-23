@@ -2,20 +2,19 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { 
-  Building2, 
-  BookOpen, 
-  ShieldAlert, 
-  FolderOpen, 
-  Calendar, 
-  Layers, 
-  Check, 
-  ArrowRight
+import {
+  Building2,
+  BookOpen,
+  ShieldAlert,
+  FolderOpen,
+  Calendar,
+  Layers,
+  Check,
+  ArrowRight,
+  Sparkles
 } from "lucide-react";
 import { animate, stagger, createTimeline } from "animejs";
-import LandingNav from "./(landing)/components/LandingNav";
-import EmailCTA from "./(landing)/components/EmailCTA";
-import styles from "./(landing)/landing.module.css";
+import styles from "./landing.module.css";
 
 function RollingNumber({ value }: { value: string }) {
   const digits = value.split("");
@@ -24,18 +23,18 @@ function RollingNumber({ value }: { value: string }) {
       {digits.map((d, i) => {
         const digitVal = parseInt(d);
         const isDigit = !isNaN(digitVal);
-        
+
         if (!isDigit) {
           return <span key={i} className="inline-block px-[0.1em]">{d}</span>;
         }
 
         return (
-          <span 
-            key={i} 
+          <span
+            key={i}
             className="inline-block relative h-[1em] w-[0.62em] overflow-hidden"
             style={{ lineHeight: "1" }}
           >
-            <span 
+            <span
               className="absolute left-0 top-0 flex flex-col rolling-digit-track"
               data-digit={digitVal}
               style={{ transform: "translateY(0%)", display: "flex", flexDirection: "column" }}
@@ -57,7 +56,7 @@ function TypingTitle({ baseText, accentText, className, style }: { baseText: str
   const [typedBase, setTypedBase] = useState("");
   const [typedAccent, setTypedAccent] = useState("");
   const containerRef = useRef<HTMLHeadingElement>(null);
-  
+
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -65,10 +64,10 @@ function TypingTitle({ baseText, accentText, className, style }: { baseText: str
           // Reset
           setTypedBase("");
           setTypedAccent("");
-          
+
           const animObj = { baseLen: 0, accentLen: 0 };
           const tl = createTimeline();
-          
+
           tl.add(animObj, {
             baseLen: baseText.length,
             duration: baseText.length * 25, // 25ms per char
@@ -77,14 +76,14 @@ function TypingTitle({ baseText, accentText, className, style }: { baseText: str
               setTypedBase(baseText.slice(0, Math.floor(animObj.baseLen)));
             }
           })
-          .add(animObj, {
-            accentLen: accentText.length,
-            duration: accentText.length * 25,
-            ease: "linear",
-            onUpdate: () => {
-              setTypedAccent(accentText.slice(0, Math.floor(animObj.accentLen)));
-            }
-          });
+            .add(animObj, {
+              accentLen: accentText.length,
+              duration: accentText.length * 25,
+              ease: "linear",
+              onUpdate: () => {
+                setTypedAccent(accentText.slice(0, Math.floor(animObj.accentLen)));
+              }
+            });
         } else {
           // Reset state when scrolled out so it types again when scrolled back
           setTypedBase("");
@@ -96,7 +95,7 @@ function TypingTitle({ baseText, accentText, className, style }: { baseText: str
     if (containerRef.current) {
       observer.observe(containerRef.current);
     }
-    
+
     return () => observer.disconnect();
   }, [baseText, accentText]);
 
@@ -106,6 +105,301 @@ function TypingTitle({ baseText, accentText, className, style }: { baseText: str
       <span className={styles.titleAccent}>{typedAccent}</span>
       <span className={styles.cursor}>|</span>
     </h2>
+  );
+}
+
+function GeminiLogo({ idPrefix, className }: { idPrefix: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 296 298" fill="none" className={className}>
+      <mask id={`${idPrefix}__gemini__a`} width="296" height="298" x="0" y="0" maskUnits="userSpaceOnUse" style={{ maskType: "alpha" }}>
+        <path fill="#3186FF" d="M141.201 4.886c2.282-6.17 11.042-6.071 13.184.148l5.985 17.37a184.004 184.004 0 0 0 111.257 113.049l19.304 6.997c6.143 2.227 6.156 10.91.02 13.155l-19.35 7.082a184.001 184.001 0 0 0-109.495 109.385l-7.573 20.629c-2.241 6.105-10.869 6.121-13.133.025l-7.908-21.296a184 184 0 0 0-109.02-108.658l-19.698-7.239c-6.102-2.243-6.118-10.867-.025-13.132l20.083-7.467A183.998 183.998 0 0 0 133.291 26.28l7.91-21.394Z"/>
+      </mask>
+      <g mask={`url(#${idPrefix}__gemini__a)`}>
+        <g filter={`url(#${idPrefix}__gemini__b)`}><ellipse cx="163" cy="149" fill="#3689FF" rx="196" ry="159"/></g>
+        <g filter={`url(#${idPrefix}__gemini__c)`}><ellipse cx="33.5" cy="142.5" fill="#F6C013" rx="68.5" ry="72.5"/></g>
+        <g filter={`url(#${idPrefix}__gemini__d)`}><ellipse cx="19.5" cy="148.5" fill="#F6C013" rx="68.5" ry="72.5"/></g>
+        <g filter={`url(#${idPrefix}__gemini__e)`}><path fill="#FA4340" d="M194 10.5C172 82.5 65.5 134.333 22.5 135L144-66l50 76.5Z"/></g>
+        <g filter={`url(#${idPrefix}__gemini__f)`}><path fill="#FA4340" d="M190.5-12.5C168.5 59.5 62 111.333 19 112L140.5-89l50 76.5Z"/></g>
+        <g filter={`url(#${idPrefix}__gemini__g)`}><path fill="#14BB69" d="M194.5 279.5C172.5 207.5 66 155.667 23 155l121.5 201 50-76.5Z"/></g>
+        <g filter={`url(#${idPrefix}__gemini__h)`}><path fill="#14BB69" d="M196.5 320.5C174.5 248.5 68 196.667 25 196l121.5 201 50-76.5Z"/></g>
+      </g>
+      <defs>
+        <filter id={`${idPrefix}__gemini__b`} width="464" height="390" x="-69" y="-46" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="18"/>
+        </filter>
+        <filter id={`${idPrefix}__gemini__c`} width="265" height="273" x="-99" y="6" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="32"/>
+        </filter>
+        <filter id={`${idPrefix}__gemini__d`} width="265" height="273" x="-113" y="12" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="32"/>
+        </filter>
+        <filter id={`${idPrefix}__gemini__e`} width="299.5" height="329" x="-41.5" y="-130" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="32"/>
+        </filter>
+        <filter id={`${idPrefix}__gemini__f`} width="299.5" height="329" x="-45" y="-153" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="32"/>
+        </filter>
+        <filter id={`${idPrefix}__gemini__g`} width="299.5" height="329" x="-41" y="91" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="32"/>
+        </filter>
+        <filter id={`${idPrefix}__gemini__h`} width="299.5" height="329" x="-39" y="132" colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur result="effect1_foregroundBlur_69_17998" stdDeviation="32"/>
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
+function AntigravityLogo({ idPrefix, className }: { idPrefix: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 16 15" fill="none" className={className}>
+      <mask id={`${idPrefix}__antigravity__mask0_111_52`} style={{ maskType: "alpha" }} maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="15">
+        <path d="M14.0777 13.984C14.945 14.6345 16.2458 14.2008 15.0533 13.0084C11.476 9.53949 12.2349 0 7.79033 0C3.34579 0 4.10461 9.53949 0.527295 13.0084C-0.773543 14.3092 0.635692 14.6345 1.50293 13.984C4.86344 11.7076 4.64663 7.69664 7.79033 7.69664C10.934 7.69664 10.7172 11.7076 14.0777 13.984Z" fill="black"/>
+      </mask>
+      <g mask={`url(#${idPrefix}__antigravity__mask0_111_52)`}>
+        <g filter={`url(#${idPrefix}__antigravity__filter0_f_111_52)`}><path d="M-0.658907 -3.2306C-0.922679 -0.906781 1.07986 1.22861 3.81388 1.53894C6.54791 1.84927 8.97811 0.217009 9.24188 -2.10681C9.50565 -4.43063 7.50312 -6.56602 4.76909 -6.87635C2.03506 -7.18667 -0.395135 -5.55442 -0.658907 -3.2306Z" fill="#FFE432"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter1_f_111_52)`}><path d="M9.88233 4.36642C10.5673 7.31568 13.566 9.13902 16.5801 8.43896C19.5942 7.73891 21.4823 4.78056 20.7973 1.83131C20.1123 -1.11795 17.1136 -2.94128 14.0995 -2.24123C11.0854 -1.54118 9.19733 1.41717 9.88233 4.36642Z" fill="#FC413D"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter2_f_111_52)`}><path d="M-8.05291 6.34512C-7.18736 9.38883 -3.28925 10.9473 0.653774 9.82598C4.5968 8.7047 7.09158 5.32829 6.22603 2.28458C5.36048 -0.759142 1.46236 -2.31758 -2.48066 -1.19629C-6.42368 -0.0750048 -8.91846 3.3014 -8.05291 6.34512Z" fill="#00B95C"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter3_f_111_52)`}><path d="M-8.05291 6.34512C-7.18736 9.38883 -3.28925 10.9473 0.653774 9.82598C4.5968 8.7047 7.09158 5.32829 6.22603 2.28458C5.36048 -0.759142 1.46236 -2.31758 -2.48066 -1.19629C-6.42368 -0.0750048 -8.91846 3.3014 -8.05291 6.34512Z" fill="#00B95C"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter4_f_111_52)`}><path d="M-4.92402 8.86746C-2.75421 11.0837 0.982691 10.9438 3.42257 8.55507C5.86246 6.1663 6.08139 2.43321 3.91158 0.216963C1.74177 -1.99928 -1.99513 -1.85942 -4.43501 0.529349C-6.87489 2.91812 -7.09383 6.65122 -4.92402 8.86746Z" fill="#00B95C"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter5_f_111_52)`}><path d="M6.42819 17.2263C7.10197 20.1273 9.91278 21.953 12.7063 21.3042C15.4998 20.6553 17.2182 17.7777 16.5444 14.8767C15.8707 11.9757 13.0599 10.15 10.2663 10.7988C7.47281 11.4477 5.75441 14.3253 6.42819 17.2263Z" fill="#3186FF"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter6_f_111_52)`}><path d="M1.66508 -5.94539C0.254213 -2.80254 1.7978 0.951609 5.11277 2.43973C8.42774 3.92785 12.2588 2.58642 13.6696 -0.556431C15.0805 -3.69928 13.5369 -7.45343 10.222 -8.94155C6.90699 -10.4297 3.07594 -9.08824 1.66508 -5.94539Z" fill="#FBBC04"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter7_f_111_52)`}><path d="M-2.11428 24.3903C-5.52984 23.0496 0.307266 12.0177 1.75874 8.32038C3.21024 4.62304 7.15576 2.71272 10.5713 4.05357C13.9869 5.39442 18.0354 12.7796 16.5838 16.477C15.1323 20.1743 1.30129 25.7311 -2.11428 24.3903Z" fill="#3186FF"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter8_f_111_52)`}><path d="M18.5814 10.6598C17.6669 11.727 15.2806 11.1828 13.2514 9.44417C11.2222 7.70556 10.3185 5.43097 11.2329 4.3637C12.1473 3.29646 14.5336 3.84069 16.5628 5.57928C18.592 7.31789 19.4958 9.59249 18.5814 10.6598Z" fill="#749BFF"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter9_f_111_52)`}><path d="M11.7552 5.22715C15.5162 7.77124 19.8471 7.93838 21.4286 5.60045C23.0101 3.26253 21.2433 -0.695128 17.4823 -3.23922C13.7213 -5.78331 9.39044 -5.95044 7.80896 -3.61252C6.22747 -1.27459 7.99428 2.68306 11.7552 5.22715Z" fill="#FC413D"/></g>
+        <g filter={`url(#${idPrefix}__antigravity__filter10_f_111_52)`}><path d="M-0.592149 1.08896C-1.5239 3.33663 -1.21959 5.59799 0.0875457 6.13985C1.39468 6.68171 3.20966 5.29888 4.14141 3.05121C5.07316 0.803541 4.76885 -1.45782 3.46171 -1.99968C2.15458 -2.54154 0.339602 -1.15871 -0.592149 1.08896Z" fill="#FFEE48"/></g>
+      </g>
+      <defs>
+        <filter id={`${idPrefix}__antigravity__filter0_f_111_52`} x="-2.12817" y="-8.35998" width="12.8393" height="11.383" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="0.722959" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter1_f_111_52`} x="2.75168" y="-9.38089" width="25.1763" height="24.96" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="3.49513" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter2_f_111_52`} x="-14.1669" y="-7.50196" width="26.5068" height="23.6338" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.97119" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter3_f_111_52`} x="-14.1669" y="-7.50196" width="26.5068" height="23.6338" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.97119" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter4_f_111_52`} x="-12.3607" y="-7.29981" width="23.709" height="23.6846" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.97119" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter5_f_111_52`} x="0.634962" y="5.02095" width="21.7027" height="22.0616" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.82351" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter6_f_111_52`} x="-3.97547" y="-14.6666" width="23.2857" height="22.8313" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.5589" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter7_f_111_52`} x="-7.7407" y="-0.945408" width="29.1982" height="30.1105" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.2852" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter8_f_111_52`} x="6.78641" y="-0.27231" width="16.2415" height="15.5681" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.04485" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter9_f_111_52`} x="3.77526" y="-8.71693" width="21.687" height="19.4212" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="1.72712" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+        <filter id={`${idPrefix}__antigravity__filter10_f_111_52`} x="-5.40727" y="-6.39238" width="14.3639" height="16.9254" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+          <feGaussianBlur stdDeviation="2.1376" result="effect1_foregroundBlur_111_52"/>
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
+function LandingNav() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <nav
+      className={`lp-nav${scrolled ? " lp-nav--scrolled" : ""}`}
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div className="lp-nav__inner">
+        {/* Logo */}
+        <a href="#" className="lp-logo" aria-label="Vloatty Home">
+          <img
+            src="/vloatty - Logo Only.png"
+            alt="Vloatty Logo"
+            width={28}
+            height={28}
+            style={{ filter: "brightness(0)", objectFit: "contain", marginRight: "4px" }}
+          />
+          <span className="lp-logo__text">Vloatty</span>
+        </a>
+
+        {/* Desktop Links */}
+        <ul className="lp-nav__links" role="list">
+          <li><a href="#features" className="lp-nav__link">Features</a></li>
+          <li><a href="#pricing" className="lp-nav__link">Pricing</a></li>
+          <li><a href="#testimonials" className="lp-nav__link">About</a></li>
+        </ul>
+
+        {/* Desktop CTA */}
+        <div className="lp-nav__cta">
+          <a href="#" className="lp-btn lp-btn--ghost lp-btn--sm">
+            <span className="lp-btn__text-container">
+              <span className="lp-btn__text-track">
+                <span className="lp-btn__text-normal">Sign In</span>
+                <span className="lp-btn__text-hover">Sign In</span>
+              </span>
+            </span>
+          </a>
+          <a href="#" className="lp-btn lp-btn--primary lp-btn--sm">
+            <span className="lp-btn__text-container">
+              <span className="lp-btn__text-track">
+                <span className="lp-btn__text-normal">Get Started Free</span>
+                <span className="lp-btn__text-hover">Get Started Free</span>
+              </span>
+            </span>
+          </a>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className={`lp-nav__hamburger${menuOpen ? " lp-nav__hamburger--open" : ""}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-expanded={menuOpen}
+          aria-label="Toggle mobile menu"
+          id="mobile-menu-button"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
+
+      {/* Mobile Menu Drawer */}
+      {menuOpen && (
+        <div className="lp-nav__drawer" role="menu" aria-label="Mobile navigation">
+          <ul role="list">
+            <li><a href="#features" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">Features</a></li>
+            <li><a href="#pricing" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">Pricing</a></li>
+            <li><a href="#testimonials" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">About</a></li>
+          </ul>
+          <div className="lp-nav__drawer-cta">
+            <a href="#" className="lp-btn lp-btn--ghost lp-btn--full" onClick={() => setMenuOpen(false)}>
+              <span className="lp-btn__text-container">
+                <span className="lp-btn__text-track">
+                  <span className="lp-btn__text-normal">Sign In</span>
+                  <span className="lp-btn__text-hover">Sign In</span>
+                </span>
+              </span>
+            </a>
+            <a href="#" className="lp-btn lp-btn--primary lp-btn--full" onClick={() => setMenuOpen(false)}>
+              <span className="lp-btn__text-container">
+                <span className="lp-btn__text-track">
+                  <span className="lp-btn__text-normal">Get Started Free</span>
+                  <span className="lp-btn__text-hover">Get Started Free</span>
+                </span>
+              </span>
+            </a>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function EmailCTA() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setSubmitted(true);
+    }
+  };
+
+  return (
+    <div className="lp-cta-form">
+      {submitted ? (
+        <div className="lp-cta-success" role="alert" aria-live="polite">
+          <span className="lp-cta-success__icon" aria-hidden="true">🎉</span>
+          <p>You&apos;re on the list! We&apos;ll be in touch soon.</p>
+        </div>
+      ) : (
+        <form
+          className="lp-cta-form__inner"
+          onSubmit={handleSubmit}
+          aria-label="Email signup form"
+        >
+          <input
+            id="cta-email-input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your work email"
+            required
+            className="lp-cta-form__input"
+            aria-label="Work email address"
+          />
+          <button
+            id="cta-submit-button"
+            type="submit"
+            className="lp-btn lp-btn--primary lp-btn--lg"
+          >
+            <span className="lp-btn__text-container">
+              <span className="lp-btn__text-track">
+                <span className="lp-btn__text-normal">Get Started Free</span>
+                <span className="lp-btn__text-hover">Get Started Free</span>
+              </span>
+            </span>
+          </button>
+        </form>
+      )}
+      <p className="lp-cta-form__note">
+        No credit card required &bull; Free forever plan available
+      </p>
+    </div>
   );
 }
 
@@ -171,7 +465,7 @@ export default function RootPage() {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const target = entry.target as HTMLElement;
-          
+
           animate(target, {
             opacity: [0, 1],
             translateY: [35, 0],
@@ -217,7 +511,7 @@ export default function RootPage() {
         if (targetElement) {
           e.preventDefault();
           const targetPosition = targetElement.getBoundingClientRect().top + window.scrollY;
-          
+
           const scrollObj = { y: window.scrollY };
           animate(scrollObj, {
             y: targetPosition - 80, // Offset to account for sticky navbar height
@@ -236,7 +530,7 @@ export default function RootPage() {
     return () => {
       observer.disconnect();
       document.removeEventListener("click", handleAnchorClick);
-      
+
       // Restore original styles
       htmlEl.style.overflow = originalHtmlOverflow;
       htmlEl.style.height = originalHtmlHeight;
@@ -257,32 +551,32 @@ export default function RootPage() {
 
   const features = [
     {
-      icon: <Building2 className={styles.featureCardIcon} />,
+      icon: <Building2 className="w-5 h-5" />,
       title: "Institution Management",
       desc: "Manage your institution profile, invite members, and assign roles (Owner, Lecturer, Admission) from a unified console.",
     },
     {
-      icon: <BookOpen className={styles.featureCardIcon} />,
+      icon: <BookOpen className="w-5 h-5" />,
       title: "Smart Class Management",
       desc: "Link subjects to institutions, schedule lectures, assign instructors, and easily coordinate student enrollments.",
     },
     {
-      icon: <ShieldAlert className={styles.featureCardIcon} />,
+      icon: <ShieldAlert className="w-5 h-5" />,
       title: "Role-Based Permissions",
       desc: "Granular access controls built directly into every screen. Give administrators, lecturers, and students exactly the access they need.",
     },
     {
-      icon: <FolderOpen className={styles.featureCardIcon} />,
+      icon: <FolderOpen className="w-5 h-5" />,
       title: "File Organization",
       desc: "Upload, categorize, search, and bulk-delete institutional documents, academic syllabi, maps, and campus assets securely.",
     },
     {
-      icon: <Calendar className={styles.featureCardIcon} />,
+      icon: <Calendar className="w-5 h-5" />,
       title: "Live Event Calendar",
       desc: "An interactive planner displaying automatically generated lecture schedules, assignable tasks, and exam deadlines.",
     },
     {
-      icon: <Layers className={styles.featureCardIcon} />,
+      icon: <Layers className="w-5 h-5" />,
       title: "Student Modules & Lessons",
       desc: "Organize subjects into clean modular units with structured assignments, learning lessons, files, and deadlines.",
     },
@@ -339,7 +633,7 @@ export default function RootPage() {
           </p>
 
           <div className={`${styles.heroCTAs} hero-animate`}>
-            <Link href="/register" className="lp-btn lp-btn--primary lp-btn--lg">
+            <a href="#" className="lp-btn lp-btn--primary lp-btn--lg">
               <span className="lp-btn__text-container">
                 <span className="lp-btn__text-track">
                   <span className="lp-btn__text-normal">Get Started Free</span>
@@ -347,7 +641,7 @@ export default function RootPage() {
                 </span>
               </span>
               <ArrowRight className="lp-btn__icon w-4 h-4 ml-1" />
-            </Link>
+            </a>
             <a href="#features" className="lp-btn lp-btn--ghost lp-btn--lg">
               <span className="lp-btn__text-container">
                 <span className="lp-btn__text-track">
@@ -391,14 +685,59 @@ export default function RootPage() {
         </div>
       </section>
 
+      {/* Rolling Sponsorships */}
+      <section className={styles.sponsorships}>
+        <div className={styles.sponsorshipsInner}>
+          {[1, 2, 3, 4].map((setIdx) => {
+            const prefix = `track-${setIdx}`;
+            return (
+              <div key={setIdx} className={styles.sponsorshipsTrack}>
+                <div className={styles.sponsorItem}>
+                  <AntigravityLogo idPrefix={prefix} className={styles.sponsorLogo} />
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold leading-tight">Antigravity</span>
+                    <span className="text-[10px] opacity-60 font-semibold tracking-wide leading-none">AI Pair Programmer</span>
+                  </div>
+                </div>
+                <div className={styles.sponsorItem}>
+                  <GeminiLogo idPrefix={prefix} className={styles.sponsorLogo} />
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold leading-tight">Gemini</span>
+                    <span className="text-[10px] opacity-60 font-semibold tracking-wide leading-none">AI Model Provider</span>
+                  </div>
+                </div>
+                <div className={styles.sponsorItem}>
+                  <svg viewBox="0 0 256 222" preserveAspectRatio="xMidYMid" className={styles.sponsorLogo}>
+                    <path fill="currentColor" d="m128 0 128 221.705H0z"/>
+                  </svg>
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold leading-tight">Vercel</span>
+                    <span className="text-[10px] opacity-60 font-semibold tracking-wide leading-none">Hosting & Deployment</span>
+                  </div>
+                </div>
+                <div className={styles.sponsorItem}>
+                  <svg viewBox="0 0 256 310" preserveAspectRatio="xMidYMid" className={styles.sponsorLogo}>
+                    <path fill="rgb(19, 184, 167)" d="M254.313 235.519L148 9.749A17.063 17.063 0 00133.473.037a16.87 16.87 0 00-15.533 8.052L2.633 194.848a17.465 17.465 0 00.193 18.747L59.2 300.896a18.13 18.13 0 0020.363 7.489l163.599-48.392a17.929 17.929 0 0011.26-9.722 17.542 17.542 0 00-.101-14.76l-.008.008zm-23.802 9.683l-138.823 41.05c-4.235 1.26-8.3-2.411-7.419-6.685l49.598-237.484c.927-4.443 7.063-5.147 9.003-1.035l91.814 194.973a6.63 6.63 0 01-4.18 9.18h.007z"/>
+                  </svg>
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold leading-tight">PrismaDB</span>
+                    <span className="text-[10px] opacity-60 font-semibold tracking-wide leading-none">Database ORM</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Features Section */}
       <section id="features" className={styles.features}>
         <div className={styles.sectionInner}>
           <div className={`${styles.sectionLabel} scroll-animate`}>Features</div>
-          <TypingTitle 
-            baseText="Everything you need to " 
-            accentText="run your institution" 
-            className={`${styles.sectionH2} scroll-animate`} 
+          <TypingTitle
+            baseText="Everything you need to "
+            accentText="run your institution"
+            className={`${styles.sectionH2} scroll-animate`}
           />
           <p className={`${styles.sectionDesc} scroll-animate`}>
             Vloatty provides a comprehensive suite of tools designed specifically for modern academic and clinical learning environments.
@@ -452,7 +791,7 @@ export default function RootPage() {
                 </div>
                 <span className={styles.bentoBadge}>Completion Ratio</span>
               </div>
-              
+
               <div className="flex items-baseline gap-2 my-2">
                 <span className={styles.bentoBigValue}>78%</span>
                 <span className="text-xs font-bold text-[#d97706]">▲ 12% this week</span>
@@ -508,6 +847,100 @@ export default function RootPage() {
               </div>
             </div>
           </div>
+
+          {/* AI Powerhouse Section */}
+          <div className="scroll-animate" style={{ marginTop: "120px" }}>
+            <div className={styles.sectionLabel}>AI Powerhouse</div>
+            <TypingTitle
+              baseText="Next-Gen AI capabilities for "
+              accentText="smart learning"
+              className={styles.sectionH2}
+            />
+            <p className={styles.sectionDesc}>
+              Vloatty integrates state-of-the-art Gemini AI models directly into your daily academic tasks, making course planning and student evaluation faster than ever.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px", marginTop: "40px" }}>
+              {/* Card 1: AI Quiz Generator */}
+              <div className={`${styles.bentoCard} scroll-animate`} style={{ minHeight: "220px", justifyContent: "space-between" }}>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={styles.featureCardIcon} style={{ marginBottom: 0 }}>
+                      <Sparkles className="w-6 h-6 text-[#d97706]" />
+                    </div>
+                    <span className={styles.bentoBadge}>AI Assistant</span>
+                  </div>
+                  <h3 className={styles.featureCardTitle} style={{ fontSize: "1.20rem", fontWeight: 700 }}>Custom AI Quiz Generator</h3>
+                  <p className={styles.featureCardDesc} style={{ fontSize: "0.85rem", marginTop: "8px", color: "#555555" }}>
+                    Instantly compile quizzes from your course context. Choose the question count (up to 10), difficulty level (easy, medium, hard), and preferred language in one click.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card 2: AI Autofill Descriptions */}
+              <div className={`${styles.bentoCard} scroll-animate`} style={{ minHeight: "220px", justifyContent: "space-between" }}>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={styles.featureCardIcon} style={{ marginBottom: 0 }}>
+                      <BookOpen className="w-6 h-6 text-[#d97706]" />
+                    </div>
+                    <span className={styles.bentoBadge}>Automated Outline</span>
+                  </div>
+                  <h3 className={styles.featureCardTitle} style={{ fontSize: "1.20rem", fontWeight: 700 }}>AI Syllabus & Module Planner</h3>
+                  <p className={styles.featureCardDesc} style={{ fontSize: "0.85rem", marginTop: "8px", color: "#555555" }}>
+                    Generate professional syllabus summaries and lesson outlines automatically using title context. Simply type your lecture title and let Gemini do the writing.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card 3: Interactive Evaluations */}
+              <div className={`${styles.bentoCard} scroll-animate`} style={{ minHeight: "220px", justifyContent: "space-between" }}>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={styles.featureCardIcon} style={{ marginBottom: 0 }}>
+                      <Layers className="w-6 h-6 text-[#d97706]" />
+                    </div>
+                    <span className={styles.bentoBadge}>Student Analytics</span>
+                  </div>
+                  <h3 className={styles.featureCardTitle} style={{ fontSize: "1.20rem", fontWeight: 700 }}>Quiz Management Hub</h3>
+                  <p className={styles.featureCardDesc} style={{ fontSize: "0.85rem", marginTop: "8px", color: "#555555" }}>
+                    Rearrange questions dynamically with reordering controls, view questions with alternating striped styles, and manage detailed student submission leaderboards.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Core platform capabilities directory */}
+          <div className="scroll-animate" style={{ marginTop: "120px" }}>
+            <div className={styles.sectionLabel}>Full Directory</div>
+            <TypingTitle
+              baseText="A complete ecosystem for "
+              accentText="academic workflows"
+              className={styles.sectionH2}
+            />
+            <p className={styles.sectionDesc}>
+              Explore all the features packed into Vloatty designed to simplify course management, file storage, and team communication.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", marginTop: "40px" }}>
+              {features.map((f, idx) => (
+                <div className={`${styles.bentoCard} scroll-animate`} key={idx} style={{ minHeight: "180px" }}>
+                  <div className="flex items-center gap-3.5 mb-3">
+                    <div className={styles.featureCardIcon} style={{ marginBottom: 0, width: "42px", height: "42px", borderRadius: "12px" }}>
+                      {f.icon}
+                    </div>
+                    <h3 className={styles.featureCardTitle} style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 0 }}>
+                      {f.title}
+                    </h3>
+                  </div>
+                  <p className={styles.featureCardDesc} style={{ fontSize: "0.82rem", color: "#555555", lineHeight: "1.5" }}>
+                    {f.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -515,10 +948,10 @@ export default function RootPage() {
       <section id="pricing" className={styles.pricing}>
         <div className={styles.sectionInner}>
           <div className={`${styles.sectionLabel} scroll-animate`}>Pricing</div>
-          <TypingTitle 
-            baseText="Simple, transparent " 
-            accentText="pricing" 
-            className={`${styles.sectionH2} scroll-animate`} 
+          <TypingTitle
+            baseText="Simple, transparent "
+            accentText="pricing"
+            className={`${styles.sectionH2} scroll-animate`}
           />
           <p className={`${styles.sectionDesc} scroll-animate`} style={{ marginBottom: "32px" }}>
             Start free and scale as your institution grows. Cancel at any time.
@@ -529,12 +962,12 @@ export default function RootPage() {
             <span className={`text-[13px] font-bold ${billingPeriod === "monthly" ? "text-[#121212]" : "text-zinc-400"}`}>
               Monthly
             </span>
-            <button 
+            <button
               onClick={() => setBillingPeriod(billingPeriod === "monthly" ? "yearly" : "monthly")}
               className="w-12 h-6 rounded-full p-1 relative flex items-center transition-colors focus:outline-none cursor-pointer"
               style={{ backgroundColor: billingPeriod === "yearly" ? "#facc15" : "#e4e4e7" }}
             >
-              <div 
+              <div
                 className="w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200"
                 style={{ transform: billingPeriod === "yearly" ? "translateX(24px)" : "translateX(0)" }}
               />
@@ -572,14 +1005,14 @@ export default function RootPage() {
                   <span className={styles.pricingFeatureCheck}><Check className="w-3.5 h-3.5" /></span> Community support
                 </li>
               </ul>
-              <Link href="/register" className="lp-btn lp-btn--ghost lp-btn--full" style={{ marginTop: "auto" }}>
+              <a href="#" className="lp-btn lp-btn--ghost lp-btn--full" style={{ marginTop: "auto" }}>
                 <span className="lp-btn__text-container">
                   <span className="lp-btn__text-track">
                     <span className="lp-btn__text-normal">Get Started</span>
                     <span className="lp-btn__text-hover">Get Started</span>
                   </span>
                 </span>
-              </Link>
+              </a>
             </div>
 
             {/* Pro */}
@@ -620,14 +1053,14 @@ export default function RootPage() {
                   <span className={styles.pricingFeatureCheck}><Check className="w-3.5 h-3.5" /></span> Real-time search & filter
                 </li>
               </ul>
-              <Link href="/register" className="lp-btn lp-btn--primary lp-btn--full" style={{ marginTop: "auto" }}>
+              <a href="#" className="lp-btn lp-btn--primary lp-btn--full" style={{ marginTop: "auto" }}>
                 <span className="lp-btn__text-container">
                   <span className="lp-btn__text-track">
                     <span className="lp-btn__text-normal">Start 14-Day Free Trial</span>
                     <span className="lp-btn__text-hover">Start 14-Day Free Trial</span>
                   </span>
                 </span>
-              </Link>
+              </a>
             </div>
 
             {/* Enterprise */}
@@ -675,10 +1108,10 @@ export default function RootPage() {
       <section id="testimonials" className={styles.testimonials}>
         <div className={styles.sectionInner}>
           <div className={`${styles.sectionLabel} scroll-animate`}>Testimonials</div>
-          <TypingTitle 
-            baseText="Loved by " 
-            accentText="educators & administrators" 
-            className={`${styles.sectionH2} scroll-animate`} 
+          <TypingTitle
+            baseText="Loved by "
+            accentText="educators & administrators"
+            className={`${styles.sectionH2} scroll-animate`}
           />
 
           <div className={styles.testimonialsGrid}>
@@ -689,8 +1122,8 @@ export default function RootPage() {
                   &ldquo;{t.quote}&rdquo;
                 </blockquote>
                 <div className={styles.testimonialAuthor}>
-                  <div 
-                    className={styles.testimonialAvatar} 
+                  <div
+                    className={styles.testimonialAvatar}
                     style={{ background: t.color }}
                   >
                     {t.initials}
@@ -710,10 +1143,10 @@ export default function RootPage() {
       <section id="faq" className={styles.faq}>
         <div className={styles.sectionInner}>
           <div className={`${styles.sectionLabel} scroll-animate`}>Support</div>
-          <TypingTitle 
-            baseText="Frequently Asked " 
-            accentText="Questions" 
-            className={`${styles.sectionH2} scroll-animate`} 
+          <TypingTitle
+            baseText="Frequently Asked "
+            accentText="Questions"
+            className={`${styles.sectionH2} scroll-animate`}
           />
           <p className={`${styles.sectionDesc} scroll-animate`}>
             Got questions about Vloatty? Find quick answers about our LMS capabilities, billing, and system features below.
@@ -723,8 +1156,8 @@ export default function RootPage() {
             {faqs.map((faq, idx) => {
               const isOpen = activeFaq === idx;
               return (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className={`${styles.faqItem} ${isOpen ? styles.faqItemOpen : ""} scroll-animate`}
                   onClick={() => setActiveFaq(isOpen ? null : idx)}
                   role="button"
@@ -735,9 +1168,9 @@ export default function RootPage() {
                     <span>{faq.q}</span>
                     <span className={styles.faqIcon} style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)", transition: "transform 0.25s ease" }}>+</span>
                   </div>
-                  <div 
+                  <div
                     className={styles.faqAnswer}
-                    style={{ 
+                    style={{
                       maxHeight: isOpen ? "200px" : "0px",
                       opacity: isOpen ? 1 : 0
                     }}
@@ -754,10 +1187,10 @@ export default function RootPage() {
       {/* CTA Section */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaSectionInner}>
-          <TypingTitle 
-            baseText="Ready to transform your " 
-            accentText="learning experience?" 
-            className={`${styles.sectionH2} scroll-animate`} 
+          <TypingTitle
+            baseText="Ready to transform your "
+            accentText="learning experience?"
+            className={`${styles.sectionH2} scroll-animate`}
             style={{ color: "#fff", textAlign: "center", marginBottom: "16px" }}
           />
           <p className={`${styles.sectionDesc} scroll-animate`} style={{ color: "rgba(255,255,255,0.7)", textAlign: "center", marginBottom: "32px", maxWidth: "600px", margin: "0 auto 32px" }}>
@@ -774,29 +1207,29 @@ export default function RootPage() {
         <div className={styles.footerInner}>
           <div className={styles.footerGrid}>
             <div className={styles.footerBrandCol}>
-              <Link href="/" className={styles.footerLogo}>
-                <img 
-                  src="/vloatty - Logo Only.png" 
-                  alt="Vloatty Logo" 
-                  className={styles.footerLogoImg} 
+              <a href="#" className={styles.footerLogo}>
+                <img
+                  src="/vloatty - Logo Only.png"
+                  alt="Vloatty Logo"
+                  className={styles.footerLogoImg}
                 />
                 <span className={styles.footerLogoText}>Vloatty</span>
-              </Link>
+              </a>
               <p className={styles.footerTagline}>
                 Unlock your learning and campus management potential with our unified LMS ecosystem.
               </p>
               <div className={styles.footerSocials}>
                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                 </a>
                 <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Facebook">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
                 </a>
                 <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="LinkedIn">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
                 </a>
                 <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Twitter">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
                 </a>
               </div>
             </div>
@@ -806,7 +1239,7 @@ export default function RootPage() {
                 <h4>Platform</h4>
                 <a href="#features" className={styles.footerLink}>Features</a>
                 <a href="#pricing" className={styles.footerLink}>Pricing</a>
-                <a href="/login" className={styles.footerLink}>Sign In</a>
+                <a href="#" className={styles.footerLink}>Sign In</a>
               </div>
               <div className={styles.footerLinksCol}>
                 <h4>Company</h4>

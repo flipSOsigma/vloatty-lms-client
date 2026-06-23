@@ -32,6 +32,9 @@ import {
   ArrowUpDown,
   ChevronUp,
   ChevronDown,
+  Sparkles,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 interface PageProps {
@@ -99,7 +102,12 @@ function LessonDetailInner({ params }: PageProps) {
   const [quiz, setQuiz] = useState<any>(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizSaving, setQuizSaving] = useState(false);
-  const [quizTab, setQuizTab] = useState<"quiz" | "submissions">("quiz");
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  const [quizTab, setQuizTab] = useState<"quiz" | "settings" | "submissions">("quiz");
+  const [showSubjectDetails, setShowSubjectDetails] = useState<boolean>(true);
+  const [aiQuestionCount, setAiQuestionCount] = useState<number>(5);
+  const [aiDifficulty, setAiDifficulty] = useState<string>("medium");
+  const [aiLanguage, setAiLanguage] = useState<string>("English");
   const [attempts, setAttempts] = useState<any[]>([]);
   const [attemptsLoading, setAttemptsLoading] = useState(false);
   const [guestName, setGuestName] = useState("");
@@ -212,10 +220,9 @@ function LessonDetailInner({ params }: PageProps) {
           setMyAttempt(data.userAttempt);
           const userIdSuffix = currentUser ? currentUser.id : "guest";
           localStorage.setItem(`quiz_attempt_${lessonId}_${userIdSuffix}`, JSON.stringify(data.userAttempt));
-        } else {
+        } else if (currentUser) {
           setMyAttempt(null);
-          const userIdSuffix = currentUser ? currentUser.id : "guest";
-          localStorage.removeItem(`quiz_attempt_${lessonId}_${userIdSuffix}`);
+          localStorage.removeItem(`quiz_attempt_${lessonId}_${currentUser.id}`);
         }
         if (data.showLeaderboard || canEdit) {
           fetchAttempts();
@@ -319,6 +326,67 @@ function LessonDetailInner({ params }: PageProps) {
     }, 500);
     return () => clearTimeout(timer);
   }, [submissionSearchQuery]);
+
+  const handleAutoCreateQuiz = async () => {
+    if (!selectedLesson) return;
+    setIsGeneratingQuiz(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/ai/generate-quiz`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          lessonTitle: selectedLesson.title,
+          lessonDesc: selectedLesson.desc || "",
+          subjectName: selectedSubject?.name || "",
+          subjectDesc: selectedSubject?.description || "",
+          questionCount: Math.min(Math.max(1, aiQuestionCount), 10),
+          difficulty: aiDifficulty,
+          language: aiLanguage,
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 503) {
+          throw new Error("AI is busy right now. Please try again shortly.");
+        }
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to generate quiz");
+      }
+
+      const data = await res.json();
+      if (data.questions && data.questions.length > 0) {
+        setQuiz((prev: any) => ({
+          ...prev,
+          questions: data.questions
+        }));
+        showToast(`Successfully generated ${data.questions.length} quiz questions!`, "success");
+      } else {
+        showToast("AI generated no questions. Please try again.", "error");
+      }
+    } catch (err: any) {
+      console.error("AI Quiz Autofill failed:", err);
+      let userFriendlyMessage = err.message || "";
+      const msgLower = userFriendlyMessage.toLowerCase();
+
+      if (msgLower.includes("failed to fetch") || msgLower.includes("network")) {
+        userFriendlyMessage = "Unable to connect to the server. Please check your internet connection.";
+      } else if (msgLower.includes("api_key") || msgLower.includes("api key") || msgLower.includes("unconfigured")) {
+        userFriendlyMessage = "AI generator is temporarily offline due to setup issues. Please try again later.";
+      } else if (msgLower.includes("busy") || msgLower.includes("503") || msgLower.includes("overloaded") || msgLower.includes("rate") || msgLower.includes("quota") || msgLower.includes("exhausted")) {
+        userFriendlyMessage = "AI is currently busy handling other requests. Please wait a few seconds and try again.";
+      } else {
+        userFriendlyMessage = "We couldn't generate the quiz questions. Please try again or type them manually.";
+      }
+
+      showToast(userFriendlyMessage, "error");
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
 
   const handleSaveQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -448,6 +516,22 @@ function LessonDetailInner({ params }: PageProps) {
       updated.splice(qIdx, 1);
       return { ...prev, questions: updated };
     });
+  };
+
+  const moveQuestion = (qIdx: number, direction: "up" | "down") => {
+    if (!quiz || !quiz.questions) return;
+    const newQuestions = [...quiz.questions];
+    const targetIdx = direction === "up" ? qIdx - 1 : qIdx + 1;
+    if (targetIdx < 0 || targetIdx >= newQuestions.length) return;
+
+    const temp = newQuestions[qIdx];
+    newQuestions[qIdx] = newQuestions[targetIdx];
+    newQuestions[targetIdx] = temp;
+
+    setQuiz((prev: any) => ({
+      ...prev,
+      questions: newQuestions
+    }));
   };
 
   const updateQuestionText = (qIdx: number, val: string) => {
@@ -919,6 +1003,23 @@ function LessonDetailInner({ params }: PageProps) {
           </Link>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowSubjectDetails(prev => !prev)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-zinc-50 border border-[#E5E1D8]/70 rounded-xl text-[11px] font-semibold text-zinc-650 shadow-sm cursor-pointer transition-all"
+            >
+              {showSubjectDetails ? (
+                <>
+                  <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Hide Details</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Show Details</span>
+                </>
+              )}
+            </button>
             {canEdit && !isEditing && (
               <button
                 type="button"
@@ -935,8 +1036,20 @@ function LessonDetailInner({ params }: PageProps) {
           </div>
         </div>
 
-        <div className={`grid grid-cols-1 gap-8 items-start text-left ${selectedLesson.type === "learning" ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
-          <div className={`flex flex-col gap-6 lg:order-2 ${selectedLesson.type === "learning" ? "lg:col-span-3" : "lg:col-span-2"}`}>
+        <div className={`grid grid-cols-1 gap-8 items-start text-left ${
+          !showSubjectDetails 
+            ? "" 
+            : selectedLesson.type === "learning" 
+            ? "lg:grid-cols-4" 
+            : "lg:grid-cols-3"
+        }`}>
+          <div className={`flex flex-col gap-6 lg:order-2 ${
+            !showSubjectDetails 
+              ? "w-full lg:col-span-full" 
+              : selectedLesson.type === "learning" 
+              ? "lg:col-span-3" 
+              : "lg:col-span-2"
+          }`}>
             {isEditing ? (
               <form
                 onSubmit={handleSave}
@@ -1933,21 +2046,32 @@ function LessonDetailInner({ params }: PageProps) {
                             <button
                               type="button"
                               onClick={() => setQuizTab("quiz")}
-                          className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
-                            quizTab === "quiz"
-                              ? "bg-zinc-800 text-white shadow-sm"
-                              : "text-zinc-500 hover:text-zinc-800"
-                          }`}
-                        >
-                          Edit Quiz
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setQuizTab("submissions")}
-                          className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
-                            quizTab === "submissions"
-                              ? "bg-zinc-800 text-white shadow-sm"
-                              : "text-zinc-500 hover:text-zinc-800"
+                              className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                                quizTab === "quiz"
+                                  ? "bg-zinc-800 text-white shadow-sm"
+                                  : "text-zinc-500 hover:text-zinc-800"
+                              }`}
+                            >
+                              Questions
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setQuizTab("settings")}
+                              className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                                quizTab === "settings"
+                                  ? "bg-zinc-800 text-white shadow-sm"
+                                  : "text-zinc-500 hover:text-zinc-800"
+                              }`}
+                            >
+                              Quiz Settings
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setQuizTab("submissions")}
+                              className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                                quizTab === "submissions"
+                                  ? "bg-zinc-800 text-white shadow-sm"
+                                  : "text-zinc-500 hover:text-zinc-800"
                               }`}
                             >
                               Submissions & Stats
@@ -1955,119 +2079,229 @@ function LessonDetailInner({ params }: PageProps) {
                           </div>
                         </div>
 
-                        {quizTab === "quiz" ? (
+                        {quizTab !== "submissions" ? (
                           <form onSubmit={handleSaveQuiz} className="flex flex-col gap-6 w-full text-left">
-                            <div className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left">
-                              <h4 className="text-[12px] font-semibold text-zinc-800 uppercase tracking-wider border-b border-[#E5E1D8]/70 pb-2 flex items-center gap-1.5">
-                                <Settings className="w-4 h-4 text-zinc-400" />
-                                Quiz Policy & Settings
-                              </h4>
-                              
-                              <div className="flex flex-col gap-5">
-                                <label className="flex items-start gap-3.5 cursor-pointer group">
-                                  <input
-                                    type="checkbox"
-                                    checked={quiz.allowViewGrade}
-                                    onChange={(e) => updateQuizSetting("allowViewGrade", e.target.checked)}
-                                    className="mt-1 accent-[#facc15] w-4 h-4"
-                                  />
-                                  <div className="flex flex-col">
-                                    <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
-                                      Watch Grade Option
-                                    </span>
-                                    <span className="text-[10px] text-zinc-400 font-semibold mt-0.5 leading-tight">
-                                      Allow users to watch their grades and correct answers instantly after submitting.
-                                    </span>
-                                  </div>
-                                </label>
-
-                                <label className="flex items-start gap-3.5 cursor-pointer group">
-                                  <input
-                                    type="checkbox"
-                                    checked={quiz.showLeaderboard}
-                                    onChange={(e) => updateQuizSetting("showLeaderboard", e.target.checked)}
-                                    className="mt-1 accent-[#facc15] w-4 h-4"
-                                  />
-                                  <div className="flex flex-col">
-                                    <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
-                                      Show Leaderboard Option
-                                    </span>
-                                    <span className="text-[10px] text-zinc-400 font-semibold mt-0.5 leading-tight">
-                                      Show the leaderboard after they finish the attempt so they know their position relative to other participants.
-                                    </span>
-                                  </div>
-                                </label>
-
-                                <label className="flex items-start gap-3.5 cursor-pointer group">
-                                  <input
-                                    type="checkbox"
-                                    checked={quiz.allowGuest}
-                                    onChange={(e) => updateQuizSetting("allowGuest", e.target.checked)}
-                                    className="mt-1 accent-[#facc15] w-4 h-4"
-                                  />
-                                  <div className="flex flex-col">
-                                    <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
-                                      Guest Access Option
-                                    </span>
-                                    <span className="text-[10px] text-zinc-400 font-semibold mt-0.5 leading-tight">
-                                      Make the quiz accessible to unsigned users (guests) without requiring account sign-in.
-                                    </span>
-                                  </div>
-                                </label>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col gap-4">
-                              <h4 className="text-[13px] font-semibold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5 pl-1">
-                                <ListOrdered className="w-4 h-4 text-[#d97706]" />
-                                Questions List ({quiz.questions?.length || 0})
-                              </h4>
-
-                              <div className="flex flex-col gap-2">
-                                {quiz.questions?.map((q: any, qIdx: number) => (
-                                  <div key={qIdx} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 relative text-left last:border-b-0 animate-in fade-in duration-200">
-                                    <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
-                                      <span className="text-[12px] font-bold text-[#d97706]">
-                                        Question #{qIdx + 1}
+                            {quizTab === "settings" && (
+                              <div className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left">
+                                <h4 className="text-[12px] font-bold text-zinc-800 uppercase tracking-wider border-b border-[#E5E1D8]/50 pb-2">
+                                  Quiz Policy & Settings
+                                </h4>
+                                
+                                <div className="flex flex-col gap-5">
+                                  <label className="flex items-start gap-3.5 cursor-pointer group">
+                                    <input
+                                      type="checkbox"
+                                      checked={quiz.allowViewGrade}
+                                      onChange={(e) => updateQuizSetting("allowViewGrade", e.target.checked)}
+                                      className="mt-1 accent-[#facc15] w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="flex flex-col text-left">
+                                      <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
+                                        Watch Grade Option
                                       </span>
+                                      <span className="text-[10px] text-zinc-400 font-semibold mt-0.5 leading-tight">
+                                        Allow users to watch their grades and correct answers instantly after submitting.
+                                      </span>
+                                    </div>
+                                  </label>
+
+                                  <label className="flex items-start gap-3.5 cursor-pointer group">
+                                    <input
+                                      type="checkbox"
+                                      checked={quiz.showLeaderboard}
+                                      onChange={(e) => updateQuizSetting("showLeaderboard", e.target.checked)}
+                                      className="mt-1 accent-[#facc15] w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="flex flex-col text-left">
+                                      <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
+                                        Show Leaderboard Option
+                                      </span>
+                                      <span className="text-[10px] text-zinc-400 font-semibold mt-0.5 leading-tight">
+                                        Show the leaderboard after they finish the attempt so they know their position relative to other participants.
+                                      </span>
+                                    </div>
+                                  </label>
+
+                                  <label className="flex items-start gap-3.5 cursor-pointer group">
+                                    <input
+                                      type="checkbox"
+                                      checked={quiz.allowGuest}
+                                      onChange={(e) => updateQuizSetting("allowGuest", e.target.checked)}
+                                      className="mt-1 accent-[#facc15] w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="flex flex-col text-left">
+                                      <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-zinc-950 transition-colors">
+                                        Guest Access Option
+                                      </span>
+                                      <span className="text-[10px] text-zinc-400 font-semibold mt-0.5 leading-tight">
+                                        Make the quiz accessible to unsigned users (guests) without requiring account sign-in.
+                                      </span>
+                                    </div>
+                                  </label>
+                                </div>
+                              </div>
+                            )}
+
+                            {quizTab === "quiz" && (
+                              <>
+                                {/* AI Quiz Generator Settings */}
+                                <div className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left">
+                                  <h4 className="text-[12px] font-bold text-[#d97706] uppercase tracking-wider border-b border-[#E5E1D8]/50 pb-2">
+                                    AI Quiz Generator Settings
+                                  </h4>
+                                  
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                      <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Number of Questions (Max 10)</label>
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        max={10}
+                                        value={aiQuestionCount}
+                                        onChange={(e) => {
+                                          let val = parseInt(e.target.value) || 1;
+                                          if (val > 10) val = 10;
+                                          if (val < 1) val = 1;
+                                          setAiQuestionCount(val);
+                                        }}
+                                        className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13.5px] focus:outline-none transition-all duration-200"
+                                      />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                      <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Difficulty Level</label>
+                                      <select
+                                        value={aiDifficulty}
+                                        onChange={(e) => setAiDifficulty(e.target.value)}
+                                        className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 text-zinc-800 font-semibold text-[13px] focus:outline-none rounded-none cursor-pointer"
+                                      >
+                                        <option value="easy">Easy</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="hard">Hard</option>
+                                      </select>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5 w-full">
+                                      <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Language</label>
+                                      <select
+                                        value={aiLanguage}
+                                        onChange={(e) => setAiLanguage(e.target.value)}
+                                        className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 text-zinc-800 font-semibold text-[13px] focus:outline-none rounded-none cursor-pointer"
+                                      >
+                                        <option value="English">English</option>
+                                        <option value="Indonesian">Indonesian</option>
+                                        <option value="Spanish">Spanish</option>
+                                        <option value="French">French</option>
+                                        <option value="German">German</option>
+                                        <option value="Chinese">Chinese</option>
+                                        <option value="Japanese">Japanese</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex justify-start mt-4">
+                                    <button
+                                      type="button"
+                                      onClick={handleAutoCreateQuiz}
+                                      disabled={isGeneratingQuiz}
+                                      className="px-6 py-3 bg-[#d97706] hover:bg-[#b45309] text-white font-bold rounded-xl text-[12px] shadow-sm transition-all cursor-pointer flex items-center gap-2 active:scale-95 disabled:opacity-50 select-none border-none"
+                                    >
+                                      {isGeneratingQuiz ? (
+                                        <>
+                                          <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                                          <span>Generating Quiz via AI...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Sparkles className="w-4 h-4 text-white" />
+                                          <span>Auto-generate Quiz with AI</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col gap-4 mt-6">
+                                  <div className="flex items-center justify-between border-b border-[#E5E1D8]/50 pb-2 pl-1">
+                                    <h4 className="text-[13px] font-bold text-zinc-800 uppercase tracking-wider">
+                                      Questions List ({quiz.questions?.length || 0})
+                                    </h4>
+                                  </div>
+                                  <div className="flex flex-col gap-2">
+                                    {quiz.questions?.map((q: any, qIdx: number) => (
+                                  <div
+                                    key={qIdx}
+                                    className="p-6 border border-[#E5E1D8]/30 flex flex-col gap-4 relative text-left rounded-2xl animate-in fade-in duration-200"
+                                    style={{
+                                      backgroundImage: qIdx % 2 === 1
+                                        ? "repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(239, 236, 230, 0.45) 12px, rgba(239, 236, 230, 0.45) 24px)"
+                                        : undefined
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between pb-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-[12px] font-bold text-[#d97706]">
+                                          Question #{qIdx + 1}
+                                        </span>
+                                        <div className="flex items-center gap-1">
+                                          <button
+                                            type="button"
+                                            disabled={qIdx === 0}
+                                            onClick={() => moveQuestion(qIdx, "up")}
+                                            className="p-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-650 disabled:opacity-30 disabled:pointer-events-none transition-colors border-none cursor-pointer"
+                                            title="Move Up"
+                                          >
+                                            <ChevronUp className="w-3 h-3" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            disabled={qIdx === quiz.questions.length - 1}
+                                            onClick={() => moveQuestion(qIdx, "down")}
+                                            className="p-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-650 disabled:opacity-30 disabled:pointer-events-none transition-colors border-none cursor-pointer"
+                                            title="Move Down"
+                                          >
+                                            <ChevronDown className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                      </div>
                                       {quiz.questions.length > 1 && (
                                         <button
                                           type="button"
                                           onClick={() => removeQuestion(qIdx)}
-                                          className="flex items-center gap-1 text-[11px] font-bold text-rose-500 hover:text-rose-700 transition-colors"
+                                          className="flex items-center gap-1 text-[11px] font-bold text-rose-500 hover:text-rose-700 transition-colors bg-transparent border-none cursor-pointer"
                                         >
                                           <Trash2 className="w-3.5 h-3.5" />
                                           <span>Delete</span>
                                         </button>
                                       )}
                                     </div>
-
+ 
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                                       <div className="md:col-span-9 flex flex-col gap-1.5">
-                                        <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Question Text</label>
+                                        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Question Text</label>
                                         <textarea
                                           value={q.questionText}
                                           onChange={(e) => updateQuestionText(qIdx, e.target.value)}
                                           placeholder="Type your question here..."
                                           rows={2}
                                           required
-                                          className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                                          className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13.5px] focus:outline-none transition-all duration-200"
                                         />
                                       </div>
                                       <div className="md:col-span-3 flex flex-col gap-1.5">
-                                        <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Points</label>
+                                        <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Points</label>
                                         <input
                                           type="number"
                                           min={1}
                                           value={q.points || 1}
                                           onChange={(e) => updateQuestionPoints(qIdx, parseInt(e.target.value) || 1)}
-                                          className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                                          className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13.5px] focus:outline-none transition-all duration-200"
                                         />
                                       </div>
                                     </div>
-
+ 
                                     <div className="flex flex-col gap-2.5 mt-2">
-                                      <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Options (Pick the correct option)</label>
+                                      <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Options (Pick the correct option)</label>
                                       <div className="flex flex-col gap-2">
                                         {q.options.map((opt: string, optIdx: number) => (
                                           <div key={optIdx} className="flex items-center gap-3 w-full">
@@ -2082,16 +2316,16 @@ function LessonDetailInner({ params }: PageProps) {
                                             >
                                               <Check className="w-3.5 h-3.5" />
                                             </button>
-
+ 
                                             <input
                                               type="text"
                                               value={opt}
                                               onChange={(e) => updateQuestionOption(qIdx, optIdx, e.target.value)}
                                               placeholder={`Option ${optIdx + 1}`}
                                               required
-                                              className="flex-1 px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                                              className="flex-1 px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13.5px] focus:outline-none transition-all duration-200"
                                             />
-
+ 
                                             {q.options.length > 2 && (
                                               <button
                                                 type="button"
@@ -2104,7 +2338,7 @@ function LessonDetailInner({ params }: PageProps) {
                                           </div>
                                         ))}
                                       </div>
-
+ 
                                       {q.options.length < 6 && (
                                         <button
                                           type="button"
@@ -2119,22 +2353,23 @@ function LessonDetailInner({ params }: PageProps) {
                                   </div>
                                 ))}
                               </div>
-
+ 
                               <button
                                 type="button"
                                 onClick={addQuestion}
-                                className="flex items-center justify-center gap-2 border-2 border-dashed border-[#E5E1D8]/70 hover:border-zinc-400 bg-white/40 hover:bg-white rounded-3xl py-4 transition-all w-full text-[12px] font-semibold text-zinc-800 cursor-pointer"
+                                className="flex items-center justify-center gap-1.5 py-3.5 text-[11.5px] font-bold text-zinc-650 hover:text-zinc-850 hover:bg-zinc-50 border border-dashed border-[#E5E1D8] transition-all w-full select-none cursor-pointer rounded-xl"
                               >
-                                <Plus className="w-4 h-4 text-[#d97706]" />
-                                <span>Add New Question</span>
+                                <Plus className="w-4 h-4 text-zinc-400" />
+                                <span>Add Question</span>
                               </button>
                             </div>
-
+                          </>
+                        )} 
                             <div className="flex justify-end mt-4">
                               <button
                                 type="submit"
                                 disabled={quizSaving}
-                                className="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-[11px] font-semibold text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                className="px-6 py-2.5 bg-[#121212] hover:bg-zinc-800 text-white font-bold rounded-full text-[12px] shadow-sm cursor-pointer transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
                               >
                                 {quizSaving ? (
                                   <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
@@ -2278,7 +2513,15 @@ function LessonDetailInner({ params }: PageProps) {
 
                               <div className="flex flex-col gap-2">
                                 {quiz.questions?.map((q: any, qIdx: number) => (
-                                  <div key={q.id} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left last:border-b-0">
+                                  <div
+                                    key={q.id}
+                                    className="p-6 border border-[#E5E1D8]/30 flex flex-col gap-4 text-left rounded-2xl"
+                                    style={{
+                                      backgroundImage: qIdx % 2 === 1
+                                        ? "repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(239, 236, 230, 0.45) 12px, rgba(239, 236, 230, 0.45) 24px)"
+                                        : undefined
+                                    }}
+                                  >
                                     <div className="flex flex-col gap-1">
                                       <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-widest">
                                         Question {String(qIdx + 1).padStart(2, "0")} · {q.points || 1} pts
@@ -2377,7 +2620,15 @@ function LessonDetailInner({ params }: PageProps) {
                                     const isCorrect = submittedAnsIdx !== undefined && Number(submittedAnsIdx) === correctAnsIdx;
 
                                     return (
-                                      <div key={q.id} className="py-6 border-b border-[#E5E1D8]/30 flex flex-col gap-4 text-left last:border-b-0">
+                                      <div
+                                        key={q.id}
+                                        className="p-6 border border-[#E5E1D8]/30 flex flex-col gap-4 text-left rounded-2xl"
+                                        style={{
+                                          backgroundImage: qIdx % 2 === 1
+                                            ? "repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(239, 236, 230, 0.45) 12px, rgba(239, 236, 230, 0.45) 24px)"
+                                            : undefined
+                                        }}
+                                      >
                                         <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
                                           <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-widest">
                                             Question {qIdx + 1}
@@ -2522,116 +2773,121 @@ function LessonDetailInner({ params }: PageProps) {
             )}
           </div>
 
-          <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 lg:order-1">
-            <div className="flex flex-col gap-5 w-full">
-              <div className="flex flex-col gap-1.5">
-                <span
-                  className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/20"
-                >
-                  {selectedLesson.type || "learning"}
-                </span>
-                {selectedLesson.type !== "learning" && (
-                  <>
-                    <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
-                      {selectedLesson.title}
-                    </h2>
-                    {selectedModule && (
-                      <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider mt-0.5">
-                        Module: {selectedModule.title}
-                      </span>
-                    )}
-                    <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1.5">
-                      <GraduationCap className="w-4 h-4 text-zinc-400" />
-                      <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {selectedLesson.type !== "learning" && selectedLesson.desc && (
-                <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
-                  {selectedLesson.desc}
-                </p>
-              )}
-
-              <div className="flex flex-col gap-4 pt-4 border-t border-[#E5E1D8]/45 text-left">
-                <span className="text-[11px] font-black text-zinc-800 uppercase tracking-wider mb-1">
-                  Lesson Details
-                </span>
-                <div className="flex flex-col gap-3.5">
-                  <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                    <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Subject</span>
-                    <span className="text-zinc-850 text-[12.5px] font-bold">{selectedSubject.name}</span>
-                  </div>
-                  {selectedModule && (
-                    <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                      <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Module</span>
-                      <span className="text-zinc-850 text-[12.5px] font-bold">{selectedModule.title}</span>
-                    </div>
-                  )}
-                  <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                    <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type</span>
-                    <span className="text-[12.5px] font-extrabold uppercase text-[#d97706]">
-                      {selectedLesson.type === "learning"
-                        ? "Learning Material"
-                        : selectedLesson.type === "assignment"
-                        ? "Assignment"
-                        : selectedLesson.type === "quizzes"
-                        ? "Quiz"
-                        : "Presence Session"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                    <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lecturers</span>
-                    <span className="text-zinc-850 text-[12.5px] font-bold" title={selectedSubject.lecturers.map((l) => l.name).join(", ")}>
-                      {selectedSubject.lecturers.map((l) => l.name).join(", ")}
-                    </span>
-                  </div>
+          {showSubjectDetails && (
+            <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0 lg:order-1">
+              <div className="flex flex-col gap-5 w-full">
+                <div className="flex flex-col gap-1.5">
+                  <span
+                    className="inline-block text-[9px] font-bold px-3 py-1 rounded-full w-fit bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/20"
+                  >
+                    {selectedLesson.type || "learning"}
+                  </span>
                   {selectedLesson.type !== "learning" && (
                     <>
-                      <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                        <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Open Date</span>
-                        <span className="text-zinc-855 text-[12.5px] font-bold">{formatDate(selectedLesson.openDate)}</span>
-                      </div>
-                      <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                        <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Due Date</span>
-                        <span className="text-zinc-855 text-[12.5px] font-bold">{formatDate(selectedLesson.closeDate)}</span>
-                      </div>
-                      <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
-                        <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Deadline Policy</span>
-                        <span className="text-zinc-855 text-[12.5px] font-bold flex items-center gap-1.5 mt-0.5">
-                          {selectedLesson.closeType === "restrict" ? (
-                            <>
-                              <Lock className="w-3.5 h-3.5 text-[#d97706]" /> Strict Deadline
-                            </>
-                          ) : (
-                            <>
-                              <Unlock className="w-3.5 h-3.5 text-emerald-600" /> Open Submission
-                            </>
-                          )}
+                      <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
+                        {selectedLesson.title}
+                      </h2>
+                      {selectedModule && (
+                        <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider mt-0.5">
+                          Module: {selectedModule.title}
                         </span>
+                      )}
+                      <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1.5">
+                        <GraduationCap className="w-4 h-4 text-zinc-400" />
+                        <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
                       </div>
                     </>
                   )}
                 </div>
+
+                {selectedLesson.type !== "learning" && selectedLesson.desc && (
+                  <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-[#FAF7F2]/50 p-4 border border-[#E5E1D8]/30 rounded-2xl">
+                    {selectedLesson.desc}
+                  </p>
+                )}
+                {selectedLesson.type !== "quizzes" && (
+                  <>
+                    <div className="flex flex-col gap-4 pt-4 border-t border-[#E5E1D8]/45 text-left">
+                      <span className="text-[11px] font-black text-zinc-800 uppercase tracking-wider mb-1">
+                        Lesson Details
+                      </span>
+                      <div className="flex flex-col gap-3.5">
+                        <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                          <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Subject</span>
+                          <span className="text-zinc-850 text-[12.5px] font-bold">{selectedSubject.name}</span>
+                        </div>
+                        {selectedModule && (
+                          <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                            <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Module</span>
+                            <span className="text-zinc-850 text-[12.5px] font-bold">{selectedModule.title}</span>
+                          </div>
+                        )}
+                        <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                          <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type</span>
+                          <span className="text-[12.5px] font-extrabold uppercase text-[#d97706]">
+                            {selectedLesson.type === "learning"
+                              ? "Learning Material"
+                              : selectedLesson.type === "assignment"
+                              ? "Assignment"
+                              : selectedLesson.type === "quizzes"
+                              ? "Quiz"
+                              : "Presence Session"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                          <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Lecturers</span>
+                          <span className="text-zinc-855 text-[12.5px] font-bold" title={selectedSubject.lecturers.map((l) => l.name).join(", ")}>
+                            {selectedSubject.lecturers.map((l) => l.name).join(", ")}
+                          </span>
+                        </div>
+                        {selectedLesson.type !== "learning" && (
+                          <>
+                            <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                              <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Open Date</span>
+                              <span className="text-zinc-855 text-[12.5px] font-bold">{formatDate(selectedLesson.openDate)}</span>
+                            </div>
+                            <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                              <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Due Date</span>
+                              <span className="text-zinc-855 text-[12.5px] font-bold">{formatDate(selectedLesson.closeDate)}</span>
+                            </div>
+                            <div className="flex flex-col items-start gap-0.5 bg-transparent p-0 border-none">
+                              <span className="text-[9.5px] font-extrabold text-zinc-400 uppercase tracking-wider">Deadline Policy</span>
+                              <span className="text-zinc-855 text-[12.5px] font-bold flex items-center gap-1.5 mt-0.5">
+                                {selectedLesson.closeType === "restrict" ? (
+                                  <>
+                                    <Lock className="w-3.5 h-3.5 text-[#d97706]" /> Strict Deadline
+                                  </>
+                                ) : (
+                                  <>
+                                    <Unlock className="w-3.5 h-3.5 text-emerald-600" /> Open Submission
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+                      <h3 className="text-[13px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
+                        <Lightbulb className="w-4 h-4 text-[#d97706]" />
+                        Resource Tips
+                      </h3>
+                      <p className="text-[11px] text-zinc-500 leading-relaxed font-semibold">
+                        Use your desktop or mobile device to upload files directly. Submissions are tracked
+                        and recorded automatically.
+                      </p>
+                    </div>
+
+                    {selectedSubject.institutionId && (
+                      <StorageTracker institutionId={selectedSubject.institutionId} />
+                    )}
+                  </>
+                )}
               </div>
             </div>
-
-            <div className="bg-white border border-[#EBE8E0] rounded-3xl p-6 shadow-sm flex flex-col gap-4">
-              <h3 className="text-[13px] font-bold text-[#121212] flex items-center gap-2 pb-2 border-b border-zinc-100">
-                <Lightbulb className="w-4 h-4 text-[#d97706]" />
-                Resource Tips
-              </h3>
-              <p className="text-[11px] text-zinc-500 leading-relaxed font-semibold">
-                Use your desktop or mobile device to upload files directly. Submissions are tracked
-                and recorded automatically.
-              </p>
-            </div>
-
-            {selectedSubject.institutionId && (
-              <StorageTracker institutionId={selectedSubject.institutionId} />
-            )}
-          </div>
+          )}
         </div>
       </div>
     </>

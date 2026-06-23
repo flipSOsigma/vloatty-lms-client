@@ -68,6 +68,61 @@ export function CreateLessonInner({ params }: PageProps) {
   const [errorFields, setErrorFields] = useState<{ [key: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasAutofilled, setHasAutofilled] = useState(false);
+
+  const triggerAutofill = async (inputTitle: string) => {
+    if (!inputTitle.trim()) return;
+    if (desc.trim() && !hasAutofilled) return;
+
+    setIsGenerating(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/ai/generate-lesson-desc`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          title: inputTitle.trim(),
+          type,
+          subjectName: subject?.name,
+          subjectDesc: subject?.description,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to generate description");
+      }
+
+      const data = await res.json();
+      if (data.description) {
+        setDesc(data.description);
+        setHasAutofilled(true);
+      }
+    } catch (err: any) {
+      console.error("AI Autofill failed:", err);
+      let userFriendlyMessage = err.message || "";
+      const msgLower = userFriendlyMessage.toLowerCase();
+
+      if (msgLower.includes("failed to fetch") || msgLower.includes("network")) {
+        userFriendlyMessage = "Unable to connect to the server. Please check your internet connection.";
+      } else if (msgLower.includes("api_key") || msgLower.includes("api key") || msgLower.includes("unconfigured")) {
+        userFriendlyMessage = "AI generator is temporarily offline due to setup issues. Please try again later.";
+      } else if (msgLower.includes("busy") || msgLower.includes("503") || msgLower.includes("overloaded") || msgLower.includes("rate") || msgLower.includes("quota") || msgLower.includes("exhausted")) {
+        userFriendlyMessage = "AI is currently busy handling other requests. Please wait a few seconds and try again.";
+      } else {
+        userFriendlyMessage = "We couldn't generate the description. Please try again or type it manually.";
+      }
+
+      showToast(userFriendlyMessage, "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   React.useEffect(() => {
     if (queryModuleId) {
       setSelectedModuleId(queryModuleId);
@@ -267,13 +322,14 @@ export function CreateLessonInner({ params }: PageProps) {
       }, 1000);
     }, 600);
   };
-
   return (
     <>
       <Header />
 
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
-        <div className="flex items-center gap-3">
+      {/* Main container */}
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-8 text-left select-none w-full">
+        {/* Header section */}
+        <div className="flex items-center gap-3 mt-1">
           <Link
             href={`/dashboard/subject/${subject.id}`}
             className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
@@ -281,39 +337,29 @@ export function CreateLessonInner({ params }: PageProps) {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
+            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none">
               Create New Lesson
             </h1>
           </div>
         </div>
 
         {successMessage && (
-          <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] font-bold px-4 py-3 rounded-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="w-full bg-emerald-50 border border-emerald-250 text-emerald-800 text-[13px] font-bold px-4 py-3 rounded-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Check className="w-4 h-4 text-emerald-600" />
             <span>{successMessage}</span>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start w-full">
           {/* Left Column - Form Card */}
-          <div className="lg:col-span-8 flex flex-col gap-6 w-full lg:pl-12">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-[15px] font-semibold text-zinc-800 flex items-center gap-2">
-                <BookOpen className="w-4.5 h-4.5 text-[#d97706]" />
-                Lesson Details
-              </h3>
-              <p className="text-[12px] text-zinc-400 font-medium pl-6">
-                Create and structure learning content inside a designated module.
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5 pl-6">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Select Target Module *</label>
+          <div className="lg:col-span-7 flex flex-col gap-6 w-full lg:pl-[53px]">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Select Target Module *</label>
                 <select
                   value={selectedModuleId}
                   onChange={(e) => setSelectedModuleId(e.target.value)}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                  className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 text-zinc-800 font-semibold text-[13px] focus:outline-none rounded-none"
                 >
                   {subject.modules.map((mod) => (
                     <option key={mod.id} value={mod.id}>
@@ -326,15 +372,15 @@ export function CreateLessonInner({ params }: PageProps) {
                 )}
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">Lesson Type *</label>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Lesson Type *</label>
                 <div className="grid grid-cols-4 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setType("learning")}
-                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                    className={`px-3 py-2.5 rounded-xl border text-[12px] transition-all cursor-pointer text-center font-bold ${
                       type === "learning"
-                        ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
+                        ? "border-[#facc15] bg-[#facc15]/5 text-zinc-950"
                         : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
@@ -343,9 +389,9 @@ export function CreateLessonInner({ params }: PageProps) {
                   <button
                     type="button"
                     onClick={() => setType("assignment")}
-                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                    className={`px-3 py-2.5 rounded-xl border text-[12px] transition-all cursor-pointer text-center font-bold ${
                       type === "assignment"
-                        ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
+                        ? "border-[#facc15] bg-[#facc15]/5 text-zinc-950"
                         : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
@@ -354,9 +400,9 @@ export function CreateLessonInner({ params }: PageProps) {
                   <button
                     type="button"
                     onClick={() => setType("quizzes")}
-                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                    className={`px-3 py-2.5 rounded-xl border text-[12px] transition-all cursor-pointer text-center font-bold ${
                       type === "quizzes"
-                        ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
+                        ? "border-[#facc15] bg-[#facc15]/5 text-zinc-950"
                         : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
@@ -365,9 +411,9 @@ export function CreateLessonInner({ params }: PageProps) {
                   <button
                     type="button"
                     onClick={() => setType("presencion")}
-                    className={`px-3 py-3 rounded-2xl border text-[12.5px] transition-all cursor-pointer text-center font-bold ${
+                    className={`px-3 py-2.5 rounded-xl border text-[12px] transition-all cursor-pointer text-center font-bold ${
                       type === "presencion"
-                        ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950"
+                        ? "border-[#facc15] bg-[#facc15]/5 text-zinc-950"
                         : "border-[#E5E1D8] bg-transparent text-zinc-500 hover:border-zinc-300"
                     }`}
                   >
@@ -376,42 +422,69 @@ export function CreateLessonInner({ params }: PageProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Lesson Title *</label>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Lesson Title *</label>
                 <input
                   type="text"
                   placeholder="e.g. Lesson 1.1: Velocity and Acceleration"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className={`w-full px-3 py-2 bg-zinc-50 border text-[13px] font-semibold text-zinc-800 focus:outline-none rounded-xl ${
-                    errorFields.title ? "border-red-400" : "border-[#E5E1D8]/70 focus:border-[#f97316]/50"
+                  className={`w-full px-1 py-2.5 bg-transparent border-b text-[13px] font-semibold text-zinc-800 focus:outline-none rounded-none transition-all duration-200 ${
+                    errorFields.title ? "border-red-400 focus:border-red-500" : "border-[#E5E1D8] focus:border-zinc-850"
                   }`}
+                  onBlur={(e) => {
+                    triggerAutofill(e.target.value);
+                  }}
                 />
                 {errorFields.title && (
                   <span className="text-[11px] text-red-500 font-bold">{errorFields.title}</span>
                 )}
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Lesson Description</label>
+              <div className="flex flex-col gap-1.5 w-full">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Lesson Description</label>
+                  {title.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => triggerAutofill(title)}
+                      disabled={isGenerating}
+                      className="text-[10px] font-bold text-[#d97706] hover:text-[#b45309] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 select-none"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="w-3 h-3 rounded-full border border-[#d97706]/20 border-t-[#d97706] animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>✨ AI Autofill</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   placeholder="Core topics covered, learning outcomes, or reading assignments..."
                   value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
+                  onChange={(e) => {
+                    setDesc(e.target.value);
+                    if (hasAutofilled) setHasAutofilled(false);
+                  }}
                   rows={4}
-                  className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none resize-none"
+                  className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13px] focus:outline-none resize-none transition-all duration-200"
                 />
               </div>
 
               {/* Lesson Materials / Attachments Section */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">
+              <div className="flex flex-col gap-2 w-full">
+                <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
                   Lesson Materials / Attachments
                 </label>
                 {selectedFiles.length > 0 && (
-                  <div className="flex flex-col gap-2 mb-2">
+                  <div className="flex flex-col gap-2 mb-2 w-full">
                     {selectedFiles.map((file, idx) => (
-                      <div key={idx} className="border border-[#E5E1D8]/70 bg-zinc-50 rounded-xl p-3 flex items-center justify-between gap-4">
+                      <div key={idx} className="bg-transparent border-b border-[#E5E1D8]/45 py-2.5 px-0.5 flex items-center justify-between gap-4 animate-in fade-in">
                         <div className="flex items-center gap-2 min-w-0">
                           <BookOpen className="w-4 h-4 text-zinc-500 shrink-0" />
                           <div className="flex flex-col min-w-0">
@@ -434,7 +507,7 @@ export function CreateLessonInner({ params }: PageProps) {
                     ))}
                   </div>
                 )}
-                <label className="border-2 border-dashed border-[#E5E1D8]/70 hover:border-zinc-400 bg-white/50 hover:bg-white rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group">
+                <label className="border-2 border-dashed border-[#E5E1D8]/70 hover:border-zinc-400 bg-transparent hover:bg-white/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group">
                   <input
                     type="file"
                     multiple
@@ -453,24 +526,24 @@ export function CreateLessonInner({ params }: PageProps) {
 
               {type !== "learning" && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Open Date</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                    <div className="flex flex-col gap-1.5 w-full">
+                      <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Open Date</label>
                       <input
                         type="datetime-local"
                         value={openDate}
                         onChange={(e) => setOpenDate(e.target.value)}
-                        className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                        className="w-full px-1 py-2.5 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13px] focus:outline-none transition-all duration-200"
                       />
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Close Date</label>
+                    <div className="flex flex-col gap-1.5 w-full">
+                      <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Close Date</label>
                       <input
                         type="datetime-local"
                         value={closeDate}
                         onChange={(e) => setCloseDate(e.target.value)}
-                        className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                        className="w-full px-1 py-2.5 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13px] focus:outline-none transition-all duration-200"
                       />
                     </div>
                   </div>
@@ -478,15 +551,15 @@ export function CreateLessonInner({ params }: PageProps) {
                     <span className="text-[11px] text-red-500 font-bold">{errorFields.dates}</span>
                   )}
 
-                  <div className="flex flex-col gap-2 pt-2">
-                    <label className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider">Submission Restriction</label>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-2 pt-2 w-full">
+                    <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Submission Restriction</label>
+                    <div className="grid grid-cols-2 gap-3 w-full">
                       <button
                         type="button"
                         onClick={() => setCloseType("open")}
                         className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                           closeType === "open"
-                            ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950 font-bold"
+                            ? "border-[#facc15] bg-[#facc15]/5 text-zinc-950 font-bold"
                             : "border-[#E5E1D8] bg-transparent text-zinc-500 font-semibold hover:border-zinc-300"
                         }`}
                       >
@@ -502,7 +575,7 @@ export function CreateLessonInner({ params }: PageProps) {
                         onClick={() => setCloseType("restrict")}
                         className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                           closeType === "restrict"
-                            ? "border-[#f97316] bg-[#facc15]/5 text-zinc-950 font-bold"
+                            ? "border-[#facc15] bg-[#facc15]/5 text-zinc-950 font-bold"
                             : "border-[#E5E1D8] bg-transparent text-zinc-500 font-semibold hover:border-zinc-300"
                         }`}
                       >
@@ -517,10 +590,10 @@ export function CreateLessonInner({ params }: PageProps) {
                 </>
               )}
 
-              <div className="flex items-center gap-3 justify-end mt-2">
+              <div className="flex items-center gap-3 justify-end mt-4">
                 <Link
                   href={`/dashboard/subject/${subject.id}`}
-                  className="px-6 py-2.5 rounded-xl border border-[#E5E1D8]/70 text-zinc-700 hover:text-zinc-800 font-semibold text-[11px] bg-white transition-all cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl border border-[#E5E1D8]/70 text-zinc-700 hover:text-zinc-800 font-semibold text-[11px] bg-white hover:bg-zinc-50 transition-all cursor-pointer"
                 >
                   Cancel
                 </Link>
@@ -540,11 +613,11 @@ export function CreateLessonInner({ params }: PageProps) {
             </form>
           </div>
 
-          {/* Right Column - Info Cards */}
-          <div className="lg:col-span-4 flex flex-col gap-6 sticky top-6 text-left self-start w-full">
-            <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-6 flex flex-col gap-5">
-              <div className="flex flex-col gap-1 border-b border-[#E5E1D8]/70 pb-3">
-                <span className="text-[10px] font-semibold text-zinc-800 uppercase tracking-wider mb-1">
+          {/* Right Column - Info Panels */}
+          <div className="lg:col-span-5 flex flex-col gap-8 sticky top-6 text-left self-start w-full lg:border-l lg:border-[#E5E1D8]/45 lg:pl-10">
+            <div className="flex flex-col gap-5 w-full">
+              <div className="flex flex-col gap-1 pb-1">
+                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                   Target Subject
                 </span>
                 <span
@@ -567,24 +640,24 @@ export function CreateLessonInner({ params }: PageProps) {
               </div>
 
               {subject.description && (
-                <p className="text-[11px] text-zinc-500 leading-relaxed font-medium bg-zinc-50 p-3.5 border border-[#E5E1D8]/70 rounded-2xl">
+                <p className="text-[11.5px] text-zinc-500 leading-relaxed font-medium">
                   {subject.description}
                 </p>
               )}
 
               {subject.modules && subject.modules.length > 0 && (
-                <div className="flex flex-col gap-2 pt-1 border-t border-[#E5E1D8]/70 mt-1">
-                  <span className="text-[9px] font-semibold text-zinc-800 uppercase tracking-wider mb-0.5">
+                <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40 mt-1">
+                  <span className="text-[9px] font-semibold text-zinc-400 uppercase tracking-wider mb-0.5">
                     Current Modules ({subject.modules.length})
                   </span>
                   <div className="flex flex-col gap-1.5">
                     {subject.modules.map((mod) => (
                       <div
                         key={mod.id}
-                        className="flex justify-between items-center text-[10.5px] font-semibold text-zinc-800 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl"
+                        className="flex justify-between items-center text-[11.5px] font-semibold text-zinc-700 bg-transparent py-1.5 px-0.5 border-b border-[#E5E1D8]/30 last:border-b-0"
                       >
                         <span className="truncate pr-2">{mod.title}</span>
-                        <span className="text-zinc-400 text-[9px] flex-shrink-0">
+                        <span className="text-zinc-450 text-[9px] flex-shrink-0">
                           {mod.lessons ? mod.lessons.length : 0} lessons
                         </span>
                       </div>
@@ -594,33 +667,33 @@ export function CreateLessonInner({ params }: PageProps) {
               )}
             </div>
 
-            <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-6 flex flex-col gap-4">
-              <h3 className="text-[13px] font-semibold text-zinc-800 flex items-center gap-2 pb-2 border-b border-[#E5E1D8]/70">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-[13px] font-semibold text-zinc-850 flex items-center gap-2 pb-1">
                 <Info className="w-4.5 h-4.5 text-[#d97706]" />
                 Lesson Guidelines
               </h3>
 
-              <div className="flex flex-col gap-4 text-[12px] text-zinc-600 font-medium">
-                <div className="flex gap-2.5 items-start bg-[#facc15]/5 p-3 rounded-2xl border border-[#f97316]/10 text-zinc-800">
+              <div className="flex flex-col gap-4 text-[12px] text-zinc-650 font-medium">
+                <div className="flex gap-2.5 items-start bg-[#facc15]/5 p-3.5 rounded-2xl border border-[#facc15]/20 text-zinc-800">
                   <Lightbulb className="w-4 h-4 text-[#d97706] flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-[12px] block text-[#d97706] mb-0.5">Lesson Placement</span>
+                    <span className="font-semibold text-[11.5px] block text-[#d97706] mb-0.5">Lesson Placement</span>
                     Lessons must reside inside a module segment. They act as actual lecture dates containing materials, notes, and file upload dropzones.
                   </div>
                 </div>
 
-                <div className="flex gap-2.5 items-start bg-zinc-50 p-3 rounded-2xl border border-[#E5E1D8]/70">
+                <div className="flex gap-2.5 items-start bg-white/50 p-3.5 rounded-2xl border border-[#E5E1D8]/70">
                   <Lock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold block text-zinc-800">Locking Policy</span>
+                    <span className="font-semibold block text-zinc-850 mb-0.5">Locking Policy</span>
                     By enabling *Restricted Submission*, the submission slot locks down automatically on the close date, rejecting any late files from students.
                   </div>
                 </div>
 
-                <div className="flex gap-2.5 items-start bg-zinc-50 p-3 rounded-2xl border border-[#E5E1D8]/70">
+                <div className="flex gap-2.5 items-start bg-white/50 p-3.5 rounded-2xl border border-[#E5E1D8]/70">
                   <FileCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold block text-zinc-800">Submissions</span>
+                    <span className="font-semibold block text-zinc-850 mb-0.5">Submissions</span>
                     Students can submit their assignments directly within the lesson row in the main syllabus detail view.
                   </div>
                 </div>

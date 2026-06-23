@@ -465,7 +465,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
         <div className="flex items-center gap-3 mt-1">
           <Link
             href={`/dashboard/institutions/${id}`}
-            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
+            className="w-10 h-10 rounded-full border border-[#EFECE6]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -478,7 +478,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
         </div>
 
         {isLoading ? (
-          <div className="w-full h-64 flex items-center justify-center bg-white border border-[#E5E1D8]/70 rounded-3xl p-8 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]">
+          <div className="w-full h-64 flex items-center justify-center bg-white border border-[#EFECE6]/70 rounded-3xl p-8 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]">
             <span className="text-[13px] font-semibold text-zinc-400">Loading details...</span>
           </div>
         ) : (
@@ -555,7 +555,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
 
             <div className="lg:col-span-3 hidden lg:flex flex-col gap-5 sticky top-6 text-left self-start pl-6">
               {thumbnailInput && thumbnailInput.trim().length > 0 && (
-                <div className="w-24 h-24 rounded-full overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0 mb-2">
+                <div className="w-24 h-24 rounded-full overflow-hidden border border-[#EFECE6]/60 shadow-sm shrink-0 mb-2">
                   <img
                     src={thumbnailInput}
                     alt="Logo"

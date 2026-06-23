@@ -43,22 +43,22 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
   const getStatusColor = (status: string) => {
     if (status === "premium") {
       return {
-        logoBg: "bg-pink-100 text-pink-700",
-        tagBg: "bg-pink-50 text-pink-700 border border-pink-100",
+        logoBg: "bg-[#facc15]/10 text-[#d97706]",
+        tagBg: "bg-[#facc15]/15 text-[#d97706] border border-[#facc15]/30",
         colorHex: "#facc15"
       };
     }
     if (status === "professional") {
       return {
-        logoBg: "bg-emerald-100 text-emerald-700",
-        tagBg: "bg-emerald-50 text-emerald-700 border border-emerald-100",
-        colorHex: "#facc15"
+        logoBg: "bg-zinc-100 text-zinc-900",
+        tagBg: "bg-[#121212] text-white border border-[#121212]/10",
+        colorHex: "#121212"
       };
     }
     return {
-      logoBg: "bg-zinc-100 text-zinc-700",
-      tagBg: "bg-zinc-50 text-zinc-600 border border-zinc-200/60",
-      colorHex: "#121212"
+      logoBg: "bg-zinc-50 text-zinc-400",
+      tagBg: "bg-zinc-100 border border-zinc-200 text-zinc-500",
+      colorHex: "#a1a1aa"
     };
   };
 
@@ -89,7 +89,7 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
       <div
         onClick={() => router.push(`/dashboard/institutions/${inst.id}`)}
         onContextMenu={handleContextMenu}
-        className="bg-white rounded-3xl border border-[#E5E1D8]/70 p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.06)] cursor-pointer select-none h-full text-left shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
+        className="bg-white rounded-[32px] border border-[#EFECE6] p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:shadow-[#121212]/5 hover:scale-[1.015] cursor-pointer select-none h-full text-left shadow-xs group"
       >
         <div className="flex flex-col gap-6 h-full w-full justify-between">
           <div className="flex flex-col gap-4">
@@ -157,7 +157,7 @@ export default function InstitutionCard({ inst, onDelete }: InstitutionCardProps
                 e.stopPropagation();
                 router.push(`/dashboard/institutions/${inst.id}`);
               }}
-              className="bg-zinc-800 text-white font-semibold text-[10.5px] px-4 py-2.5 rounded-xl hover:bg-zinc-700 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+              className="bg-[#121212] text-white font-black text-[11px] px-5 py-2.5 rounded-full transition-all duration-350 cursor-pointer shadow-sm active:scale-[0.98] group-hover:bg-[#facc15] group-hover:text-zinc-950 group-hover:shadow-md group-hover:shadow-[#facc15]/20"
             >
               View details
             </button>

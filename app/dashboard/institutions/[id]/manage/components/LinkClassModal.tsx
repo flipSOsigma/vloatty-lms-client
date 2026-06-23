@@ -26,7 +26,7 @@ export default function LinkClassModal({
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl border border-[#E5E1D8] shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl border border-[#EFECE6] shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
         <div className="p-5 border-b border-zinc-100 flex items-center justify-between">
           <div>
             <h3 className="text-[15px] font-extrabold text-[#121212] tracking-tight">Link Class</h3>
