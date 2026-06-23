@@ -87,6 +87,7 @@ export interface Subject {
   institutionId?: string | null;
   thumbnail?: string | null;
   files?: SubjectFile[];
+  color?: string;
 }
 
 

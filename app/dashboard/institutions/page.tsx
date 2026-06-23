@@ -80,9 +80,9 @@ export default function InstitutionsPage() {
           <div className="anime-card opacity-0 flex justify-end items-center gap-3 w-full mb-1">
             <button
               onClick={() => router.push("/dashboard/institutions/create")}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[11px] cursor-pointer transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-6 py-2.5 bg-[#121212] hover:bg-zinc-900 text-white font-black rounded-full text-[12px] cursor-pointer transition-all shadow-md shadow-zinc-900/10 active:scale-95"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4 stroke-[3]" />
               <span>Add Institution</span>
             </button>
           </div>
@@ -90,15 +90,15 @@ export default function InstitutionsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 w-full items-stretch">
             <div className="anime-card opacity-0 lg:col-span-4 w-full flex flex-col">
               {isLoading ? (
-                <div className="w-full h-64 flex items-center justify-center bg-white border border-[#E5E1D8]/70 rounded-3xl">
-                  <span className="text-[13px] font-semibold text-zinc-400 animate-pulse">Loading institutions list...</span>
+                <div className="w-full h-64 flex items-center justify-center bg-white border border-[#EFECE6] rounded-[32px] shadow-xs">
+                  <span className="text-[13px] font-black text-zinc-400 animate-pulse">Loading institutions list...</span>
                 </div>
               ) : filteredInstitutions.length === 0 ? (
-                <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/40">
+                <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#EFECE6] rounded-[32px] p-6 bg-white/40">
                   <span className="text-[13px] font-semibold text-zinc-400">No institutions found.</span>
                   <button
                     onClick={() => router.push("/dashboard/institutions/create")}
-                    className="mt-3 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[10.5px]"
+                    className="mt-3 px-5 py-2.5 bg-[#121212] hover:bg-zinc-900 text-white font-black rounded-full text-[11px] transition-all shadow-sm active:scale-95"
                   >
                     Register First Institution
                   </button>
@@ -113,7 +113,7 @@ export default function InstitutionsPage() {
             </div>
 
             <div className="anime-card opacity-0 lg:col-span-6 w-full h-full">
-              <div className="bg-white border border-[#E5E1D8]/70 rounded-3xl p-5 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col justify-between text-left h-full min-h-[290px] relative overflow-hidden group">
+              <div className="bg-white border border-[#EFECE6] rounded-[32px] p-5 shadow-xs flex flex-col justify-between text-left h-full min-h-[290px] relative overflow-hidden group">
                 <div className="w-full flex-grow min-h-[200px] flex flex-col justify-between h-full">
                   <ThirtyDaysActivityChart events={events} />
                 </div>

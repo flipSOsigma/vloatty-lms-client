@@ -379,7 +379,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
       {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
         {}
-        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-0">
+        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto no-scrollbar pr-2">
           <div className="flex flex-col gap-5 w-full">
             {selectedSubject.thumbnail && (
               <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0">
@@ -411,14 +411,14 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
 
             {selectedSubject.description && (
-              <p className="text-[12px] text-zinc-500 leading-relaxed font-medium bg-zinc-50 p-4 border border-[#E5E1D8]/70 rounded-2xl">
+              <p className="text-[12px] text-zinc-500 leading-relaxed font-medium px-1">
                 {selectedSubject.description}
               </p>
             )}
 
             {}
             {selectedSubject.schedules && selectedSubject.schedules.length > 0 && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-[#E5E1D8]/40">
+              <div className="flex flex-col gap-2 pt-2">
                 <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                   Class Schedule
                 </span>
@@ -426,7 +426,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                   {selectedSubject.schedules.map((sch, i) => (
                     <div
                       key={i}
-                      className="flex justify-between items-center text-[12px] font-semibold text-zinc-700 bg-zinc-50 px-3.5 py-2 border border-[#E5E1D8]/70 rounded-xl"
+                      className="flex justify-between items-center text-[12px] font-semibold text-zinc-700 bg-transparent px-1 py-2"
                     >
                       <span>{sch.day}</span>
                       <span className="text-zinc-500 text-[11px]">{sch.startTime} - {sch.endTime}</span>
@@ -480,7 +480,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
             return (
               <div className="flex flex-col gap-4 w-full">
-                <div className="flex items-center justify-between border-b border-[#E5E1D8]/45 pb-2">
+                <div className="flex items-center justify-between pb-2">
                   <h3 className="text-[16px] font-semibold text-zinc-800 flex items-center gap-2 tracking-tight">
                     <Users className="w-4.5 h-4.5 text-[#d97706]" />
                     Course Members
@@ -502,7 +502,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                         : "?";
                       
                       return (
-                        <div key={member.userId} className="flex items-center justify-between bg-zinc-50 border border-[#E5E1D8]/70 rounded-xl px-3 py-2">
+                        <div key={member.userId} className="flex items-center justify-between bg-transparent px-1 py-2.5">
                           <div className="flex items-center gap-3 min-w-0">
                             <div
                               className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-semibold border shrink-0"
@@ -611,7 +611,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
               {selectedSubject.modules.map((mod) => (
                 <div
                   key={mod.id}
-                  className="bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] flex flex-col gap-4"
+                  className="bg-transparent border-b border-[#E5E1D8]/50 last:border-b-0 pb-8 flex flex-col gap-4"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-1">
                     <div className="flex flex-col gap-1 max-w-xl md:max-w-2xl">
@@ -623,13 +623,20 @@ export default function SubjectDetailPage({ params }: PageProps) {
                           {mod.title}
                         </h4>
                       </Link>
-                      <p className="text-[11.5px] text-zinc-500 font-semibold leading-relaxed">
+                      <p className="text-[11.5px] text-zinc-500 font-semibold leading-relaxed max-w-lg">
                         {mod.desc}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
                       {hasEditPermission && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href={`/dashboard/subject/${selectedSubject.id}/lesson/create?moduleId=${mod.id}`}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#E5E1D8] text-zinc-700 hover:text-zinc-850 hover:bg-zinc-50 font-bold text-[10px] cursor-pointer transition-all bg-white shadow-2xs mr-1 select-none shrink-0"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Add Lesson</span>
+                          </Link>
                           <button
                             onClick={() => handleEditModule(mod)}
                             className="p-1 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 cursor-pointer"
@@ -719,53 +726,44 @@ export default function SubjectDetailPage({ params }: PageProps) {
                               if (!showLboard || top3.length === 0) return null;
 
                               return (
-                                <div className="flex flex-col gap-2 mt-4 bg-white border border-[#E5E1D8]/70 rounded-3xl shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] p-4 w-full text-left">
-                                  <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                                    <Trophy className="w-3.5 h-3.5 text-[#d97706]" /> Quiz Leaderboard (Top 3 Participants)
+                                <div className="flex flex-col gap-3 mt-4 w-full text-left border-t border-[#E5E1D8]/45 pt-4">
+                                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 mb-1 pl-1">
+                                    <Trophy className="w-3.5 h-3.5 text-[#d97706]" /> Leaderboard (Top 3 Participants)
                                   </span>
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     {top3.map((att: any, idx: number) => {
                                       const name = att.userId ? (att.user?.name || "Student") : att.guestName;
                                       const medals = ["🏆 1st Place", "🥈 2nd Place", "🥉 3rd Place"];
-                                      const medalColors = [
-                                        "bg-amber-500/10 text-amber-800 border-amber-500/20",
-                                        "bg-zinc-500/10 text-zinc-800 border-zinc-500/20",
-                                        "bg-orange-500/10 text-orange-800 border-orange-500/20"
-                                      ];
                                       const pct = Math.round((att.score / att.totalPoints) * 100);
                                       const isMe = (currentUser && att.userId === currentUser.id) || (!currentUser && !att.userId && localStorage.getItem(`quiz_guestName_${lesson.id}`) === att.guestName);
 
                                       return (
                                         <div
                                           key={att.id}
-                                          className={`flex flex-col gap-2 p-3.5 rounded-xl border transition-all duration-300 hover:scale-[1.02] ${
-                                            isMe
-                                              ? "bg-gradient-to-br from-[#facc15]/10 to-white/70 border-[#f97316]/30 shadow-sm shadow-[#facc15]/5"
-                                              : "bg-white/60 hover:bg-white/85 border-white/50 shadow-sm shadow-black/[0.01]"
-                                          }`}
+                                          className={`flex flex-col gap-1.5 p-1 bg-transparent border-b sm:border-b-0 sm:border-r border-[#E5E1D8]/60 sm:last:border-r-0 sm:pr-4 sm:last:pr-0`}
                                         >
                                           <div className="flex justify-between items-center">
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border flex items-center gap-1 ${medalColors[idx]}`}>
+                                            <span className="text-[9.5px] font-bold text-zinc-500">
                                               {medals[idx]}
                                             </span>
-                                            <span className="text-[12px] font-black text-[#d97706] tracking-tight">{pct}%</span>
+                                            <span className="text-[11.5px] font-bold text-[#d97706]">{pct}%</span>
                                           </div>
-                                          <div className="flex items-center gap-2 mt-1 min-w-0">
-                                            <div className="w-5 h-5 rounded-full bg-zinc-200/50 flex items-center justify-center text-[9px] font-semibold text-zinc-500 uppercase shrink-0">
+                                          <div className="flex items-center gap-2 mt-0.5 min-w-0">
+                                            <div className="w-5 h-5 rounded-full bg-[#facc15]/10 text-[#d97706] flex items-center justify-center text-[9px] font-bold uppercase shrink-0">
                                               {name.charAt(0)}
                                             </div>
                                             <div className="flex items-center gap-1.5 min-w-0">
                                               {!att.userId && (
-                                                <span className="bg-amber-100 text-amber-800 text-[8px] font-semibold px-1 rounded border border-amber-200 uppercase shrink-0">Guest</span>
+                                                <span className="bg-amber-100 text-amber-800 text-[8px] font-bold px-1 rounded uppercase shrink-0">Guest</span>
                                               )}
-                                              <span className={`text-[12.5px] truncate ${isMe ? "font-semibold text-zinc-800" : "font-semibold text-zinc-800"}`} title={name}>
-                                                {name}
+                                              <span className={`text-[12.5px] truncate font-semibold text-zinc-800 ${isMe ? "font-bold text-zinc-950" : ""}`} title={name}>
+                                                {name} {isMe && "(You)"}
                                               </span>
                                             </div>
                                           </div>
-                                          <div className="flex justify-between items-center text-[9.5px] text-zinc-400 font-semibold border-t border-zinc-100/50 pt-2 mt-1">
+                                          <div className="flex justify-between items-center text-[9.5px] text-zinc-400 font-semibold mt-1">
                                             <span>Score</span>
-                                            <span className="text-zinc-650 font-semibold">{att.score} / {att.totalPoints}</span>
+                                            <span className="text-zinc-650 font-bold">{att.score} / {att.totalPoints}</span>
                                           </div>
                                         </div>
                                       );

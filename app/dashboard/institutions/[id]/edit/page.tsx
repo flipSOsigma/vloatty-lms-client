@@ -161,23 +161,23 @@ export default function EditInstitutionPage({ params }: PageProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/dashboard/institutions")}
-            className="w-10 h-10 rounded-full border border-[#E5E1D8] flex items-center justify-center text-zinc-600 hover:bg-white hover:border-zinc-400 transition-all duration-200 bg-white cursor-pointer"
+            className="w-10 h-10 rounded-full border border-[#EFECE6] flex items-center justify-center text-zinc-550 hover:bg-zinc-50 hover:text-zinc-950 transition-all duration-200 bg-white cursor-pointer shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-2xl font-extrabold text-[#121212] tracking-tight">
+            <h1 className="text-[34px] font-black text-zinc-955 tracking-tight leading-none mt-1">
               Edit Institution Details
             </h1>
-            <p className="text-[12px] text-zinc-500 font-medium">
+            <p className="text-[12px] text-zinc-450 font-bold leading-normal mt-1 uppercase tracking-wide">
               Update organization name, subscription plan, and customize settings.
             </p>
           </div>
         </div>
 
         {isLoading ? (
-          <div className="w-full h-64 flex items-center justify-center bg-white border border-[#E5E1D8]/60 rounded-3xl p-8">
-            <span className="text-[13px] font-bold text-zinc-400">Loading institution details...</span>
+          <div className="w-full h-64 flex items-center justify-center bg-white border border-[#EFECE6] rounded-[32px] p-8 shadow-xs">
+            <span className="text-[13px] font-black text-zinc-400 animate-pulse">Loading institution details...</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start w-full">
@@ -200,7 +200,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                             value={nameInput}
                             onChange={(e) => setNameInput(e.target.value)}
                             required
-                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 focus:border-[#f97316]"
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#EFECE6] focus:border-[#facc15]/50 focus:ring-1 focus:ring-[#facc15]/20 rounded-2xl text-zinc-800 font-semibold text-[13.5px] focus:outline-none transition-colors duration-200"
                           />
                         </div>
                       </div>
@@ -212,7 +212,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                           <select
                             value={statusInput}
                             onChange={(e) => setStatusInput(e.target.value)}
-                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-semibold focus:outline-none transition-colors duration-200 cursor-pointer focus:border-[#f97316]"
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#EFECE6] focus:border-[#facc15]/50 focus:ring-1 focus:ring-[#facc15]/20 rounded-2xl text-zinc-850 font-semibold text-[13.5px] focus:outline-none transition-colors duration-200 cursor-pointer"
                           >
                             <option value="free">Free Tier</option>
                             <option value="premium">Premium</option>
@@ -231,7 +231,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
                             value={descInput}
                             onChange={(e) => setDescInput(e.target.value)}
                             rows={4}
-                            className="w-full pl-7 pr-1 py-2 bg-transparent border-b border-zinc-200 text-[14px] font-medium focus:outline-none transition-colors duration-200 resize-none focus:border-[#f97316]"
+                            className="w-full pl-7 pr-3 py-2 bg-white border border-[#EFECE6] focus:border-[#facc15]/50 focus:ring-1 focus:ring-[#facc15]/20 rounded-2xl text-zinc-800 font-semibold text-[13.5px] focus:outline-none transition-colors duration-200 resize-none"
                           />
                         </div>
                       </div>
@@ -291,7 +291,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="lg:col-span-3 hidden lg:flex flex-col gap-4 sticky top-6 bg-white border border-[#E5E1D8]/60 p-5 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.005)] text-left self-start animate-in fade-in duration-300">
+            <div className="lg:col-span-3 hidden lg:flex flex-col gap-4 sticky top-6 bg-white border border-[#EFECE6] p-5 rounded-[32px] shadow-xs text-left self-start animate-in fade-in duration-300">
               <span className="text-[10px] font-extrabold uppercase text-zinc-400 tracking-wider">
                 On This Page
               </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { MoreHorizontal, BookOpen, Settings, RefreshCw } from "lucide-react";
 import { Subject } from "../../types/subject";
 import { useRouter } from "next/navigation";
@@ -17,16 +17,20 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
 
-  const subjectColor = "#facc15";
-  const isHexColor = true;
-
-  let colorTheme = {
-    bg: "bg-white",
-    border: "border border-zinc-200/60",
-    shadow: "hover:shadow-[0_20px_40px_rgba(18,18,18,0.04)]",
-    logoBg: "bg-[#ECE8E0] text-zinc-800",
-    tagBg: "bg-zinc-100/60 text-zinc-500",
+  const getSubjectColorHex = (colorName: string | undefined) => {
+    switch (colorName) {
+      case "yellow": return "#facc15";
+      case "blue": return "#3b82f6";
+      case "green": return "#10b981";
+      case "pink": return "#ec4899";
+      case "orange": return "#f97316";
+      case "purple": return "#818cf8";
+      default: return "#facc15";
+    }
   };
+
+  const subjectColor = getSubjectColorHex(subject.color);
+  const isHexColor = true;
 
   const hexToRgba = (hex: string | undefined, opacity: number) => {
     if (!hex) return "";
@@ -43,6 +47,17 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
       return hex;
     }
   };
+
+  const totalLessons = useMemo(() => {
+    let count = 0;
+    subject.modules?.forEach((m) => {
+      count += m.lessons?.length || 0;
+    });
+    return count;
+  }, [subject.modules]);
+
+  const classmatesCount = subject.participants?.length || 0;
+  const modulesCount = subject.modules?.length || 0;
 
   const handleCardClick = () => {
     router.push(`/dashboard/subject/${subject.id}`);
@@ -67,47 +82,65 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
       <div
         onClick={handleCardClick}
         onContextMenu={handleContextMenu}
-        className={`group p-6 rounded-xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:scale-[1.008] cursor-pointer select-none h-full text-left shadow-[0_4px_16px_rgba(0,0,0,0.008)] relative overflow-hidden ${
-          isHexColor ? "" : `${colorTheme.bg} ${colorTheme.border} ${colorTheme.shadow}`
-        }`}
-        style={
-          isHexColor
-            ? {
-                backgroundColor: "#ffffff",
-                border: `1px solid ${hexToRgba(subjectColor, 0.15)}`,
-                boxShadow: `0 10px 30px ${hexToRgba(subjectColor, 0.05)}`,
-              }
-            : undefined
-        }
+        className="group p-5 bg-white border border-[#EFECE6] rounded-[32px] hover:border-zinc-300 hover:shadow-xs cursor-pointer select-none flex flex-col justify-between text-left h-[250px] relative transition-all duration-300 hover:-translate-y-1"
+        style={{
+          boxShadow: `0 8px 24px ${hexToRgba(subjectColor, 0.025)}`,
+        }}
       >
-        <div
-          className="absolute inset-0 w-full h-full bg-cover bg-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
-          style={{ backgroundImage: `url("${subject.thumbnail || "/Subject%20Card%20-%20Thumbnail.png"}")` }}
-        >
-          <div className="absolute inset-0 bg-black/45" />
+        {/* Header row: Lecturer name (left) & More options button (right) */}
+        <div className="flex justify-between items-center w-full relative z-10">
+          <span className="text-[10px] font-extrabold text-zinc-400 leading-normal tracking-wide">
+            {subject.lecturers[0]?.name || "Lecturer"}
+          </span>
+          <button
+            onClick={handleMoreClick}
+            className="w-7 h-7 rounded-full bg-zinc-50 hover:bg-zinc-100 border border-zinc-200/60 flex items-center justify-center text-zinc-500 cursor-pointer transition-colors"
+            title="More options"
+          >
+            <MoreHorizontal className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        <div className="flex flex-col justify-between h-full w-full gap-8 min-h-25 relative z-10">
-          <div className="flex justify-end w-full">
-            <button
-              onClick={handleMoreClick}
-              className="w-8 h-8 rounded-full hover:bg-zinc-100 group-hover:hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-zinc-700 group-hover:text-white/70 group-hover:hover:text-white transition-all cursor-pointer shrink-0"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+        {/* Middle Content block: Room badge, Subject name, Subject description */}
+        <div className="flex flex-col gap-1.5 mt-2 flex-grow justify-center relative z-10">
+          {subject.room && (
+            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md self-start leading-normal ${
+              subject.color === "yellow" ? "text-[#d97706] bg-[#facc15]/15" :
+              subject.color === "blue" ? "text-blue-700 bg-blue-500/10" :
+              subject.color === "green" ? "text-emerald-700 bg-emerald-500/10" :
+              subject.color === "pink" ? "text-[#be185d] bg-[#ec4899]/10" :
+              subject.color === "orange" ? "text-orange-700 bg-orange-500/10" :
+              subject.color === "purple" ? "text-indigo-700 bg-indigo-500/10" :
+              "text-[#d97706] bg-[#facc15]/15"
+            }`}>
+              {subject.room}
+            </span>
+          )}
+
+          <h3 className="text-[18px] font-black text-zinc-955 tracking-tight mt-1 truncate">
+            {subject.name}
+          </h3>
+
+          <p className="text-[11.5px] font-semibold text-zinc-500 leading-relaxed line-clamp-2" title={subject.description}>
+            {subject.description || "Explore syllabus details, learning resources, and assignments."}
+          </p>
+        </div>
+
+        {/* Footer row: separator line, stats, & entry arrow trigger */}
+        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 mt-2 text-[10.5px] font-bold text-zinc-500 relative z-10 select-none">
+          <div className="flex items-center gap-1.5 text-zinc-400">
+            <span>{modulesCount} Modules</span>
+            <span>&bull;</span>
+            <span>{totalLessons} Lessons</span>
+            <span>&bull;</span>
+            <span>{classmatesCount} Students</span>
           </div>
 
-          <div className="flex flex-col mt-auto">
-            {subject.room && (
-              <span className="text-[10.5px] font-medium text-zinc-950 group-hover:text-white/80 transition-colors duration-300">
-                {subject.room}
-              </span>
-            )}
-            <h3 className="text-lg font-black text-zinc-950 group-hover:text-white transition-colors duration-300 tracking-tight leading-snug line-clamp-2">
-              {subject.name}
-            </h3>
+          <div className="w-6 h-6 rounded-full bg-zinc-50 border border-zinc-200/50 group-hover:bg-[#121212] group-hover:text-white group-hover:border-[#121212] flex items-center justify-center transition-colors">
+            <span className="text-[10px] font-black group-hover:translate-x-0.25 transition-all">➔</span>
           </div>
         </div>
+
       </div>
 
       <ContextMenu

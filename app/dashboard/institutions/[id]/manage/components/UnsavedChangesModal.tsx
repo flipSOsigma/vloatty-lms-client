@@ -22,7 +22,7 @@ export default function UnsavedChangesModal({
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl border border-[#E5E1D8] shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 select-none">
+      <div className="bg-white rounded-3xl border border-[#EFECE6] shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 select-none">
         <div className="p-6 flex flex-col items-center text-center gap-4">
           <div className="flex items-center justify-between w-full">
             <div className="w-8 h-8" />

@@ -101,7 +101,7 @@ export default function ClassesLinkedSection({
 
       <div className="w-full overflow-x-auto">
         {linkedSubjects.length === 0 ? (
-          <div className="w-full h-32 flex items-center justify-center border border-dashed border-[#E5E1D8] rounded-2xl bg-white/40">
+          <div className="w-full h-32 flex items-center justify-center border border-dashed border-[#EFECE6] rounded-2xl bg-white/40">
             <span className="text-[12px] text-zinc-400 font-semibold">
               No classes linked to this institution.
             </span>
