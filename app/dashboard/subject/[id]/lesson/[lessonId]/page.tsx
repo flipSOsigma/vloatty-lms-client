@@ -104,6 +104,7 @@ function LessonDetailInner({ params }: PageProps) {
   const [quizSaving, setQuizSaving] = useState(false);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [quizTab, setQuizTab] = useState<"quiz" | "settings" | "submissions">("quiz");
+  const [selectedAssignmentForReview, setSelectedAssignmentForReview] = useState<any>(null);
   const [showSubjectDetails, setShowSubjectDetails] = useState<boolean>(true);
   const [aiQuestionCount, setAiQuestionCount] = useState<number>(5);
   const [aiDifficulty, setAiDifficulty] = useState<string>("medium");
@@ -113,6 +114,7 @@ function LessonDetailInner({ params }: PageProps) {
   const [guestName, setGuestName] = useState("");
   const [isGuestStarted, setIsGuestStarted] = useState(false);
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
+  const [answerLogs, setAnswerLogs] = useState<{ questionId: string; optionIndex: number; createdAt: string }[]>([]);
   const [myAttempt, setMyAttempt] = useState<any>(null);
 
   // Assignment states
@@ -459,6 +461,7 @@ function LessonDetailInner({ params }: PageProps) {
         body: JSON.stringify({
           guestName: currentUser ? undefined : guestName.trim(),
           answers: userAnswers,
+          answerLogs,
         }),
       });
 
@@ -1842,6 +1845,13 @@ function LessonDetailInner({ params }: PageProps) {
                                     </td>
                                     <td className="px-4 py-3.5 text-right">
                                       <div className="flex justify-end gap-1.5">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedAssignmentForReview(sub)}
+                                          className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full text-[10px] transition-colors cursor-pointer"
+                                        >
+                                          Review
+                                        </button>
                                         <a
                                           href={sub.filePath}
                                           target="_blank"
@@ -2401,7 +2411,8 @@ function LessonDetailInner({ params }: PageProps) {
                                       <th className="px-4 py-3">Type</th>
                                       <th className="px-4 py-3">Score</th>
                                       <th className="px-4 py-3">Percentage</th>
-                                      <th className="px-4 py-3 text-right">Submitted At</th>
+                                      <th className="px-4 py-3">Submitted At</th>
+                                      <th className="px-4 py-3 text-right">Actions</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-zinc-100">
@@ -2435,7 +2446,15 @@ function LessonDetailInner({ params }: PageProps) {
                                           </td>
                                           <td className="px-4 py-3 font-bold text-zinc-700">{att.score} / {att.totalPoints}</td>
                                           <td className="px-4 py-3 font-bold text-[#d97706]">{pct}%</td>
-                                          <td className="px-4 py-3 text-right text-zinc-400 font-medium">{formatDate(att.submittedAt)}</td>
+                                          <td className="px-4 py-3 text-zinc-400 font-medium">{formatDate(att.submittedAt)}</td>
+                                          <td className="px-4 py-3 text-right">
+                                            <Link
+                                              href={`/dashboard/subject/${id}/lesson/${lessonId}/review/${att.id}`}
+                                              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full text-[10px] transition-colors cursor-pointer inline-block text-center"
+                                            >
+                                              Review
+                                            </Link>
+                                          </td>
                                         </tr>
                                       );
                                     })}
@@ -2542,7 +2561,10 @@ function LessonDetailInner({ params }: PageProps) {
                                           <button
                                             key={optIdx}
                                             type="button"
-                                            onClick={() => setUserAnswers((prev) => ({ ...prev, [q.id]: optIdx }))}
+                                            onClick={() => {
+                                              setUserAnswers((prev) => ({ ...prev, [q.id]: optIdx }));
+                                              setAnswerLogs((prev) => [...prev, { questionId: q.id, optionIndex: optIdx, createdAt: new Date().toISOString() }]);
+                                            }}
                                             className="w-full py-2 flex items-center gap-3 text-left text-[12.5px] font-semibold transition-all cursor-pointer group text-zinc-700 hover:text-zinc-950"
                                           >
                                             <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
@@ -2885,6 +2907,127 @@ function LessonDetailInner({ params }: PageProps) {
                     )}
                   </>
                 )}
+              </div>
+            </div>
+             )}
+
+          {/* Assignment Submission Review Modal */}
+          {selectedAssignmentForReview && (
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+              <div className="bg-white border border-[#E5E1D8]/80 rounded-3xl p-6 shadow-2xl max-w-lg w-full flex flex-col gap-6 animate-in zoom-in-95 duration-200">
+                
+                {/* Modal Header */}
+                <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+                  <div className="flex flex-col text-left">
+                    <h3 className="text-[16px] text-zinc-900 font-black">
+                      Assignment Submission Review
+                    </h3>
+                    <p className="text-[11px] text-zinc-400 font-bold mt-1">
+                      Student: <span className="text-zinc-700 font-extrabold">{selectedAssignmentForReview.user?.name || "Student"}</span>
+                    </p>
+                  </div>
+                  
+                  <button
+                    onClick={() => setSelectedAssignmentForReview(null)}
+                    className="p-1.5 rounded-full text-zinc-400 hover:text-zinc-650 hover:bg-zinc-100 transition-all cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Content */}
+                <div className="flex flex-col gap-5 text-left">
+                  <div className="p-4 bg-zinc-50 border border-[#E5E1D8]/30 rounded-2xl flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-[11px] text-zinc-400 font-bold">
+                      <span>FILE DETAILS</span>
+                      <span>{(selectedAssignmentForReview.fileSize / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <h4 className="text-[13px] font-bold text-zinc-800 break-all">
+                      {selectedAssignmentForReview.fileName}
+                    </h4>
+                    <div className="text-[10px] text-zinc-400 font-semibold mt-1">
+                      Submitted: {formatDate(selectedAssignmentForReview.submittedAt)}
+                    </div>
+                  </div>
+
+                  {/* Interactive File Preview Mockup / grading */}
+                  <div className="flex flex-col gap-3">
+                    <label className="text-[10.5px] font-extrabold text-zinc-500 uppercase tracking-wider pl-1">
+                      Grading & Feedback
+                    </label>
+                    <div className="flex gap-3">
+                      <div className="w-24 flex flex-col gap-1">
+                        <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider pl-1">Score (0-100)</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="--"
+                          className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-bold text-[13px] text-center focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col gap-1">
+                        <span className="text-[9.5px] font-bold text-zinc-400 uppercase tracking-wider pl-1">Reviewer Note</span>
+                        <input
+                          type="text"
+                          placeholder="Excellent work! Neat formatting..."
+                          className="w-full px-3 py-2 bg-zinc-50 border border-[#E5E1D8]/70 focus:border-[#f97316]/50 rounded-xl text-zinc-800 font-semibold text-[13px] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Document Preview Placeholder */}
+                  {selectedAssignmentForReview.fileName.match(/\.(png|jpg|jpeg|gif)$/i) ? (
+                    <div className="w-full h-32 rounded-2xl border border-zinc-200 overflow-hidden bg-zinc-50 flex items-center justify-center">
+                      <img
+                        src={selectedAssignmentForReview.filePath}
+                        alt="Submission Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full p-4 bg-amber-50/30 border border-amber-100 rounded-2xl flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-[#facc15]/10 flex items-center justify-center font-bold text-[#d97706] text-[11px] uppercase shrink-0">
+                        {selectedAssignmentForReview.fileName.split(".").pop() || "DOC"}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[12px] font-bold text-zinc-700">Preview not available</span>
+                        <span className="text-[10px] text-zinc-400 font-medium">Use 'Open File' to download or inspect in browser</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
+                  <a
+                    href={selectedAssignmentForReview.filePath}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 border border-[#E5E1D8] hover:bg-zinc-50 text-zinc-700 font-bold rounded-xl text-[12px] transition-colors"
+                  >
+                    Open File
+                  </a>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedAssignmentForReview(null)}
+                      className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold rounded-xl text-[12px] transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        showToast("Grade and feedback saved successfully!", "success");
+                        setSelectedAssignmentForReview(null);
+                      }}
+                      className="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl text-[12px] shadow-sm transition-all cursor-pointer"
+                    >
+                      Save Review
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

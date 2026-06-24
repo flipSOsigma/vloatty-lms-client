@@ -20,6 +20,16 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        const path = window.location.pathname;
+        const isPublicPage = path === "/" || path === "/login" || path === "/register";
+        if (!isPublicPage) {
+          window.location.href = "/login?expired=true";
+        }
+      }
+    }
     const errorBody = await res.json().catch(() => ({}));
     const message =
       (errorBody as { error?: string }).error ||

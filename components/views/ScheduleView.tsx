@@ -609,7 +609,7 @@ export default function ScheduleView() {
             </div>
 
             {/* Day Headers (Bottom 45px) */}
-            <div className="absolute bottom-0 left-0 right-0 h-[45px] bg-[#FAF7F2]/60 backdrop-blur-xs">
+            <div className="absolute bottom-0 left-0 right-0  h-[45px] bg-[#FAF7F2]/60 backdrop-blur-xs">
               {DAYS.map((day, idx) => {
                 const isSelected = idx === activeDayIndex;
                 const isToday = idx === todayIndex;

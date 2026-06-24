@@ -49,10 +49,10 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
 
   const [toasts, setToasts] = useState<{ message: string; type: "success" | "error"; id: string }[]>([]);
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = React.useCallback((message: string, type: "success" | "error" = "success") => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { message, type, id }]);
-  };
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -247,7 +247,11 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         headers: tokenToUse ? { "Authorization": `Bearer ${tokenToUse}` } : {}
       })
         .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch user profile from server");
+          if (!res.ok) {
+            const error = new Error("Failed to fetch user profile from server");
+            (error as any).status = res.status;
+            throw error;
+          }
           return res.json();
         })
         .then((data) => {
@@ -257,6 +261,25 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsLoadingUser(false);
         })
         .catch((err) => {
+          if (err.status === 401 || err.status === 403) {
+            console.warn("Session expired or invalid token:", err);
+            localStorage.removeItem("token");
+            setCurrentUser(null);
+            setIsLoadingUser(false);
+            
+            const path = typeof window !== "undefined" ? window.location.pathname : "";
+            const isPublicPage = path === "/" || path === "/login" || path === "/register";
+            
+            if (typeof window !== "undefined") {
+              if (!isPublicPage) {
+                window.location.href = "/login?expired=true";
+              } else if (path === "/") {
+                showToast("Your session has expired. Please sign in again.", "error");
+              }
+            }
+            return;
+          }
+
           console.error("Error fetching user data in LMS Context, falling back to local mock data:", err);
 
           fetch(`/data/user.json?t=${Date.now()}`, { cache: "no-store" })
@@ -340,6 +363,12 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("token");
+          setCurrentUser(null);
+          showToast("Your session has expired. Please sign in again.", "error");
+          return;
+        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to add subject on the server");
       }
@@ -364,6 +393,12 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("token");
+          setCurrentUser(null);
+          showToast("Your session has expired. Please sign in again.", "error");
+          return;
+        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to delete subject on the server");
       }
@@ -395,6 +430,12 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem("token");
+          setCurrentUser(null);
+          showToast("Your session has expired. Please sign in again.", "error");
+          return;
+        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || "Failed to update subject on the server");
       }

@@ -8,7 +8,7 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { currentUser, setCurrentUser, isLoadingUser } = useLms();
+  const { currentUser, setCurrentUser, isLoadingUser, showToast } = useLms();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +21,19 @@ export default function LoginPage() {
       router.push("/dashboard");
     }
   }, [currentUser, isLoadingUser, router]);
+
+  // Check for expired session parameter and show toast
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get("expired") === "true") {
+        showToast("Your session has expired. Please sign in again.", "error");
+        // Clear query parameter from the URL bar cleanly
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  }, [showToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
