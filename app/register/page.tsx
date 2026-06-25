@@ -54,6 +54,7 @@ export default function RegisterPage() {
 
       if (data.jwt?.accessToken) {
         localStorage.setItem("token", data.jwt.accessToken);
+        document.cookie = `token=${data.jwt.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       }
 
       if (data.user && setCurrentUser) {

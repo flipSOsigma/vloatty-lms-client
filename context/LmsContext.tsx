@@ -54,10 +54,23 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToasts((prev) => [...prev, { message, type, id }]);
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setCurrentUser(null);
-    window.location.href = "/login";
+  const logout = async () => {
+    try {
+      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (currentToken) {
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${currentToken}` }
+        });
+      }
+    } catch (err) {
+      console.error("Logout API call failed:", err);
+    } finally {
+      localStorage.removeItem("token");
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      setCurrentUser(null);
+      window.location.href = "/login";
+    }
   };
   const [selectedView, setSelectedView] = useState<CalendarViewType>("week");
   const [activeDayIndex, setActiveDayIndex] = useState<number>(3);
@@ -264,6 +277,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (err.status === 401 || err.status === 403) {
             console.warn("Session expired or invalid token:", err);
             localStorage.removeItem("token");
+            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
             setCurrentUser(null);
             setIsLoadingUser(false);
             
@@ -365,6 +379,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           setCurrentUser(null);
           showToast("Your session has expired. Please sign in again.", "error");
           return;
@@ -395,6 +410,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           setCurrentUser(null);
           showToast("Your session has expired. Please sign in again.", "error");
           return;
@@ -432,6 +448,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
+          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
           setCurrentUser(null);
           showToast("Your session has expired. Please sign in again.", "error");
           return;

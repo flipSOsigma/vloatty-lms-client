@@ -59,6 +59,7 @@ export default function LoginPage() {
 
       if (data.jwt?.accessToken) {
         localStorage.setItem("token", data.jwt.accessToken);
+        document.cookie = `token=${data.jwt.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       }
       
       if (data.user && setCurrentUser) {
@@ -78,6 +79,7 @@ export default function LoginPage() {
           
           if (fallbackData.jwt?.accessToken) {
             localStorage.setItem("token", fallbackData.jwt.accessToken);
+            document.cookie = `token=${fallbackData.jwt.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
           }
           if (fallbackData.user && setCurrentUser) {
             setCurrentUser(fallbackData.user);
