@@ -38,6 +38,27 @@ export function CreateLessonInner({ params }: PageProps) {
   const subject = subjects.find((s) => s.id === id);
 
   const [selectedModuleId, setSelectedModuleId] = useState("");
+  const [aiTokens, setAiTokens] = useState<{ balance: number; maxTokens: number } | null>(null);
+
+  const fetchAiTokens = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE_URL}/users/${currentUser.id}/ai-tokens`, {
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiTokens(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch AI tokens:", e);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAiTokens();
+  }, [currentUser]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [openDate, setOpenDate] = useState(() => {
@@ -94,13 +115,14 @@ export function CreateLessonInner({ params }: PageProps) {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to generate description");
+        throw new Error(errData.message || errData.error || "Failed to generate description");
       }
 
       const data = await res.json();
       if (data.description) {
         setDesc(data.description);
         setHasAutofilled(true);
+        fetchAiTokens();
       }
     } catch (err: any) {
       console.error("AI Autofill failed:", err);
@@ -109,6 +131,8 @@ export function CreateLessonInner({ params }: PageProps) {
 
       if (msgLower.includes("failed to fetch") || msgLower.includes("network")) {
         userFriendlyMessage = "Unable to connect to the server. Please check your internet connection.";
+      } else if (msgLower.includes("limit reached") || msgLower.includes("token")) {
+        userFriendlyMessage = "Daily AI token limit reached. Resets tomorrow.";
       } else if (msgLower.includes("api_key") || msgLower.includes("api key") || msgLower.includes("unconfigured")) {
         userFriendlyMessage = "AI generator is temporarily offline due to setup issues. Please try again later.";
       } else if (msgLower.includes("busy") || msgLower.includes("503") || msgLower.includes("overloaded") || msgLower.includes("rate") || msgLower.includes("quota") || msgLower.includes("exhausted")) {
@@ -432,9 +456,6 @@ export function CreateLessonInner({ params }: PageProps) {
                   className={`w-full px-1 py-2.5 bg-transparent border-b text-[13px] font-semibold text-zinc-800 focus:outline-none rounded-none transition-all duration-200 ${
                     errorFields.title ? "border-red-400 focus:border-red-500" : "border-[#E5E1D8] focus:border-zinc-850"
                   }`}
-                  onBlur={(e) => {
-                    triggerAutofill(e.target.value);
-                  }}
                 />
                 {errorFields.title && (
                   <span className="text-[11px] text-red-500 font-bold">{errorFields.title}</span>
@@ -444,25 +465,32 @@ export function CreateLessonInner({ params }: PageProps) {
               <div className="flex flex-col gap-1.5 w-full">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Lesson Description</label>
-                  {title.trim() && (
-                    <button
-                      type="button"
-                      onClick={() => triggerAutofill(title)}
-                      disabled={isGenerating}
-                      className="text-[10px] font-bold text-[#d97706] hover:text-[#b45309] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 select-none"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <div className="w-3 h-3 rounded-full border border-[#d97706]/20 border-t-[#d97706] animate-spin" />
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>✨ AI Autofill</span>
-                        </>
-                      )}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {aiTokens && (
+                      <span className="text-[9.5px] font-bold text-zinc-400 bg-zinc-100 border border-zinc-200/50 px-2.5 py-0.5 rounded-full select-none">
+                        ✦ {aiTokens.balance} / {aiTokens.maxTokens} left
+                      </span>
+                    )}
+                    {title.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => triggerAutofill(title)}
+                        disabled={isGenerating}
+                        className="text-[10px] font-bold text-[#d97706] hover:text-[#b45309] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 select-none"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <div className="w-3 h-3 rounded-full border border-[#d97706]/20 border-t-[#d97706] animate-spin" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>✨ AI Autofill</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <textarea
                   placeholder="Core topics covered, learning outcomes, or reading assignments..."

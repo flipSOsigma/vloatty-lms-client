@@ -361,7 +361,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
       {/* Shared scrollable main container */}
       <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
-        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
+        <div className="w-full px-3 sm:px-6 md:px-8 flex flex-col gap-6">
           {/* Back button and page status header */}
           <div className="flex items-center justify-between mt-1">
           <Link
@@ -401,7 +401,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
               >
                 {selectedSubject.room || "Room Online"}
               </span>
-              <h2 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
+              <h2 className="text-2xl sm:text-[34px] font-semibold text-zinc-800 tracking-tight leading-tight mt-1">
                 {selectedSubject.name}
               </h2>
               <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
@@ -411,7 +411,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
 
             {selectedSubject.description && (
-              <p className="text-[12px] text-zinc-500 leading-relaxed font-medium px-1">
+              <p className="hidden sm:block text-[12px] text-zinc-500 leading-relaxed font-medium px-1">
                 {selectedSubject.description}
               </p>
             )}
@@ -608,7 +608,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
             </div>
           ) : (
             <div className="flex flex-col gap-6">
-              {selectedSubject.modules.map((mod) => (
+              {selectedSubject.modules.map((mod, index) => (
                 <div
                   key={mod.id}
                   className="bg-transparent border-b border-[#E5E1D8]/50 last:border-b-0 pb-8 flex flex-col gap-4"
@@ -620,14 +620,14 @@ export default function SubjectDetailPage({ params }: PageProps) {
                         className="hover:text-[#d97706] transition-colors"
                       >
                         <h4 className="text-[16px] font-semibold text-zinc-800">
-                          {mod.title}
+                          Module {index + 1}: {mod.title}
                         </h4>
                       </Link>
                       <p className="text-[11.5px] text-zinc-500 font-semibold leading-relaxed max-w-lg">
                         {mod.desc}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 whitespace-nowrap">
                       {hasEditPermission && (
                         <div className="flex items-center gap-1.5">
                           <Link

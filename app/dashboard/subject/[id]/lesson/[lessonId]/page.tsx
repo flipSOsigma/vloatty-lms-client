@@ -356,7 +356,7 @@ function LessonDetailInner({ params }: PageProps) {
           throw new Error("AI is busy right now. Please try again shortly.");
         }
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to generate quiz");
+        throw new Error(errData.message || errData.error || "Failed to generate quiz");
       }
 
       const data = await res.json();
@@ -376,6 +376,8 @@ function LessonDetailInner({ params }: PageProps) {
 
       if (msgLower.includes("failed to fetch") || msgLower.includes("network")) {
         userFriendlyMessage = "Unable to connect to the server. Please check your internet connection.";
+      } else if (msgLower.includes("limit reached") || msgLower.includes("token")) {
+        userFriendlyMessage = "Daily AI token limit reached. Resets tomorrow.";
       } else if (msgLower.includes("api_key") || msgLower.includes("api key") || msgLower.includes("unconfigured")) {
         userFriendlyMessage = "AI generator is temporarily offline due to setup issues. Please try again later.";
       } else if (msgLower.includes("busy") || msgLower.includes("503") || msgLower.includes("overloaded") || msgLower.includes("rate") || msgLower.includes("quota") || msgLower.includes("exhausted")) {

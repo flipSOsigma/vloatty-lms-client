@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Read token from cookie
   const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Config to specify matching paths that run the middleware
+// Config to specify matching paths that run the proxy
 export const config = {
   matcher: ["/dashboard/:path*", "/login", "/register"],
 };

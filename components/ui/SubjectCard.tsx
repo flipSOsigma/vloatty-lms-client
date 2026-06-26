@@ -117,18 +117,18 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
             </span>
           )}
 
-          <h3 className="text-[18px] font-black text-zinc-955 tracking-tight mt-1 truncate">
+          <h3 className="text-base sm:text-[18px] font-black text-zinc-955 tracking-tight mt-1 truncate">
             {subject.name}
           </h3>
 
-          <p className="text-[11.5px] font-semibold text-zinc-500 leading-relaxed line-clamp-2" title={subject.description}>
+          <p className="text-[10.5px] sm:text-[11.5px] font-semibold text-zinc-500 leading-relaxed line-clamp-2" title={subject.description}>
             {subject.description || "Explore syllabus details, learning resources, and assignments."}
           </p>
         </div>
 
         {/* Footer row: separator line, stats, & entry arrow trigger */}
-        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 mt-2 text-[10.5px] font-bold text-zinc-500 relative z-10 select-none">
-          <div className="flex items-center gap-1.5 text-zinc-400">
+        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 mt-2 text-[9.5px] sm:text-[10.5px] font-bold text-zinc-500 relative z-10 select-none">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-zinc-400">
             <span>{modulesCount} Modules</span>
             <span>&bull;</span>
             <span>{totalLessons} Lessons</span>

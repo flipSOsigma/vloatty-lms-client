@@ -175,7 +175,22 @@ export default function ScheduleView() {
     selectedCategories,
     toggleCategory,
     setSelectedEvent,
+    currentUser,
   } = useLms();
+
+  const userSubjects = React.useMemo(() => {
+    if (!currentUser?.id) return [];
+    return subjects.filter((subject) =>
+      subject.createdBy === currentUser.id ||
+      subject.lecturers?.some((l) => l.userId === currentUser.id) ||
+      subject.participants?.some((p) => p.userId === currentUser.id)
+    );
+  }, [subjects, currentUser]);
+
+  const userEvents = React.useMemo(() => {
+    const userSubjIds = new Set(userSubjects.map((s) => s.id));
+    return events.filter((evt) => !evt.subjectId || userSubjIds.has(evt.subjectId));
+  }, [events, userSubjects]);
 
   const [mounted, setMounted] = React.useState(false);
   const [activeViewMode, setActiveViewMode] = React.useState<"Day" | "Week" | "Month">("Month");
@@ -243,15 +258,15 @@ export default function ScheduleView() {
   }, [todayIndex]);
 
   const filteredEvents = React.useMemo(() => {
-    const mapped = events.map((event) => {
-      const { startDayIdx, endDayIdx } = getEventDayBounds(event, DAYS, subjects);
+    const mapped = userEvents.map((event) => {
+      const { startDayIdx, endDayIdx } = getEventDayBounds(event, DAYS, userSubjects);
       
       let openDateVal = "";
       let closeDateVal = "";
       if (event.id && (event.id.startsWith("open-") || event.id.startsWith("deadline-"))) {
         const isOpen = event.id.startsWith("open-");
         const lessonId = event.id.substring(isOpen ? 5 : 9);
-        const subject = subjects.find((s) => s.id === event.subjectId);
+        const subject = userSubjects.find((s) => s.id === event.subjectId);
         subject?.modules?.forEach((mod: any) => {
           mod.lessons?.forEach((les: any) => {
             if (les.id === lessonId) {
@@ -279,7 +294,7 @@ export default function ScheduleView() {
 
       if (event.id.startsWith("open-")) {
         const lessonId = event.id.substring(5);
-        const hasDeadline = events.some((e) => e.id === `deadline-${lessonId}`);
+        const hasDeadline = userEvents.some((e) => e.id === `deadline-${lessonId}`);
         if (hasDeadline) return false;
       }
 
@@ -303,7 +318,7 @@ export default function ScheduleView() {
         return eventCategory.toLowerCase().includes(cat.toLowerCase());
       });
     });
-  }, [events, DAYS, subjects, searchQuery, selectedCategories]);
+  }, [userEvents, DAYS, userSubjects, searchQuery, selectedCategories]);
 
   // Filter events active for the selected day
   const visibleFilteredEvents = React.useMemo(() => {
@@ -408,24 +423,24 @@ export default function ScheduleView() {
       
       {/* Title & Description row */}
       <div className="mb-6 text-left">
-        <h1 className="text-[28px] font-black text-zinc-950 tracking-tight">Timeline</h1>
-        <p className="text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
+        <h1 className="text-xl sm:text-[28px] font-black text-zinc-950 tracking-tight">Timeline</h1>
+        <p className="hidden sm:block text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
           Detailed, visual representation of a project's journey, highlighting key milestones, progress updates, and upcoming tasks.
         </p>
       </div>
 
       {/* Timeline Controls Bar (Match ref.jpg structure & premium theme style) */}
-      <div className="anime-card opacity-0 flex flex-wrap justify-between items-center gap-4 w-full mb-6 px-0.5 relative z-40">
+      <div className="anime-card opacity-0 flex flex-wrap justify-between items-center gap-3 w-full mb-4 px-0.5 relative z-40">
         
         {/* Left Side: View Mode Tabs & Navigation Arrows with Date Range */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Day / Week / Month Pill Tabs */}
           <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-[#EFECE6] shadow-2xs">
             {(["Day", "Week", "Month"] as const).map((view) => (
               <button
                 key={view}
                 onClick={() => setActiveViewMode(view)}
-                className={`px-4 py-1.5 rounded-full text-[11.5px] font-extrabold tracking-tight transition-all cursor-pointer ${
+                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-[11.5px] font-extrabold tracking-tight transition-all cursor-pointer ${
                   activeViewMode === view
                     ? "bg-[#121212] text-white shadow-sm"
                     : "text-zinc-500 hover:text-zinc-800"
@@ -437,42 +452,42 @@ export default function ScheduleView() {
           </div>
 
           {/* Date range display & navigation arrows */}
-          <div className="flex items-center bg-white rounded-full border border-[#EFECE6] shadow-2xs px-3 py-1.5 text-[11.5px] font-extrabold text-zinc-700">
+          <div className="flex items-center bg-white rounded-full border border-[#EFECE6] shadow-2xs px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-[11.5px] font-extrabold text-zinc-700">
             <button 
               onClick={scrollLeft} 
-              className="hover:text-zinc-950 cursor-pointer p-0.5 transition-colors"
+              className="hover:text-zinc-955 cursor-pointer p-0.5 transition-colors"
               title="Scroll Left"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <span className="min-w-[130px] text-center select-none tracking-tight px-1 text-zinc-950 font-extrabold">
+            <span className="min-w-[100px] sm:min-w-[130px] text-center select-none tracking-tight px-1 text-zinc-955 font-extrabold">
               {dateRangeText}
             </span>
             <button 
               onClick={scrollRight} 
-              className="hover:text-zinc-950 cursor-pointer p-0.5 transition-colors"
+              className="hover:text-zinc-955 cursor-pointer p-0.5 transition-colors"
               title="Scroll Right"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
         {/* Right Side: Toggle Done, Sort & Filter dropdown triggers, Jump to Today */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           
           {/* Show done toggle */}
-          <div className="flex items-center gap-2 text-[11.5px] font-extrabold text-zinc-500 mr-2">
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11.5px] font-extrabold text-zinc-500 mr-1">
             <span>Show done</span>
             <button
               onClick={() => setShowDone(!showDone)}
-              className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer relative ${
+              className={`w-7.5 h-4.5 rounded-full p-0.5 transition-colors duration-200 focus:outline-none cursor-pointer relative ${
                 showDone ? "bg-zinc-950" : "bg-zinc-200"
               }`}
             >
               <div
                 className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                  showDone ? "translate-x-3.5" : "translate-x-0"
+                  showDone ? "translate-x-3" : "translate-x-0"
                 }`}
               />
             </button>
@@ -485,7 +500,7 @@ export default function ScheduleView() {
                 setSortDropdownOpen(!sortDropdownOpen);
                 setFilterDropdownOpen(false);
               }}
-              className={`flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-zinc-50 text-zinc-750 font-extrabold rounded-full text-[11.5px] cursor-pointer border border-[#EFECE6] shadow-2xs active:scale-95 transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white hover:bg-zinc-50 text-zinc-750 font-extrabold rounded-full text-[10px] sm:text-[11.5px] cursor-pointer border border-[#EFECE6] shadow-2xs active:scale-95 transition-all ${
                 sortDropdownOpen ? "border-zinc-950 text-zinc-950" : ""
               }`}
             >
@@ -527,7 +542,7 @@ export default function ScheduleView() {
                 setFilterDropdownOpen(!filterDropdownOpen);
                 setSortDropdownOpen(false);
               }}
-              className={`flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-zinc-50 text-zinc-750 font-extrabold rounded-full text-[11.5px] cursor-pointer border border-[#EFECE6] shadow-2xs active:scale-95 transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white hover:bg-zinc-50 text-zinc-750 font-extrabold rounded-full text-[10px] sm:text-[11.5px] cursor-pointer border border-[#EFECE6] shadow-2xs active:scale-95 transition-all ${
                 filterDropdownOpen ? "border-zinc-950 text-zinc-950" : ""
               }`}
             >
@@ -562,7 +577,7 @@ export default function ScheduleView() {
           {/* Jump to Today Button */}
           <button
             onClick={scrollToToday}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[#121212] hover:bg-zinc-900 text-white font-extrabold rounded-full text-[11.5px] cursor-pointer transition-all shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#121212] hover:bg-zinc-900 text-white font-extrabold rounded-full text-[10px] sm:text-[11.5px] cursor-pointer transition-all shadow-xs active:scale-95"
           >
             <Calendar className="w-3.5 h-3.5 text-[#facc15]" />
             <span>Jump to Today</span>

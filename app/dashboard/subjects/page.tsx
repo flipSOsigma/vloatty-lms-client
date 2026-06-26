@@ -48,8 +48,8 @@ export default function SubjectsPage() {
           
           {/* Title & Description row */}
           <div className="mb-2 text-left">
-            <h1 className="text-[28px] font-black text-zinc-950 tracking-tight">Subjects</h1>
-            <p className="text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
+            <h1 className="text-xl sm:text-[28px] font-black text-zinc-955 tracking-tight">Subjects</h1>
+            <p className="hidden sm:block text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
               Manage your academic courses, view syllabus details, modules, schedules, and monitor learning progress.
             </p>
           </div>
@@ -57,13 +57,13 @@ export default function SubjectsPage() {
           <div className="flex justify-between items-center gap-3 w-full mb-1">
             <Link
               href="/dashboard/subject/create"
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-[#121212] hover:bg-zinc-900 text-white font-extrabold rounded-full text-[11.5px] cursor-pointer transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 bg-[#121212] hover:bg-zinc-900 text-white font-extrabold rounded-full text-[10.5px] sm:text-[11.5px] cursor-pointer transition-colors shadow-xs"
             >
               <Plus className="w-3.5 h-3.5 text-[#facc15]" />
               <span>Create Subject</span>
             </Link>
 
-            <div className="flex items-center gap-1 bg-white border border-[#EFECE6] p-1 rounded-full shadow-2xs shrink-0">
+            <div className="hidden sm:flex items-center gap-1 bg-white border border-[#EFECE6] p-1 rounded-full shadow-2xs shrink-0">
               <button
                 onClick={() => setCols((prev) => Math.max(2, prev - 1))}
                 disabled={cols <= 2}

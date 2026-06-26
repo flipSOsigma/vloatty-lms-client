@@ -82,6 +82,17 @@ export default function ModuleDetailPage({ params }: PageProps) {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
+            {(() => {
+              const moduleIndex = selectedSubject.modules.findIndex((m) => m.id === selectedModule.id);
+              if (moduleIndex !== -1) {
+                return (
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                    Module {moduleIndex + 1}
+                  </span>
+                );
+              }
+              return null;
+            })()}
             <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none">
               {selectedModule.title}
             </h1>

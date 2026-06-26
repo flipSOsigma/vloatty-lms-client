@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Settings, Bell } from "lucide-react";
+import { Settings, Bell, Menu } from "lucide-react";
 import { useLms } from "../../context/LmsContext";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -12,7 +12,7 @@ interface HeaderProps {
 }
 
 export default function Header({ title, subtitle }: HeaderProps = {}) {
-  const { currentUser } = useLms();
+  const { currentUser, setMobileSidebarOpen } = useLms();
   const pathname = usePathname();
 
   const navTabs = [
@@ -31,16 +31,25 @@ export default function Header({ title, subtitle }: HeaderProps = {}) {
   };
 
   return (
-    <header className="flex items-center justify-between w-full select-none py-4 px-2 md:px-4 bg-transparent border-b border-[#EFECE6]/40 mb-2">
-      {/* Left side: Navigation Tabs like in ref.jpg */}
-      <div className="flex items-center gap-1.5 bg-zinc-100 p-1 rounded-full border border-zinc-200/40">
+    <header className="flex items-center justify-between w-full select-none py-4 px-2 md:px-4 bg-transparent border-b border-[#EFECE6]/40 mb-2 gap-4">
+      {/* Hamburger button on mobile */}
+      <button 
+        onClick={() => setMobileSidebarOpen(true)}
+        className="lg:hidden w-10 h-10 rounded-full bg-white border border-[#EFECE6] flex items-center justify-center text-zinc-650 hover:text-zinc-850 hover:bg-zinc-50/80 cursor-pointer transition-colors shadow-sm shrink-0 animate-in fade-in duration-200"
+        aria-label="Open sidebar menu"
+      >
+        <Menu className="w-5 h-5 stroke-[2]" />
+      </button>
+
+      {/* Left side: Navigation Tabs (hidden on mobile/tablet, visible on desktop) */}
+      <div className="hidden lg:flex items-center gap-1 bg-zinc-100 p-1 rounded-full border border-zinc-200/40">
         {navTabs.map((tab) => {
           const isActive = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href));
           return (
             <Link
               key={tab.name}
               href={tab.href}
-              className={`px-5 py-2 rounded-full text-[12.5px] font-extrabold tracking-tight transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs font-extrabold tracking-tight transition-all cursor-pointer ${
                 isActive
                   ? "bg-[#121212] text-white shadow-sm"
                   : "text-zinc-500 hover:text-zinc-800"
@@ -50,8 +59,8 @@ export default function Header({ title, subtitle }: HeaderProps = {}) {
             </Link>
           );
         })}
-        {/* Extra tab like ref.jpg */}
-        <span className="px-5 py-2 text-zinc-400 text-[12.5px] font-extrabold cursor-not-allowed select-none">
+        {/* Extra tab */}
+        <span className="px-5 py-2 text-zinc-400 text-xs font-extrabold cursor-not-allowed select-none">
           Calendar
         </span>
       </div>

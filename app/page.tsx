@@ -16,6 +16,8 @@ import {
 import { animate, stagger, createTimeline } from "animejs";
 import styles from "./landing.module.css";
 import { useLms } from "../context/LmsContext";
+import Footer from "../components/views/Footer";
+import LandingNav from "../components/views/LandingNav";
 
 function RollingNumber({ value }: { value: string }) {
   const digits = value.split("");
@@ -245,156 +247,7 @@ function AntigravityLogo({ idPrefix, className }: { idPrefix: string; className?
   );
 }
 
-function LandingNav() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const { currentUser } = useLms();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <nav
-      className={`lp-nav${scrolled ? " lp-nav--scrolled" : ""}`}
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <div className="lp-nav__inner">
-        {/* Logo */}
-        <a href="#" className="lp-logo" aria-label="Vloatty Home">
-          <img
-            src="/vloatty - Logo Only.png"
-            alt="Vloatty Logo"
-            width={28}
-            height={28}
-            style={{ filter: "brightness(0)", objectFit: "contain", marginRight: "4px" }}
-          />
-          <span className="lp-logo__text">Vloatty</span>
-        </a>
-
-        {/* Desktop Links */}
-        <ul className="lp-nav__links" role="list">
-          <li><a href="#features" className="lp-nav__link">Features</a></li>
-          <li><a href="#pricing" className="lp-nav__link">Pricing</a></li>
-          <li><a href="#testimonials" className="lp-nav__link">About</a></li>
-        </ul>
-
-        {/* Desktop CTA */}
-        <div className="lp-nav__cta">
-          {currentUser ? (
-            <>
-              <Link href="/dashboard" className="lp-btn lp-btn--ghost lp-btn--sm">
-                <span className="lp-btn__text-container">
-                  <span className="lp-btn__text-track">
-                    <span className="lp-btn__text-normal">{currentUser.name}</span>
-                    <span className="lp-btn__text-hover">{currentUser.name}</span>
-                  </span>
-                </span>
-              </Link>
-              <Link href="/dashboard" className="lp-btn lp-btn--primary lp-btn--sm">
-                <span className="lp-btn__text-container">
-                  <span className="lp-btn__text-track">
-                    <span className="lp-btn__text-normal">Go to Dashboard</span>
-                    <span className="lp-btn__text-hover">Go to Dashboard</span>
-                  </span>
-                </span>
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="lp-btn lp-btn--ghost lp-btn--sm">
-                <span className="lp-btn__text-container">
-                  <span className="lp-btn__text-track">
-                    <span className="lp-btn__text-normal">Sign In</span>
-                    <span className="lp-btn__text-hover">Sign In</span>
-                  </span>
-                </span>
-              </Link>
-              <Link href="/register" className="lp-btn lp-btn--primary lp-btn--sm">
-                <span className="lp-btn__text-container">
-                  <span className="lp-btn__text-track">
-                    <span className="lp-btn__text-normal">Get Started Free</span>
-                    <span className="lp-btn__text-hover">Get Started Free</span>
-                  </span>
-                </span>
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className={`lp-nav__hamburger${menuOpen ? " lp-nav__hamburger--open" : ""}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-expanded={menuOpen}
-          aria-label="Toggle mobile menu"
-          id="mobile-menu-button"
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-      </div>
-
-      {/* Mobile Menu Drawer */}
-      {menuOpen && (
-        <div className="lp-nav__drawer" role="menu" aria-label="Mobile navigation">
-          <ul role="list">
-            <li><a href="#features" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">Features</a></li>
-            <li><a href="#pricing" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">Pricing</a></li>
-            <li><a href="#testimonials" className="lp-nav__drawer-link" onClick={() => setMenuOpen(false)} role="menuitem">About</a></li>
-          </ul>
-          <div className="lp-nav__drawer-cta">
-            {currentUser ? (
-              <>
-                <Link href="/dashboard" className="lp-btn lp-btn--ghost lp-btn--full" onClick={() => setMenuOpen(false)}>
-                  <span className="lp-btn__text-container">
-                    <span className="lp-btn__text-track">
-                      <span className="lp-btn__text-normal">{currentUser.name}</span>
-                      <span className="lp-btn__text-hover">{currentUser.name}</span>
-                    </span>
-                  </span>
-                </Link>
-                <Link href="/dashboard" className="lp-btn lp-btn--primary lp-btn--full" onClick={() => setMenuOpen(false)}>
-                  <span className="lp-btn__text-container">
-                    <span className="lp-btn__text-track">
-                      <span className="lp-btn__text-normal">Go to Dashboard</span>
-                      <span className="lp-btn__text-hover">Go to Dashboard</span>
-                    </span>
-                  </span>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="lp-btn lp-btn--ghost lp-btn--full" onClick={() => setMenuOpen(false)}>
-                  <span className="lp-btn__text-container">
-                    <span className="lp-btn__text-track">
-                      <span className="lp-btn__text-normal">Sign In</span>
-                      <span className="lp-btn__text-hover">Sign In</span>
-                    </span>
-                  </span>
-                </Link>
-                <Link href="/register" className="lp-btn lp-btn--primary lp-btn--full" onClick={() => setMenuOpen(false)}>
-                  <span className="lp-btn__text-container">
-                    <span className="lp-btn__text-track">
-                      <span className="lp-btn__text-normal">Get Started Free</span>
-                      <span className="lp-btn__text-hover">Get Started Free</span>
-                    </span>
-                  </span>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </nav>
-  );
-}
 
 function EmailCTA() {
   const [email, setEmail] = useState("");
@@ -698,6 +551,14 @@ export default function RootPage() {
                 </span>
               </span>
             </a>
+            <Link href="/docs" className="lp-btn lp-btn--ghost lp-btn--lg">
+              <span className="lp-btn__text-container">
+                <span className="lp-btn__text-track">
+                  <span className="lp-btn__text-normal">Documentation</span>
+                  <span className="lp-btn__text-hover">Documentation</span>
+                </span>
+              </span>
+            </Link>
           </div>
         </div>
 
@@ -1251,68 +1112,7 @@ export default function RootPage() {
       </section>
 
       {/* Footer */}
-      <footer className={styles.footer}>
-        <div className={styles.footerInner}>
-          <div className={styles.footerGrid}>
-            <div className={styles.footerBrandCol}>
-              <a href="#" className={styles.footerLogo}>
-                <img
-                  src="/vloatty - Logo Only.png"
-                  alt="Vloatty Logo"
-                  className={styles.footerLogoImg}
-                />
-                <span className={styles.footerLogoText}>Vloatty</span>
-              </a>
-              <p className={styles.footerTagline}>
-                Unlock your learning and campus management potential with our unified LMS ecosystem.
-              </p>
-              <div className={styles.footerSocials}>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Instagram">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-                </a>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Facebook">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-                </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="LinkedIn">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect width="4" height="12" x="2" y="9" /><circle cx="4" cy="4" r="2" /></svg>
-                </a>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className={styles.footerSocialBtn} aria-label="Twitter">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" /></svg>
-                </a>
-              </div>
-            </div>
-
-            <div className={styles.footerLinksGrid}>
-              <div className={styles.footerLinksCol}>
-                <h4>Platform</h4>
-                <a href="#features" className={styles.footerLink}>Features</a>
-                <a href="#pricing" className={styles.footerLink}>Pricing</a>
-                <a href="#" className={styles.footerLink}>Sign In</a>
-              </div>
-              <div className={styles.footerLinksCol}>
-                <h4>Company</h4>
-                <a href="#testimonials" className={styles.footerLink}>About Us</a>
-                <a href="mailto:support@vloatty.com" className={styles.footerLink}>Support</a>
-                <a href="#" className={styles.footerLink}>Security</a>
-              </div>
-              <div className={styles.footerLinksCol}>
-                <h4>Legal</h4>
-                <a href="#" className={styles.footerLink}>Terms of Service</a>
-                <a href="#" className={styles.footerLink}>Privacy Policy</a>
-                <a href="#" className={styles.footerLink}>Status</a>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.footerBigBrand}>
-            Vloatty
-          </div>
-
-          <p className={styles.footerCopy}>
-            &copy; {new Date().getFullYear()} Vloatty. All rights reserved. Vloatty Learning Management System.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

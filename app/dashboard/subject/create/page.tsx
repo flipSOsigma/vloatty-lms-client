@@ -387,10 +387,10 @@ export default function CreateSubjectPage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
+            <h1 className="text-xl sm:text-[34px] font-semibold text-zinc-800 tracking-tight leading-none mt-1">
               Create New Subject
             </h1>
-            <p className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
+            <p className="hidden sm:block text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
               Create a new educational course card, define schedules, and add modules.
             </p>
           </div>

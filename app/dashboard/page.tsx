@@ -170,6 +170,20 @@ export default function DashboardPage() {
   const today = new Date();
   const todayDayIdx = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
+  const userSubjects = React.useMemo(() => {
+    if (!currentUser?.id) return [];
+    return subjects.filter((subject) =>
+      subject.createdBy === currentUser.id ||
+      subject.lecturers?.some((l) => l.userId === currentUser.id) ||
+      subject.participants?.some((p) => p.userId === currentUser.id)
+    );
+  }, [subjects, currentUser]);
+
+  const userEvents = React.useMemo(() => {
+    const userSubjIds = new Set(userSubjects.map((s) => s.id));
+    return events.filter((evt) => !evt.subjectId || userSubjIds.has(evt.subjectId));
+  }, [events, userSubjects]);
+
   const filteredSubjects = subjects.filter((subject) =>
     subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     subject.lecturers.some((l) => l.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -211,7 +225,7 @@ export default function DashboardPage() {
   };
 
   const todayTimelineEvents = React.useMemo(() => {
-    const mapped = events.map((event) => {
+    const mapped = userEvents.map((event) => {
       if (event.dateStr) {
         const d = new Date(event.dateStr);
         if (!isNaN(d.getTime())) {
@@ -225,14 +239,14 @@ export default function DashboardPage() {
 
     const todayEvts = mapped.filter((event) => !event.deletedAt && event.dayIndex === todayDayIdx);
 
-    if (todayEvts.length === 0 && subjects.length > 0) {
+    if (todayEvts.length === 0 && userSubjects.length > 0) {
       const mockSlots = [
         { startTime: "09:30", endTime: "11:30", title: "Calculus Seminar" },
         { startTime: "12:00", endTime: "14:15", title: "Classical Mechanics" },
         { startTime: "15:00", endTime: "17:00", title: "Web Engineering" },
       ];
       return mockSlots.map((slot, idx) => {
-        const subj = subjects[idx % subjects.length];
+        const subj = userSubjects[idx % userSubjects.length];
         return {
           id: `mock-today-${idx}`,
           title: slot.title,
@@ -249,7 +263,7 @@ export default function DashboardPage() {
       });
     }
     return todayEvts;
-  }, [events, todayDayIdx, subjects]);
+  }, [userEvents, todayDayIdx, userSubjects]);
 
   const HOURS = [
     "07:00",
@@ -320,26 +334,200 @@ export default function DashboardPage() {
   const curMins = getMinutesFromStart(time || "08:00");
   const timeLineLeft = curMins * MINUTE_WIDTH;
 
-  // Bubble chart details
-  const bubbleData = {
-    Lectures: [2, 1, 3, 0, 2, 3, 1],
-    Tasks:    [1, 3, 0, 2, 1, 0, 3],
-  };
+  // 1. Dynamic Bubble Chart Data Calculation
+  const bubbleData = React.useMemo(() => {
+    const lectures = [0, 0, 0, 0, 0, 0, 0]; // Sun to Sat
+    const tasks = [0, 0, 0, 0, 0, 0, 0];
+
+    userEvents.forEach((evt) => {
+      if (evt.deletedAt) return;
+      
+      let dayIdx = -1;
+      if (evt.dayIndex !== undefined && evt.dayIndex >= 0 && evt.dayIndex <= 6) {
+        // evt.dayIndex is: 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
+        // Map to: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+        if (evt.dayIndex === 6) {
+          dayIdx = 0; // Sun
+        } else {
+          dayIdx = evt.dayIndex + 1; // Mon to Sat
+        }
+      } else if (evt.dateStr) {
+        const d = new Date(evt.dateStr);
+        if (!isNaN(d.getTime())) {
+          dayIdx = d.getDay(); // 0=Sun, 6=Sat
+        }
+      }
+
+      if (dayIdx >= 0 && dayIdx <= 6) {
+        const titleLower = evt.title.toLowerCase();
+        const isTask = titleLower.includes("deadline") ||
+                      titleLower.includes("task") ||
+                      titleLower.includes("assignment") ||
+                      titleLower.includes("quiz") ||
+                      evt.tag?.text?.toLowerCase() === "deadline";
+        
+        if (isTask) {
+          tasks[dayIdx] += 1;
+        } else {
+          lectures[dayIdx] += 1;
+        }
+      }
+    });
+
+    // Scale counts to the design range [0, 3]
+    const scale = (arr: number[]) => {
+      const max = Math.max(...arr, 1);
+      return arr.map((val) => {
+        if (val === 0) return 0;
+        if (val === max) return 3;
+        if (val > max / 2) return 2;
+        return 1;
+      });
+    };
+
+    return {
+      Lectures: scale(lectures),
+      Tasks: scale(tasks),
+    };
+  }, [userEvents]);
+
   const days = ["S", "M", "T", "W", "T", "F", "S"];
   const categories = ["Lectures", "Tasks"];
 
-  // Bar chart details
+  // 2. Dynamic Bar Chart Data Calculation
+  const { lecturesCount, tasksCount, modulesCount, lessonsCount } = React.useMemo(() => {
+    let lectures = userSubjects.length;
+    let tasks = 0;
+    let modules = 0;
+    let lessons = 0;
+
+    userSubjects.forEach((subj) => {
+      if (subj.modules) {
+        modules += subj.modules.length;
+        subj.modules.forEach((mod) => {
+          if (mod.lessons) {
+            lessons += mod.lessons.length;
+            mod.lessons.forEach((les) => {
+              if (les.type === "assignment" || les.type === "quizzes") {
+                tasks += 1;
+              }
+            });
+          }
+        });
+      }
+    });
+
+    return {
+      lecturesCount: lectures,
+      tasksCount: tasks,
+      modulesCount: modules,
+      lessonsCount: lessons,
+    };
+  }, [userSubjects]);
+
+  const maxCount = Math.max(lecturesCount, tasksCount, modulesCount, lessonsCount, 1);
   const bars = [
-    { label: "Lectures", value: "7.7 hrs", height: "55%" },
-    { label: "Tasks", value: "5.6 tasks", height: "40%" },
-    { label: "Modules", value: "12 mods", height: "85%", active: true },
-    { label: "Lessons", value: "8.1 less", height: "65%" },
+    { label: "Lectures", value: `${lecturesCount} subjs`, height: `${Math.max(20, Math.min(100, (lecturesCount / maxCount) * 100))}%` },
+    { label: "Tasks", value: `${tasksCount} tasks`, height: `${Math.max(20, Math.min(100, (tasksCount / maxCount) * 100))}%` },
+    { label: "Modules", value: `${modulesCount} mods`, height: `${Math.max(20, Math.min(100, (modulesCount / maxCount) * 100))}%`, active: true },
+    { label: "Lessons", value: `${lessonsCount} less`, height: `${Math.max(20, Math.min(100, (lessonsCount / maxCount) * 100))}%` },
   ];
 
+  // 3. Dynamic Next Scheduled Session Calculation
+  const nextSession = React.useMemo(() => {
+    if (userEvents.length === 0) return null;
+
+    const now = new Date();
+    const currentDayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1; // 0=Mon, 6=Sun
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    const mapped = userEvents.map((event) => {
+      let dayIdx = event.dayIndex;
+      let date = null;
+      if (event.dateStr) {
+        const d = new Date(event.dateStr);
+        if (!isNaN(d.getTime())) {
+          date = d;
+          const day = d.getDay();
+          dayIdx = day === 0 ? 6 : day - 1;
+        }
+      }
+      return { ...event, dayIndex: dayIdx, date };
+    }).filter((e) => !e.deletedAt);
+
+    // Filter events happening today but in the future
+    const todayEvents = mapped.filter((e) => e.dayIndex === currentDayIdx);
+    const upcomingToday = todayEvents.filter((e) => {
+      const [h, m] = e.timeStart.split(":").map(Number);
+      const startMins = h * 60 + m;
+      return startMins > currentMins;
+    }).sort((a, b) => {
+      const [hA, mA] = a.timeStart.split(":").map(Number);
+      const [hB, mB] = b.timeStart.split(":").map(Number);
+      return (hA * 60 + mA) - (hB * 60 + mB);
+    });
+
+    if (upcomingToday.length > 0) {
+      return { event: upcomingToday[0], statusText: "Today" };
+    }
+
+    // Sort all events by chronological order of weekday difference
+    const futureEvents = mapped.sort((a, b) => {
+      const dayDiffA = (a.dayIndex - currentDayIdx + 7) % 7;
+      const dayDiffB = (b.dayIndex - currentDayIdx + 7) % 7;
+      if (dayDiffA !== dayDiffB) return dayDiffA - dayDiffB;
+      
+      const [hA, mA] = a.timeStart.split(":").map(Number);
+      const [hB, mB] = b.timeStart.split(":").map(Number);
+      return (hA * 60 + mA) - (hB * 60 + mB);
+    });
+
+    if (futureEvents.length > 0) {
+      const nextEvt = futureEvents[0];
+      const dayDiff = (nextEvt.dayIndex - currentDayIdx + 7) % 7;
+      let statusText = "Upcoming";
+      if (dayDiff === 1) statusText = "Tomorrow";
+      else if (dayDiff > 1) {
+        const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        statusText = weekdays[nextEvt.dayIndex];
+      }
+      return { event: nextEvt, statusText };
+    }
+
+    return null;
+  }, [userEvents]);
+
+  const nextSessionDisplay = React.useMemo(() => {
+    if (nextSession) {
+      return {
+        title: nextSession.event.title,
+        time: `${nextSession.event.timeStart} - ${nextSession.event.timeEnd}`,
+        subtitle: nextSession.event.subtitle || "Online",
+        status: nextSession.statusText,
+      };
+    }
+    if (userSubjects.length > 0) {
+      const subj = userSubjects[0];
+      const sch = subj.schedules?.[0];
+      return {
+        title: subj.name,
+        time: sch ? `${sch.startTime} - ${sch.endTime}` : "No set schedule",
+        subtitle: sch?.room || subj.room || "No room set",
+        status: sch ? sch.day : "No sessions",
+      };
+    }
+    return {
+      title: "No upcoming sessions",
+      time: "Free schedule",
+      subtitle: "Add subjects to get started",
+      status: "Idle",
+    };
+  }, [nextSession, userSubjects]);
+
   // Storage data
-  const usedPct = stats ? Math.round((stats.storage.usedBytes / stats.storage.maxBytes) * 100) : 41;
-  const usedBytesStr = stats ? formatFileSize(stats.storage.usedBytes) : "82 MB";
-  const maxBytesStr = stats ? formatFileSize(stats.storage.maxBytes) : "200 MB";
+  const usedPct = stats ? Math.round((stats.storage.usedBytes / stats.storage.maxBytes) * 100) : 0;
+  const usedBytesStr = stats ? formatFileSize(stats.storage.usedBytes) : "0 Bytes";
+  const maxBytesStr = stats ? formatFileSize(stats.storage.maxBytes) : "100 MB";
 
   return (
     <>
@@ -351,10 +539,10 @@ export default function DashboardPage() {
           {/* Dashboard Page Header & Description */}
           <div className="flex flex-col md:flex-row md:items-center justify-between w-full mt-2 mb-2 gap-4">
             <div className="flex flex-col text-left">
-              <h1 className="text-3xl font-extrabold text-zinc-950 tracking-tight leading-normal">
+              <h1 className="text-xl sm:text-3xl font-extrabold text-zinc-955 tracking-tight leading-normal">
                 Academic Overview
               </h1>
-              <p className="text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
+              <p className="hidden sm:block text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
                 Monitor your study metrics, check weekly learning activities, review scheduled calendar events, and manage course storage limits.
               </p>
             </div>
@@ -413,26 +601,26 @@ export default function DashboardPage() {
                 <div className="w-full"></div>
                 {categories.map((cat) => (
                   <div key={cat} className="flex w-full items-center justify-between">
-                    <span className="text-[12px] font-extrabold text-zinc-400 w-16 text-left">{cat}</span>
-                    <div className="flex-1 flex justify-end gap-4 items-center pl-4">
+                    <span className="text-[11px] sm:text-[12px] font-extrabold text-zinc-400 w-12 sm:w-16 text-left shrink-0">{cat}</span>
+                    <div className="flex-1 flex justify-end gap-1.5 xs:gap-2.5 sm:gap-4 items-center pl-2">
                       {bubbleData[cat as keyof typeof bubbleData].map((val, idx) => {
-                        let sizeClass = "w-5 h-5";
+                        let sizeClass = "w-3.5 h-3.5 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5";
                         let colorClass = "bg-zinc-100";
                         if (val === 3) {
-                          sizeClass = "w-8 h-8";
+                          sizeClass = "w-5.5 h-5.5 xs:w-6.5 xs:h-6.5 sm:w-8 sm:h-8";
                           colorClass = "bg-[#facc15]";
                         } else if (val === 2) {
-                          sizeClass = "w-6.5 h-6.5";
+                          sizeClass = "w-4.5 h-4.5 xs:w-5.5 xs:h-5.5 sm:w-6.5 sm:h-6.5";
                           colorClass = "bg-zinc-900";
                         } else if (val === 1) {
-                          sizeClass = "w-5 h-5";
+                          sizeClass = "w-3.5 h-3.5 xs:w-4.5 xs:h-4.5 sm:w-5 sm:h-5";
                           colorClass = "bg-zinc-300";
                         } else {
-                          sizeClass = "w-3.5 h-3.5 opacity-60";
+                          sizeClass = "w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 opacity-60";
                           colorClass = "bg-zinc-200";
                         }
                         return (
-                          <div key={idx} className="w-10 h-10 flex items-center justify-center">
+                          <div key={idx} className="w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
                             <div className={`${sizeClass} ${colorClass} rounded-full transition-all duration-300 hover:scale-125 cursor-pointer`} />
                           </div>
                         );
@@ -443,10 +631,10 @@ export default function DashboardPage() {
                 
                 {/* Days labels */}
                 <div className="flex items-center justify-between pt-2 mt-1">
-                  <span className="w-16" />
-                  <div className="flex-1 flex justify-end gap-6 pl-4 pr-1">
+                  <span className="w-12 sm:w-16 shrink-0" />
+                  <div className="flex-1 flex justify-end gap-1.5 xs:gap-2.5 sm:gap-4 pl-2 pr-0.5">
                     {days.map((day, idx) => (
-                      <span key={idx} className="w-8 text-center text-[10.5px] font-black text-zinc-400">
+                      <span key={idx} className="w-7 text-center xs:w-8 sm:w-10 text-[10px] sm:text-[10.5px] font-black text-zinc-400 shrink-0">
                         {day}
                       </span>
                     ))}
@@ -560,17 +748,9 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between flex-1 mt-4 h-full gap-2">
-                {/* Percentage details */}
-                <div className="flex flex-col justify-end pb-2 text-left w-32 shrink-0">
-                  <span className="text-[30px] font-black text-zinc-950 leading-none tracking-tight">+73.6%</span>
-                  <span className="text-[9.5px] text-zinc-400 font-bold mt-2 leading-snug">
-                    average score rate increase
-                  </span>
-                </div>
-
+              <div className="flex flex-col sm:flex-row sm:items-end justify-center flex-1 mt-4 h-full gap-2">
                 {/* Bars chart */}
-                <div className="flex-grow flex items-end justify-around h-full pl-0 sm:pl-4 max-w-[360px]">
+                <div className="w-full flex items-end justify-around h-full pl-0 max-w-[360px] mx-auto">
                   {bars.map((bar, idx) => (
                     <div key={idx} className="flex flex-col items-center gap-2 h-full justify-end w-10 group">
                       {/* Vertical Bar */}
@@ -605,21 +785,21 @@ export default function DashboardPage() {
 
               <div className="flex flex-col gap-1.5 mt-2 flex-grow justify-center">
                 <span className="text-[10px] font-bold text-[#d97706] bg-[#facc15]/15 px-2 py-0.5 rounded-md self-start">
-                  Today
+                  {nextSessionDisplay.status}
                 </span>
                 <h3 className="text-[18px] font-black text-zinc-955 tracking-tight mt-1 truncate">
-                  {todayTimelineEvents[0]?.title || "Calculus Seminar"}
+                  {nextSessionDisplay.title}
                 </h3>
                 <span className="text-[11.5px] font-bold text-zinc-600">
-                  {todayTimelineEvents[0]?.timeStart ? `${todayTimelineEvents[0].timeStart} - ${todayTimelineEvents[0].timeEnd}` : "09:30 - 11:30"}
+                  {nextSessionDisplay.time}
                 </span>
                 <span className="text-[11px] font-semibold text-zinc-400">
-                  {todayTimelineEvents[0]?.subtitle || "Room 302"}
+                  {nextSessionDisplay.subtitle}
                 </span>
               </div>
 
               <div className="flex items-center gap-1 border-t border-zinc-100 pt-3 mt-1 text-[10px] font-bold text-zinc-500">
-                <span className="text-zinc-955 font-black">12% done</span>
+                <span className="text-zinc-955 font-black">{nextSession ? "Live sync" : "No active schedule"}</span>
                 <span className="text-zinc-400">&bull; Live sync</span>
               </div>
             </div>
