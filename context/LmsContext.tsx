@@ -11,6 +11,7 @@ export interface UserProfile {
   premiumStatus: "free" | "premium" | "professional";
   institution: string;
   avatar: string;
+  banner?: string | null;
 }
 
 interface LmsContextType extends LmsState {
@@ -30,6 +31,7 @@ interface LmsContextType extends LmsState {
   addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => void;
   deleteSubject: (id: string) => void;
   updateSubject: (subject: Subject) => void;
+  refreshSubjects: () => Promise<void>;
   isLoadingUser: boolean;
   logout: () => void;
   showToast: (message: string, type?: "success" | "error") => void;
@@ -473,6 +475,23 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const refreshSubjects = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/subjects`, { cache: "no-store" });
+      if (response.ok) {
+        const data = await response.json();
+        setSubjects(data);
+        const loadedEvents: LmsEvent[] = [];
+        data.forEach((subj: Subject) => {
+          loadedEvents.push(...generateSubjectEvents(subj));
+        });
+        setEvents(loadedEvents);
+      }
+    } catch (err) {
+      console.error("Error refreshing subjects in context:", err);
+    }
+  };
+
   const activeSubjects = subjects.filter((s) => !s.deletedAt);
   const activeEvents = events.filter((e) => {
     if (e.deletedAt) return false;
@@ -507,6 +526,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addSubject,
         deleteSubject,
         updateSubject,
+        refreshSubjects,
         isLoadingUser,
         logout,
         showToast,

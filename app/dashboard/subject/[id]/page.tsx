@@ -22,6 +22,7 @@ import {
   Edit,
   Trash2,
   Trophy,
+  BookOpen,
 } from "lucide-react";
 import ContextMenu from "../../../../components/ui/ContextMenu";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
@@ -49,7 +50,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 export default function SubjectDetailPage({ params }: PageProps) {
 
   const { id } = React.use(params);
-  const { subjects, currentUser, showToast, updateSubject } = useLms();
+  const { subjects, currentUser, showToast, updateSubject, refreshSubjects } = useLms();
+
+  React.useEffect(() => {
+    refreshSubjects();
+  }, []);
 
   const [uploadedFiles, setUploadedFiles] = useState<{ [lessonId: string]: { name: string; size: string } }>({});
   const [uploadingProgress, setUploadingProgress] = useState<{ [lessonId: string]: number }>({});
@@ -713,6 +718,35 @@ export default function SubjectDetailPage({ params }: PageProps) {
                             <p className="text-[11.5px] text-zinc-500 leading-relaxed font-medium line-clamp-2">
                               {lesson.desc}
                             </p>
+
+                            {lesson.files && lesson.files.length > 0 && (
+                              <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-[#E5E1D8]/45">
+                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider pl-0.5">
+                                  Materials / Attachments
+                                </span>
+                                <div className="flex flex-col gap-1 max-w-lg">
+                                  {lesson.files.map((file) => (
+                                    <div key={file.id} className="flex items-center justify-between py-1 px-2 hover:bg-zinc-50 rounded-lg group/file transition-colors border border-transparent hover:border-[#E5E1D8]/50">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <BookOpen className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                        <a
+                                          href={file.url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-[11.5px] font-semibold text-zinc-700 hover:text-[#d97706] transition-colors truncate"
+                                          title={file.name}
+                                        >
+                                          {file.name}
+                                        </a>
+                                      </div>
+                                      <span className="text-[9.5px] text-zinc-400 font-semibold pr-1">
+                                        {(file.sizeBytes / 1024).toFixed(1)} KB
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
                             {(() => {
                               if (lesson.type !== "quizzes") return null;

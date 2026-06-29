@@ -9,7 +9,8 @@ import {
   Plus,
   ArrowRight,
   ChevronDown,
-  Star
+  Star,
+  HardDrive
 } from "lucide-react";
 import { useLms } from "../../context/LmsContext";
 import Link from "next/link";
@@ -45,6 +46,7 @@ export default function Sidebar() {
     { name: "Overview", icon: LayoutDashboard, href: "/dashboard", hasSub: true },
     { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
     { name: "Subjects", icon: BookOpen, href: "/dashboard/subjects" },
+    { name: "Storage", icon: HardDrive, href: "/dashboard/storage" },
   ];
 
   const pocketItems = [

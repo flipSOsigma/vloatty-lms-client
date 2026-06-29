@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import Sidebar from "../../components/views/Sidebar";
 import Link from "next/link";
-import { Library, LayoutDashboard, Calendar, BookOpen } from "lucide-react";
+import { Library, LayoutDashboard, Calendar, BookOpen, HardDrive } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -20,6 +20,7 @@ export default function DashboardLayout({
     { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
     { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
     { name: "Subjects", icon: BookOpen, href: "/dashboard/subjects" },
+    { name: "Storage", icon: HardDrive, href: "/dashboard/storage" },
   ];
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function DashboardLayout({
             const getActiveTabIndex = () => {
               if (pathname.startsWith("/dashboard/schedule")) return 1;
               if (pathname.startsWith("/dashboard/subjects") || pathname.startsWith("/dashboard/subject")) return 2;
+              if (pathname.startsWith("/dashboard/storage")) return 3;
               return 0;
             };
             const activeIndex = getActiveTabIndex();
@@ -75,7 +77,7 @@ export default function DashboardLayout({
                 <div 
                   className="absolute top-[-22px] w-14 h-14 rounded-full bg-gradient-to-br from-[#facc15] to-[#d97706] border-4 border-[#FAF7F2] flex items-center justify-center shadow-lg shadow-[#d97706]/30 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] z-10"
                   style={{
-                    left: `calc(${(activeIndex * 100) / 3}% + (100% / 3 - 56px) / 2)`,
+                    left: `calc(${(activeIndex * 100) / 4}% + (100% / 4 - 56px) / 2)`,
                   }}
                 >
                   <ActiveIcon 

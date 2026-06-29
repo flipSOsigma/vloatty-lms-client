@@ -65,7 +65,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 function LessonDetailInner({ params }: PageProps) {
   const { id, lessonId } = React.use(params);
-  const { subjects, currentUser, updateSubject, showToast, isLoadingUser } = useLms();
+  const { subjects, currentUser, updateSubject, showToast, isLoadingUser, refreshSubjects } = useLms();
   const searchParams = useSearchParams();
   const shouldEdit = searchParams ? searchParams.get("edit") === "true" : false;
 
@@ -680,6 +680,7 @@ function LessonDetailInner({ params }: PageProps) {
         if (xhr.status === 201) {
           showToast("File uploaded successfully!", "success");
           fetchFiles();
+          refreshSubjects();
         } else {
           let errMsg = "Failed to upload file";
           try {
@@ -727,6 +728,7 @@ function LessonDetailInner({ params }: PageProps) {
       if (res.ok) {
         showToast("File deleted successfully!", "success");
         fetchFiles();
+        refreshSubjects();
       } else {
         const errBody = await res.json().catch(() => ({}));
         showToast(errBody.error || "Failed to delete file", "error");
