@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Header from "../../../../../components/views/Header";
 import { useLms } from "../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
+import { getInstitution, getInviteCode, updateInstitution, deleteInstitution, changeMemberRole, removeInstitutionUser } from "@/lib/services/institution.service";
+import { uploadFile } from "@/lib/services/upload.service";
 import Link from "next/link";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 import ImageCropModal from "../../../../../components/ui/ImageCropModal";
@@ -24,7 +26,7 @@ import OrganizeFilesSection, { InstitutionFile } from "./components/OrganizeFile
 import DangerZoneSection from "./components/DangerZoneSection";
 import LinkClassModal from "./components/LinkClassModal";
 import UnsavedChangesModal from "./components/UnsavedChangesModal";
-import { Subject } from "../../../../../types/subject";
+import { Subject } from "../../../../../types/subject.interface";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -139,13 +141,9 @@ export default function ManageInstitutionPage({ params }: PageProps) {
     isDeleting,
   ]);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
   const fetchInstitutionDetails = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/institutions/${id}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load institution details");
-      const data = await res.json();
+      const data = await getInstitution(id);
       setNameInput(data.name);
       setDescInput(data.description || "");
       setStatusInput(data.subscriptionStatus);
@@ -165,16 +163,11 @@ export default function ManageInstitutionPage({ params }: PageProps) {
         })));
       }
 
-      const token = localStorage.getItem("token");
-      const codeRes = await fetch(`${API_BASE_URL}/institutions/${id}/invite`, {
-        method: "POST",
-        headers: {
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-      });
-      if (codeRes.ok) {
-        const codeData = await codeRes.json();
+      try {
+        const codeData = await getInviteCode(id);
         setInviteCode(codeData.inviteCode);
+      } catch (e) {
+        console.error("Failed to fetch invite code:", e);
       }
     } catch (err: any) {
       showToast(err.message || "Failed to load institution", "error");
@@ -291,31 +284,12 @@ export default function ManageInstitutionPage({ params }: PageProps) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/upload?institutionId=${id}`, {
-        method: "POST",
-        headers: {
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
+      const data = await uploadFile(formData, `institutionId=${id}`);
       const newUrl: string = data.url || "";
       setThumbnailInput(newUrl);
 
-      const saveRes = await fetch(`${API_BASE_URL}/institutions/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ thumbnail: newUrl }),
-      });
-      if (saveRes.ok) {
-        const saved = await saveRes.json();
-        setInitialData((prev: any) => ({ ...prev, thumbnail: saved.thumbnail }));
-      }
+      const saved = await updateInstitution(id, { thumbnail: newUrl });
+      setInitialData((prev: any) => ({ ...prev, thumbnail: saved.thumbnail }));
 
       showToast("Profile picture updated successfully!", "success");
     } catch (err) {
@@ -333,47 +307,25 @@ export default function ManageInstitutionPage({ params }: PageProps) {
 
     setIsSaving(true);
     try {
-      const currentToken = localStorage.getItem("token");
-      const instRes = await fetch(`${API_BASE_URL}/institutions/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}),
-        },
-        body: JSON.stringify({
-          name: nameInput.trim(),
-          description: descInput.trim(),
-          subscriptionStatus: statusInput,
-          thumbnail: thumbnailInput,
-        }),
+      await updateInstitution(id, {
+        name: nameInput.trim(),
+        description: descInput.trim(),
+        subscriptionStatus: statusInput,
+        thumbnail: thumbnailInput,
       });
-
-      if (!instRes.ok) throw new Error("Failed to update institution");
 
       const originalUsers = initialData.users || [];
       const currentUsersMap = new Map(usersPermissions.map((u) => [u.id, u]));
 
       const toRemove = originalUsers.filter((u: any) => !currentUsersMap.has(u.id));
       for (const u of toRemove) {
-        await fetch(`${API_BASE_URL}/institutions/${id}/users/${u.id}`, {
-          method: "DELETE",
-          headers: {
-            ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}),
-          },
-        });
+        await removeInstitutionUser(id, u.id);
       }
 
       for (const u of usersPermissions) {
         const orig = originalUsers.find((ou: any) => ou.id === u.id);
         if (orig && (orig.institutionRole || "lecturer") !== u.role) {
-          await fetch(`${API_BASE_URL}/institutions/${id}/users/${u.id}/role`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}),
-            },
-            body: JSON.stringify({ role: u.role }),
-          });
+          await changeMemberRole(id, u.id, u.role);
         }
       }
 
@@ -410,15 +362,7 @@ export default function ManageInstitutionPage({ params }: PageProps) {
   const handleDeleteInstitution = async () => {
     setIsDeleting(true);
     try {
-      const currentToken = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/institutions/${id}`, {
-        method: "DELETE",
-        headers: {
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}),
-        },
-      });
-
-      if (!res.ok) throw new Error("Failed to delete institution");
+      await deleteInstitution(id);
 
       showToast("Institution deleted successfully!", "success");
       router.push("/dashboard/institutions");

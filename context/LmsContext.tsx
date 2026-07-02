@@ -1,18 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { LmsEvent, CalendarViewType, LmsState, Subject } from "../types/lms";
+import { LmsEvent, CalendarViewType, LmsState, Subject, UserProfile } from "../types/lms.interface";
+import { getMe, logout as authLogout } from "@/lib/services/auth.service";
+import { getSubjects, createSubject, deleteSubject as apiDeleteSubject, updateSubject as apiUpdateSubject } from "@/lib/services/subject.service";
 import { ToastItem, ToastStyles } from "../components/ui/Toast";
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  premiumStatus: "free" | "premium" | "professional";
-  institution: string;
-  avatar: string;
-  banner?: string | null;
-}
 
 interface LmsContextType extends LmsState {
   subjects: Subject[];
@@ -58,13 +50,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = async () => {
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      if (currentToken) {
-        await fetch(`${API_BASE_URL}/auth/logout`, {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${currentToken}` }
-        });
-      }
+      await authLogout();
     } catch (err) {
       console.error("Logout API call failed:", err);
     } finally {
@@ -225,13 +211,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setEvents(loadedEvents);
     };
 
-    fetch(`${API_BASE_URL}/subjects`, { cache: "no-store" })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return res.json();
-      })
+    getSubjects()
       .then((data: Subject[]) => {
         processSubjects(data);
       })
@@ -257,18 +237,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     
     const fetchUser = (tokenToUse: string | null) => {
-      fetch(`${API_BASE_URL}/auth/me`, {
-        cache: "no-store",
-        headers: tokenToUse ? { "Authorization": `Bearer ${tokenToUse}` } : {}
-      })
-        .then((res) => {
-          if (!res.ok) {
-            const error = new Error("Failed to fetch user profile from server");
-            (error as any).status = res.status;
-            throw error;
-          }
-          return res.json();
-        })
+      getMe()
         .then((data) => {
           if (data) {
             setCurrentUser(data);
@@ -276,26 +245,6 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsLoadingUser(false);
         })
         .catch((err) => {
-          if (err.status === 401 || err.status === 403) {
-            console.warn("Session expired or invalid token:", err);
-            localStorage.removeItem("token");
-            document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            setCurrentUser(null);
-            setIsLoadingUser(false);
-            
-            const path = typeof window !== "undefined" ? window.location.pathname : "";
-            const isPublicPage = path === "/" || path === "/login" || path === "/register";
-            
-            if (typeof window !== "undefined") {
-              if (!isPublicPage) {
-                window.location.href = "/login?expired=true";
-              } else if (path === "/") {
-                showToast("Your session has expired. Please sign in again.", "error");
-              }
-            }
-            return;
-          }
-
           console.error("Error fetching user data in LMS Context, falling back to local mock data:", err);
 
           fetch(`/data/user.json?t=${Date.now()}`, { cache: "no-store" })
@@ -368,29 +317,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const addSubject = async (subjectData: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => {
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const response = await fetch(`${API_BASE_URL}/subjects`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {})
-        },
-        body: JSON.stringify(subjectData),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("token");
-          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-          setCurrentUser(null);
-          showToast("Your session has expired. Please sign in again.", "error");
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to add subject on the server");
-      }
-
-      const newSubject: Subject = await response.json();
+      const newSubject = await createSubject(subjectData);
       setSubjects((prev) => [...prev, newSubject]);
 
       setEvents((prev) => [...prev, ...generateSubjectEvents(newSubject)]);
@@ -403,23 +330,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteSubject = async (id: string) => {
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const response = await fetch(`${API_BASE_URL}/subjects/${id}`, {
-        method: "DELETE",
-        headers: currentToken ? { "Authorization": `Bearer ${currentToken}` } : {}
-      });
-
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("token");
-          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-          setCurrentUser(null);
-          showToast("Your session has expired. Please sign in again.", "error");
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to delete subject on the server");
-      }
+      await apiDeleteSubject(id);
 
       const now = new Date().toISOString();
       setSubjects((prev) =>
@@ -437,29 +348,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateSubject = async (updatedSubject: Subject) => {
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const response = await fetch(`${API_BASE_URL}/subjects/${updatedSubject.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {})
-        },
-        body: JSON.stringify(updatedSubject),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("token");
-          document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-          setCurrentUser(null);
-          showToast("Your session has expired. Please sign in again.", "error");
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to update subject on the server");
-      }
-
-      const savedSubject: Subject = await response.json();
+      const savedSubject = await apiUpdateSubject(updatedSubject.id, updatedSubject);
       setSubjects((prev) =>
         prev.map((s) => (s.id === savedSubject.id ? savedSubject : s))
       );
@@ -477,16 +366,13 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const refreshSubjects = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/subjects`, { cache: "no-store" });
-      if (response.ok) {
-        const data = await response.json();
-        setSubjects(data);
-        const loadedEvents: LmsEvent[] = [];
-        data.forEach((subj: Subject) => {
-          loadedEvents.push(...generateSubjectEvents(subj));
-        });
-        setEvents(loadedEvents);
-      }
+      const data = await getSubjects();
+      setSubjects(data);
+      const loadedEvents: LmsEvent[] = [];
+      data.forEach((subj: Subject) => {
+        loadedEvents.push(...generateSubjectEvents(subj));
+      });
+      setEvents(loadedEvents);
     } catch (err) {
       console.error("Error refreshing subjects in context:", err);
     }

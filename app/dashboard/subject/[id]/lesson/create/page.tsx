@@ -4,6 +4,9 @@ import React, { useState, Suspense } from "react";
 import Header from "../../../../../../components/views/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getAiTokens } from "@/lib/services/user.service";
+import { generateLessonDesc } from "@/lib/services/ai.service";
+import { uploadSubjectFile } from "@/lib/services/subject.service";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -20,13 +23,13 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
-import { Lesson } from "../../../../../../types/subject";
+import { Lesson } from "../../../../../../types/subject.interface";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 
 export function CreateLessonInner({ params }: PageProps) {
   const { id } = React.use(params);
@@ -43,14 +46,8 @@ export function CreateLessonInner({ params }: PageProps) {
   const fetchAiTokens = async () => {
     if (!currentUser?.id) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/users/${currentUser.id}/ai-tokens`, {
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAiTokens(data);
-      }
+      const data = await getAiTokens(currentUser.id);
+      setAiTokens(data);
     } catch (e) {
       console.error("Failed to fetch AI tokens:", e);
     }
@@ -98,27 +95,12 @@ export function CreateLessonInner({ params }: PageProps) {
 
     setIsGenerating(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/ai/generate-lesson-desc`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          title: inputTitle.trim(),
-          type,
-          subjectName: subject?.name,
-          subjectDesc: subject?.description,
-        }),
+      const data = await generateLessonDesc({
+        title: inputTitle.trim(),
+        type,
+        subjectName: subject?.name,
+        subjectDesc: subject?.description,
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || "Failed to generate description");
-      }
-
-      const data = await res.json();
       if (data.description) {
         setDesc(data.description);
         setHasAutofilled(true);
@@ -315,19 +297,11 @@ export function CreateLessonInner({ params }: PageProps) {
 
       if (selectedFiles.length > 0) {
         try {
-          const token = localStorage.getItem("token");
           await Promise.all(selectedFiles.map(async (file) => {
             const formData = new FormData();
             formData.append("file", file);
             formData.append("category", "Attachment");
-            const res = await fetch(`${API_BASE_URL}/subjects/${subject.id}/lessons/${newId}/files`, {
-              method: "POST",
-              headers: token ? { "Authorization": `Bearer ${token}` } : {},
-              body: formData,
-            });
-            if (!res.ok) {
-              throw new Error(`Failed to upload ${file.name}`);
-            }
+            await uploadSubjectFile(subject.id, newId, formData);
           }));
           showToast("Lesson created and files attached successfully!", "success");
         } catch (uploadErr: any) {

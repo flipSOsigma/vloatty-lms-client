@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import Header from "../../../../components/views/Header";
 import { useLms } from "../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
+import { getAllUsers } from "@/lib/services/user.service";
+import { uploadFile } from "@/lib/services/upload.service";
 import Link from "next/link";
 import ImageCropModal from "../../../../components/ui/ImageCropModal";
 import {
@@ -73,19 +75,7 @@ export default function CreateSubjectPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/upload?subjectId=${subjectId}`, {
-        method: "POST",
-        headers: {
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: formData,
-      });
-      if (!res.ok) {
-        throw new Error("Upload failed");
-      }
-      const data = await res.json();
+      const data = await uploadFile(formData, `subjectId=${subjectId}`);
       setThumbnail(data.url);
     } catch (err) {
       console.error(err);
@@ -168,19 +158,10 @@ export default function CreateSubjectPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_BASE_URL}/users`, {
-          headers: {
-            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-          },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const mapped = data.map((u: any) => ({ name: u.name, email: u.email }));
-          setAvailableUsers(mapped);
-          return;
-        }
+        const data = await getAllUsers();
+        const mapped = data.map((u: any) => ({ name: u.name, email: u.email }));
+        setAvailableUsers(mapped);
+        return;
       } catch (err) {
         console.error("Failed to fetch users", err);
       }
@@ -1033,3 +1014,4 @@ export default function CreateSubjectPage() {
     </>
   );
 }
+

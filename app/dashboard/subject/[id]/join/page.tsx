@@ -6,6 +6,7 @@ import { useLms } from "../../../../../context/LmsContext";
 import { GraduationCap, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import LoadingSpinner from "../../../../../components/ui/LoadingSpinner";
+import { getSubjectDetails, joinSubject } from "@/lib/services/subject.service";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,13 +26,8 @@ export default function JoinSubjectPage({ params }: PageProps) {
 
   useEffect(() => {
     const fetchSubjectDetails = async () => {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
       try {
-        const response = await fetch(`${API_BASE_URL}/subjects/${id}`);
-        if (!response.ok) {
-          throw new Error("Failed to load subject details");
-        }
-        const data = await response.json();
+        const data = await getSubjectDetails(id);
         setSubjectName(data.name);
         setSubjectDesc(data.description || "");
         setSubjectColor(data.color || "#facc15");
@@ -53,22 +49,8 @@ export default function JoinSubjectPage({ params }: PageProps) {
 
     setJoining(true);
     setError(null);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-    const token = localStorage.getItem("token");
-
     try {
-      const response = await fetch(`${API_BASE_URL}/subjects/${id}/join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to join subject");
-      }
+      await joinSubject(id);
 
       showToast(`Successfully joined ${subjectName}!`, "success");
       

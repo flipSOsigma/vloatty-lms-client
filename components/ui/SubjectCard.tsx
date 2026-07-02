@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { MoreHorizontal, BookOpen, Settings, RefreshCw } from "lucide-react";
-import { Subject } from "../../types/subject";
+import { MoreHorizontal, BookOpen, Settings, RefreshCw, Trash2 } from "lucide-react";
+import { Subject } from "../../types/subject.interface";
 import { useRouter } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import ContextMenu from "./ContextMenu";
+import ConfirmModal from "./ConfirmModal";
 
 interface SubjectCardProps {
   subject: Subject;
@@ -13,9 +14,25 @@ interface SubjectCardProps {
 
 export default function SubjectCard({ subject }: SubjectCardProps) {
   const router = useRouter();
-  const { showToast } = useLms();
+  const { showToast, deleteSubject } = useLms();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteSubject(subject.id);
+      showToast(`Subject "${subject.name}" deleted successfully.`, "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to delete subject", "error");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
 
   const getSubjectColorHex = (colorName: string | undefined) => {
     switch (colorName) {
@@ -164,7 +181,25 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
             icon: RefreshCw,
             onClick: () => showToast(`${subject.name} schedules synced successfully!`, "success"),
           },
+          {
+            label: "Delete Subject",
+            icon: Trash2,
+            danger: true,
+            onClick: () => setShowDeleteModal(true),
+          },
         ]}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Subject"
+        message={`Are you sure you want to delete "${subject.name}"? This action is permanent and cannot be undone.`}
+        confirmText="Delete"
+        isDanger={true}
+        isLoading={isDeleting}
+        verificationText={subject.name}
       />
     </>
   );

@@ -5,7 +5,12 @@ import Header from "../../../../../../components/views/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { StorageTracker } from "../../../../../../components/ui/StorageTracker";
 import Link from "next/link";
-import { SubjectFile } from "../../../../../../types/subject";
+import { getPresenceData, submitPresence } from "@/lib/services/presencion.service";
+import { getQuiz, getAttempts, saveQuiz, submitAttempt } from "@/lib/services/quiz.service";
+import { getAssignmentSettings, getMySubmission, getSubmissions, saveAssignmentSettings, deleteSubmission } from "@/lib/services/assignment.service";
+import { getSubjectFiles, deleteSubjectFile } from "@/lib/services/subject.service";
+import { generateQuiz } from "@/lib/services/ai.service";
+import { SubjectFile } from "../../../../../../types/subject.interface";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -143,17 +148,11 @@ function LessonDetailInner({ params }: PageProps) {
   const fetchPresenceData = async () => {
     setIsLoadingPresence(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/presencion`, {
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.isInstructor) {
-          setPresenceList(data.presenceList || []);
-        } else {
-          setMyPresence(data.myPresence || null);
-        }
+      const data = await getPresenceData(lessonId);
+      if (data.isInstructor) {
+        setPresenceList(data.presenceList || []);
+      } else {
+        setMyPresence(data.myPresence || null);
       }
     } catch (err) {
       console.error("Error fetching presence data:", err);
@@ -165,22 +164,10 @@ function LessonDetailInner({ params }: PageProps) {
   const handleSubmitPresence = async () => {
     setIsSubmittingPresence(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/presencion`, {
-        method: "POST",
-        headers: token ? { 
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        } : {},
-      });
-      const data = await res.json();
-      if (res.ok) {
-        showToast(data.message || "Presence submitted successfully!", "success");
-        setMyPresence(data.presence);
-        fetchPresenceData();
-      } else {
-        showToast(data.error || "Failed to submit presence", "error");
-      }
+      const data = await submitPresence(lessonId);
+      showToast(data.message || "Presence submitted successfully!", "success");
+      setMyPresence(data.presence);
+      fetchPresenceData();
     } catch (err: any) {
       console.error("Error submitting presence:", err);
       showToast(err.message || "Failed to submit presence", "error");
@@ -192,14 +179,8 @@ function LessonDetailInner({ params }: PageProps) {
   const fetchAttempts = async () => {
     setAttemptsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/quiz/attempts`, {
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAttempts(data);
-      }
+      const data = await getAttempts(lessonId);
+      setAttempts(data);
     } catch (e) {
       console.error("Error fetching attempts:", e);
     } finally {
@@ -211,25 +192,22 @@ function LessonDetailInner({ params }: PageProps) {
     if (selectedLesson?.type !== "quizzes") return;
     setQuizLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/quiz`, {
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setQuiz(data);
-        if (data.userAttempt) {
-          setMyAttempt(data.userAttempt);
-          const userIdSuffix = currentUser ? currentUser.id : "guest";
-          localStorage.setItem(`quiz_attempt_${lessonId}_${userIdSuffix}`, JSON.stringify(data.userAttempt));
-        } else if (currentUser) {
-          setMyAttempt(null);
-          localStorage.removeItem(`quiz_attempt_${lessonId}_${currentUser.id}`);
-        }
-        if (data.showLeaderboard || canEdit) {
-          fetchAttempts();
-        }
-      } else if (res.status === 404) {
+      const data = await getQuiz(lessonId);
+      setQuiz(data);
+      if (data.userAttempt) {
+        setMyAttempt(data.userAttempt);
+        const userIdSuffix = currentUser ? currentUser.id : "guest";
+        localStorage.setItem(`quiz_attempt_${lessonId}_${userIdSuffix}`, JSON.stringify(data.userAttempt));
+      } else if (currentUser) {
+        setMyAttempt(null);
+        localStorage.removeItem(`quiz_attempt_${lessonId}_${currentUser.id}`);
+      }
+      if (data.showLeaderboard || canEdit) {
+        fetchAttempts();
+      }
+    } catch (e: any) {
+      console.error("Error fetching quiz:", e);
+      if (e.message?.includes("404") || e.message?.toLowerCase().includes("not found")) {
         if (canEdit) {
           setQuiz({
             allowViewGrade: true,
@@ -248,8 +226,6 @@ function LessonDetailInner({ params }: PageProps) {
           setQuiz(null);
         }
       }
-    } catch (e) {
-      console.error("Error fetching quiz:", e);
     } finally {
       setQuizLoading(false);
     }
@@ -259,31 +235,31 @@ function LessonDetailInner({ params }: PageProps) {
     if (selectedLesson?.type !== "assignment") return;
     setIsLoadingAssignment(true);
     try {
-      const token = localStorage.getItem("token");
-      const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
-
       // 1. Fetch settings
-      const settingsRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/settings`, { headers });
-      if (settingsRes.ok) {
-        const settingsData = await settingsRes.json();
+      try {
+        const settingsData = await getAssignmentSettings(lessonId);
         setAssignmentSettings(settingsData);
         setAssignmentAllowedTypes(settingsData.globalSettings.allowedTypes);
         setAssignmentMaxSizeMb(settingsData.globalSettings.maxSizeMb);
         setAssignmentUserPermissions(settingsData.userPermissions);
+      } catch (e) {
+        console.error("Error fetching assignment settings:", e);
       }
 
       // 2. Fetch my submission
-      const mySubRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/my-submission`, { headers });
-      if (mySubRes.ok) {
-        const mySubData = await mySubRes.json();
+      try {
+        const mySubData = await getMySubmission(lessonId);
         setMyAssignmentSubmission(mySubData);
+      } catch (e) {
+        console.error("Error fetching my submission:", e);
       }
 
       // 3. Fetch all submissions
-      const allSubsRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/submissions`, { headers });
-      if (allSubsRes.ok) {
-        const allSubsData = await allSubsRes.json();
+      try {
+        const allSubsData = await getSubmissions(lessonId);
         setAllAssignmentSubmissions(allSubsData);
+      } catch (e) {
+        console.error("Error fetching submissions list:", e);
       }
     } catch (err) {
       console.error("Error fetching assignment data:", err);
@@ -333,33 +309,16 @@ function LessonDetailInner({ params }: PageProps) {
     if (!selectedLesson) return;
     setIsGeneratingQuiz(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/ai/generate-quiz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          lessonTitle: selectedLesson.title,
-          lessonDesc: selectedLesson.desc || "",
-          subjectName: selectedSubject?.name || "",
-          subjectDesc: selectedSubject?.description || "",
-          questionCount: Math.min(Math.max(1, aiQuestionCount), 10),
-          difficulty: aiDifficulty,
-          language: aiLanguage,
-        }),
+      const data = await generateQuiz({
+        lessonTitle: selectedLesson.title,
+        lessonDesc: selectedLesson.desc || "",
+        subjectName: selectedSubject?.name || "",
+        subjectDesc: selectedSubject?.description || "",
+        questionCount: Math.min(Math.max(1, aiQuestionCount), 10),
+        difficulty: aiDifficulty,
+        language: aiLanguage,
       });
 
-      if (!res.ok) {
-        if (res.status === 503) {
-          throw new Error("AI is busy right now. Please try again shortly.");
-        }
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || "Failed to generate quiz");
-      }
-
-      const data = await res.json();
       if (data.questions && data.questions.length > 0) {
         setQuiz((prev: any) => ({
           ...prev,
@@ -410,28 +369,13 @@ function LessonDetailInner({ params }: PageProps) {
 
     setQuizSaving(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/quiz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(quiz),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setQuiz(data);
-        showToast("Quiz settings and questions saved successfully!", "success");
-        fetchAttempts();
-      } else {
-        const err = await res.json();
-        showToast(err.error || "Failed to save quiz", "error");
-      }
-    } catch (err) {
+      const data = await saveQuiz(lessonId, quiz);
+      setQuiz(data);
+      showToast("Quiz settings and questions saved successfully!", "success");
+      fetchAttempts();
+    } catch (err: any) {
       console.error(err);
-      showToast("Error occurred while saving quiz", "error");
+      showToast(err.message || "Error occurred while saving quiz", "error");
     } finally {
       setQuizSaving(false);
     }
@@ -453,46 +397,32 @@ function LessonDetailInner({ params }: PageProps) {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/quiz/attempts`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          guestName: currentUser ? undefined : guestName.trim(),
-          answers: userAnswers,
-          answerLogs,
-        }),
+      const data = await submitAttempt(lessonId, {
+        guestName: currentUser ? undefined : guestName.trim(),
+        answers: userAnswers,
+        answerLogs,
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        const attemptResult = {
-          score: data.score,
-          totalPoints: data.totalPoints,
-          submittedAt: data.submittedAt,
-          answers: userAnswers,
-          correctAnswers: data.correctAnswers,
-        };
-        setMyAttempt(attemptResult);
-        const userIdSuffix = currentUser ? currentUser.id : "guest";
-        localStorage.setItem(`quiz_attempt_${lessonId}_${userIdSuffix}`, JSON.stringify(attemptResult));
-        if (!currentUser) {
-          localStorage.setItem(`quiz_guestName_${lessonId}`, guestName.trim());
-        }
-        showToast("Quiz submitted successfully!", "success");
-        if (quiz.showLeaderboard || canEdit) {
-          fetchAttempts();
-        }
-      } else {
-        const err = await res.json();
-        showToast(err.error || "Failed to submit attempt", "error");
+      const attemptResult = {
+        score: data.score,
+        totalPoints: data.totalPoints,
+        submittedAt: data.submittedAt,
+        answers: userAnswers,
+        correctAnswers: data.correctAnswers,
+      };
+      setMyAttempt(attemptResult);
+      const userIdSuffix = currentUser ? currentUser.id : "guest";
+      localStorage.setItem(`quiz_attempt_${lessonId}_${userIdSuffix}`, JSON.stringify(attemptResult));
+      if (!currentUser) {
+        localStorage.setItem(`quiz_guestName_${lessonId}`, guestName.trim());
       }
-    } catch (err) {
+      showToast("Quiz submitted successfully!", "success");
+      if (quiz.showLeaderboard || canEdit) {
+        fetchAttempts();
+      }
+    } catch (err: any) {
       console.error(err);
-      showToast("Error submitting quiz attempt", "error");
+      showToast(err.message || "Error submitting quiz attempt", "error");
     }
   };
 
@@ -608,14 +538,8 @@ function LessonDetailInner({ params }: PageProps) {
   const fetchFiles = async () => {
     setIsLoadingFiles(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/subjects/${id}/lessons/${lessonId}/files`, {
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setFiles(data);
-      }
+      const data = await getSubjectFiles(id, lessonId);
+      setFiles(data);
     } catch (e) {
       console.error("Error fetching lesson files:", e);
     } finally {
@@ -720,22 +644,13 @@ function LessonDetailInner({ params }: PageProps) {
   const handleDeleteFile = async (fileId: string) => {
     if (!confirm("Are you sure you want to delete this file?")) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/subjects/${id}/files/${fileId}`, {
-        method: "DELETE",
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        showToast("File deleted successfully!", "success");
-        fetchFiles();
-        refreshSubjects();
-      } else {
-        const errBody = await res.json().catch(() => ({}));
-        showToast(errBody.error || "Failed to delete file", "error");
-      }
-    } catch (err) {
+      await deleteSubjectFile(id, fileId);
+      showToast("File deleted successfully!", "success");
+      fetchFiles();
+      refreshSubjects();
+    } catch (err: any) {
       console.error(err);
-      showToast("Failed to delete file", "error");
+      showToast(err.message || "Failed to delete file", "error");
     }
   };
 
@@ -820,61 +735,34 @@ function LessonDetailInner({ params }: PageProps) {
   const handleAssignmentDelete = async (targetUserId?: string) => {
     if (!confirm("Are you sure you want to delete this submission?")) return;
     try {
-      const token = localStorage.getItem("token");
-      const url = targetUserId
-        ? `${API_BASE_URL}/lessons/${lessonId}/assignment/submit?userId=${targetUserId}`
-        : `${API_BASE_URL}/lessons/${lessonId}/assignment/submit`;
-
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-
-      if (res.ok) {
-        showToast("Submission deleted successfully!", "success");
-        fetchAssignmentData();
-      } else {
-        const errBody = await res.json().catch(() => ({}));
-        showToast(errBody.error || "Failed to delete submission", "error");
-      }
-    } catch (err) {
+      await deleteSubmission(lessonId, targetUserId);
+      showToast("Submission deleted successfully!", "success");
+      fetchAssignmentData();
+    } catch (err: any) {
       console.error(err);
-      showToast("Failed to delete submission", "error");
+      showToast(err.message || "Failed to delete submission", "error");
     }
   };
 
   const handleSaveAssignmentSettings = async () => {
     setSavingAssignmentSettings(true);
     try {
-      const token = localStorage.getItem("token");
       const formattedPermissions = assignmentUserPermissions.map((p) => ({
         userId: p.userId,
         canSubmit: p.canSubmit,
       }));
 
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/settings`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          allowedTypes: assignmentAllowedTypes,
-          maxSizeMb: assignmentMaxSizeMb,
-          userPermissions: formattedPermissions,
-        }),
+      await saveAssignmentSettings(lessonId, {
+        allowedTypes: assignmentAllowedTypes,
+        maxSizeMb: assignmentMaxSizeMb,
+        userPermissions: formattedPermissions,
       });
 
-      if (res.ok) {
-        showToast("Assignment settings saved successfully!", "success");
-        fetchAssignmentData();
-      } else {
-        const err = await res.json();
-        showToast(err.error || "Failed to save settings", "error");
-      }
-    } catch (err) {
+      showToast("Assignment settings saved successfully!", "success");
+      fetchAssignmentData();
+    } catch (err: any) {
       console.error(err);
-      showToast("Error saving assignment settings", "error");
+      showToast(err.message || "Error saving assignment settings", "error");
     } finally {
       setSavingAssignmentSettings(false);
     }

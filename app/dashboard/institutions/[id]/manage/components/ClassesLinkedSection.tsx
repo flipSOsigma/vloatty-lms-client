@@ -6,7 +6,7 @@ import { useTableControls } from "../hooks/useTableControls";
 import TableControls from "./TableControls";
 import TablePagination from "./TablePagination";
 import SortableHeader from "./SortableHeader";
-import { Subject } from "../../../../../../types/subject";
+import { Subject } from "../../../../../../types/subject.interface";
 
 interface ClassesLinkedSectionProps {
   linkedSubjects: Subject[];

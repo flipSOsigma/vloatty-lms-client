@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SubjectFile, Lesson } from "@/types/subject";
+import { SubjectFile, Lesson } from "@/types/subject.interface";
 import { BookOpen, UploadCloud, Lock, Unlock, X } from "lucide-react";
 
 interface LessonEditFormProps {

@@ -5,6 +5,9 @@ import Header from "../../../../components/views/Header";
 import EventModal from "../../../../components/views/EventModal";
 import { useLms } from "../../../../context/LmsContext";
 import Link from "next/link";
+import { getQuiz, getAttempts } from "@/lib/services/quiz.service";
+import { getMySubmission, deleteSubmission } from "@/lib/services/assignment.service";
+import { kickParticipant } from "@/lib/services/subject.service";
 import {
   ArrowLeft,
   GraduationCap,
@@ -51,10 +54,37 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
   const { id } = React.use(params);
   const { subjects, currentUser, showToast, updateSubject, refreshSubjects } = useLms();
+  const selectedSubject = subjects.find((s) => s.id === id);
 
   React.useEffect(() => {
     refreshSubjects();
   }, []);
+
+  React.useEffect(() => {
+    if (!selectedSubject) return;
+    try {
+      const recentStr = localStorage.getItem("recent_subjects");
+      let recents: { id: string; name: string; color?: string }[] = recentStr ? JSON.parse(recentStr) : [];
+      
+      // Filter out duplicate
+      recents = recents.filter((item) => item.id !== selectedSubject.id);
+      
+      // Unshift new recent
+      recents.unshift({
+        id: selectedSubject.id,
+        name: selectedSubject.name,
+        color: selectedSubject.color || "cream",
+      });
+      
+      // Keep max 3
+      recents = recents.slice(0, 3);
+      
+      localStorage.setItem("recent_subjects", JSON.stringify(recents));
+      window.dispatchEvent(new Event("recent_subjects_updated"));
+    } catch (err) {
+      console.error("Failed to update recent subjects", err);
+    }
+  }, [selectedSubject]);
 
   const [uploadedFiles, setUploadedFiles] = useState<{ [lessonId: string]: { name: string; size: string } }>({});
   const [uploadingProgress, setUploadingProgress] = useState<{ [lessonId: string]: number }>({});
@@ -70,7 +100,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
   const [deleteModuleInfo, setDeleteModuleInfo] = useState<{ moduleId: string; title: string } | null>(null);
   const [isDeletingModule, setIsDeletingModule] = useState(false);
 
-  const selectedSubject = subjects.find((s) => s.id === id);
+  // selectedSubject declared above
 
   const [quizzesData, setQuizzesData] = useState<{ [lessonId: string]: { settings: any, attempts: any[] } }>({});
 
@@ -86,23 +116,17 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
       await Promise.all(quizLessons.map(async (lesson) => {
         try {
-          const quizRes = await fetch(`${API_BASE_URL}/lessons/${lesson.id}/quiz`, { headers });
-          if (quizRes.ok) {
-            const quiz = await quizRes.json();
-            
-            let attempts: any[] = [];
-            const isCreator = selectedSubject.createdBy === currentUser?.id;
-            const isLecturer = selectedSubject.lecturers?.some((l: any) => l.userId === currentUser?.id);
-            const canEdit = isCreator || isLecturer;
+          const quiz = await getQuiz(lesson.id);
+          
+          let attempts: any[] = [];
+          const isCreator = selectedSubject.createdBy === currentUser?.id;
+          const isLecturer = selectedSubject.lecturers?.some((l: any) => l.userId === currentUser?.id);
+          const canEdit = isCreator || isLecturer;
 
-            if (quiz.showLeaderboard || canEdit) {
-              const attemptsRes = await fetch(`${API_BASE_URL}/lessons/${lesson.id}/quiz/attempts`, { headers });
-              if (attemptsRes.ok) {
-                attempts = await attemptsRes.json();
-              }
-            }
-            dataMap[lesson.id] = { settings: quiz, attempts };
+          if (quiz.showLeaderboard || canEdit) {
+            attempts = await getAttempts(lesson.id);
           }
+          dataMap[lesson.id] = { settings: quiz, attempts };
         } catch (e) {
           console.error(`Error fetching quiz data for lesson ${lesson.id}:`, e);
         }
@@ -204,16 +228,13 @@ export default function SubjectDetailPage({ params }: PageProps) {
       await Promise.all(
         assignmentLessons.map(async (lessonId) => {
           try {
-            const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/my-submission`, { headers });
-            if (res.ok) {
-              const data = await res.json();
-              if (data) {
-                tempUploadedFiles[lessonId] = {
-                  name: data.fileName,
-                  size: (data.fileSize / 1024).toFixed(1) + " KB",
-                  path: data.filePath,
-                };
-              }
+            const data = await getMySubmission(lessonId);
+            if (data) {
+              tempUploadedFiles[lessonId] = {
+                name: data.fileName,
+                size: (data.fileSize / 1024).toFixed(1) + " KB",
+                path: data.filePath,
+              };
             }
           } catch (e) {
             console.error("Error fetching submission for lesson:", lessonId, e);
@@ -317,19 +338,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
   const handleRemoveFile = async (lessonId: string) => {
     if (!confirm("Are you sure you want to delete this submission?")) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/lessons/${lessonId}/assignment/submit`, {
-        method: "DELETE",
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-
-      if (res.ok) {
-        showToast("Submission deleted successfully!", "success");
-        fetchSubmissions();
-      } else {
-        const errBody = await res.json().catch(() => ({}));
-        showToast(errBody.error || "Failed to delete submission", "error");
-      }
+      await deleteSubmission(lessonId);
+      showToast("Submission deleted successfully!", "success");
+      fetchSubmissions();
     } catch (err) {
       console.error(err);
       showToast("Failed to delete submission", "error");
@@ -340,19 +351,49 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
   if (!selectedSubject) {
     return (
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
+      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col text-left select-none w-full h-full bg-[#FAF9F5]/30">
         <Header />
-        <div className="w-full px-6 md:px-8 flex flex-col gap-6">
-        <div className="w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-[#E5E1D8]/70 rounded-3xl p-6 bg-white/40 select-none">
-          <span className="text-[14px] text-zinc-400 font-semibold">Subject not found.</span>
-          <Link
-            href="/dashboard"
-            className="mt-4 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl text-[11px] shadow-sm transition-colors"
-          >
-            Go back to Dashboard
-          </Link>
+        
+        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 max-w-xl mx-auto w-full select-none text-center">
+          {/* Big 404 Text */}
+          <div className="relative mb-4">
+            <h1 className="text-[100px] sm:text-[120px] font-black leading-none text-zinc-950/5 tracking-tighter">
+              404
+            </h1>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-[10px] font-bold text-zinc-400/80 uppercase tracking-widest bg-[#FAF9F6] px-3 py-1 rounded-full border border-[#E5E1D8]/30">
+                Not Found
+              </span>
+            </div>
+          </div>
+
+          {/* Title Text */}
+          <h2 className="text-lg sm:text-xl font-black text-zinc-955 tracking-tight mb-2">
+            Subject Not Found
+          </h2>
+
+          {/* Description */}
+          <p className="text-[12px] sm:text-[13px] text-zinc-500 font-semibold leading-relaxed mb-8 max-w-sm">
+            The subject syllabus you are looking for might have been deleted, renamed, or is temporarily unavailable. Double check the ID or choose one of the options below.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[#121212] hover:bg-zinc-900 text-white font-extrabold rounded-2xl text-[11.5px] shadow-sm transition-all active:scale-[0.98]"
+            >
+              <span>Go to Dashboard</span>
+            </Link>
+            <Link
+              href="/dashboard/subjects"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-[#FAF9F5] border border-zinc-200 text-zinc-700 hover:text-zinc-900 font-extrabold rounded-2xl text-[11.5px] transition-all active:scale-[0.98]"
+            >
+              <BookOpen className="w-4 h-4 text-zinc-450" />
+              <span>Browse Subjects</span>
+            </Link>
+          </div>
         </div>
-      </div>
       </div>
     );
   }
@@ -1012,16 +1053,7 @@ export default function SubjectDetailPage({ params }: PageProps) {
                       const token = localStorage.getItem("token");
                       
                       try {
-                        const res = await fetch(`${API_BASE_URL}/subjects/${selectedSubject.id}/participants/${selectedMember.userId}`, {
-                          method: "DELETE",
-                          headers: {
-                            ...(token ? { "Authorization": `Bearer ${token}` } : {})
-                          }
-                        });
-                        if (!res.ok) {
-                          const errorData = await res.json().catch(() => ({}));
-                          throw new Error(errorData.error || "Failed to kick participant");
-                        }
+                        await kickParticipant(selectedSubject.id, selectedMember.userId);
                         showToast(`Successfully kicked ${selectedMember.name} from the subject!`, "success");
                         setTimeout(() => {
                           window.location.reload();

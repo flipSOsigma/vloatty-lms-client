@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LmsEvent } from "../../types/lms";
+import { LmsEvent } from "../../types/lms.interface";
 import { useLms } from "../../context/LmsContext";
 
 interface ThirtyDaysActivityChartProps {

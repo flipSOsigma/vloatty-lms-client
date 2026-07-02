@@ -2,7 +2,7 @@
 
 import React from "react";
 import { MapPin, GraduationCap } from "lucide-react";
-import { LmsEvent } from "../../types/lms";
+import { LmsEvent } from "../../types/lms.interface";
 
 interface ScheduleCardProps {
   event: LmsEvent;

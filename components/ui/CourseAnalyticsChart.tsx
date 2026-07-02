@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { LmsEvent } from "../../types/event";
+import { LmsEvent } from "../../types/event.interface";
 import { useLms } from "../../context/LmsContext";
 
 interface StudyActivityChartProps {

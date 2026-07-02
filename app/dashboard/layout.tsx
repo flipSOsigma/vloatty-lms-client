@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import Sidebar from "../../components/views/Sidebar";
 import Link from "next/link";
-import { Library, LayoutDashboard, Calendar, BookOpen, HardDrive } from "lucide-react";
+import { Library, LayoutDashboard, Calendar, CalendarDays, BookOpen, HardDrive } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -17,8 +17,9 @@ export default function DashboardLayout({
   const { currentUser, isLoadingUser } = useLms();
 
   const navItems = [
-    { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-    { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
+    { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Schedule", icon: CalendarDays, href: "/dashboard/schedule" },
+    { name: "Timeline", icon: Calendar, href: "/dashboard/timeline" },
     { name: "Subjects", icon: BookOpen, href: "/dashboard/subjects" },
     { name: "Storage", icon: HardDrive, href: "/dashboard/storage" },
   ];
@@ -64,8 +65,9 @@ export default function DashboardLayout({
           {(() => {
             const getActiveTabIndex = () => {
               if (pathname.startsWith("/dashboard/schedule")) return 1;
-              if (pathname.startsWith("/dashboard/subjects") || pathname.startsWith("/dashboard/subject")) return 2;
-              if (pathname.startsWith("/dashboard/storage")) return 3;
+              if (pathname.startsWith("/dashboard/timeline")) return 2;
+              if (pathname.startsWith("/dashboard/subjects") || pathname.startsWith("/dashboard/subject")) return 3;
+              if (pathname.startsWith("/dashboard/storage")) return 4;
               return 0;
             };
             const activeIndex = getActiveTabIndex();
@@ -77,7 +79,7 @@ export default function DashboardLayout({
                 <div 
                   className="absolute top-[-22px] w-14 h-14 rounded-full bg-gradient-to-br from-[#facc15] to-[#d97706] border-4 border-[#FAF7F2] flex items-center justify-center shadow-lg shadow-[#d97706]/30 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] z-10"
                   style={{
-                    left: `calc(${(activeIndex * 100) / 4}% + (100% / 4 - 56px) / 2)`,
+                    left: `calc(${(activeIndex * 100) / 5}% + (100% / 5 - 56px) / 2)`,
                   }}
                 >
                   <ActiveIcon 
@@ -95,13 +97,15 @@ export default function DashboardLayout({
                       href={item.href}
                       className="flex-1 flex flex-col items-center justify-center h-full w-full py-1 text-zinc-400 transition-colors z-20 relative select-none"
                     >
-                      <Icon 
-                        className={`w-5 h-5 transition-all duration-300 ${
-                          isActive 
-                            ? "opacity-0 scale-50 -translate-y-4" 
-                            : "opacity-100 scale-100 text-zinc-400 hover:text-zinc-650"
-                        }`} 
-                      />
+                      <div className="w-8 h-8 flex items-center justify-center">
+                        <Icon 
+                          className={`w-5 h-5 transition-all duration-300 ${
+                            isActive 
+                              ? "opacity-0 scale-50 -translate-y-4" 
+                              : "opacity-100 scale-100 text-zinc-400 hover:text-zinc-650"
+                          }`} 
+                        />
+                      </div>
                       <span 
                         className={`text-[10px] tracking-tight transition-all duration-300 ${
                           isActive 

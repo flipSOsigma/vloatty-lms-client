@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Header from "../../../../../../components/views/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
+import { getAiTokens } from "@/lib/services/user.service";
+import { generateModuleDesc } from "@/lib/services/ai.service";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -16,7 +18,7 @@ import {
   Lightbulb,
   Info,
 } from "lucide-react";
-import { Module } from "../../../../../../types/subject";
+import { Module } from "../../../../../../types/subject.interface";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -36,15 +38,8 @@ export default function CreateModulePage({ params }: PageProps) {
   const fetchAiTokens = async () => {
     if (!currentUser?.id) return;
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/users/${currentUser.id}/ai-tokens`, {
-        headers: token ? { "Authorization": `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAiTokens(data);
-      }
+      const data = await getAiTokens(currentUser.id);
+      setAiTokens(data);
     } catch (e) {
       console.error("Failed to fetch AI tokens:", e);
     }
@@ -71,28 +66,10 @@ export default function CreateModulePage({ params }: PageProps) {
 
     setIsGenerating(true);
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("token");
-      
-      const res = await fetch(`${API_BASE_URL}/ai/generate-module-desc`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          title: inputTitle.trim(),
-          subjectName: subject?.name,
-          subjectDesc: subject?.description,
-        }),
+      const data = await generateModuleDesc({
+        title: inputTitle.trim(),
+        subjectName: subject?.name,
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || "Failed to generate description");
-      }
-
-      const data = await res.json();
       if (data.description) {
         setDesc(data.description);
         setHasAutofilled(true);

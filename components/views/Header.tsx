@@ -30,12 +30,7 @@ export default function Header({ title, subtitle }: HeaderProps = {}) {
     };
   }, []);
 
-  const navTabs = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Schedule", href: "/dashboard/schedule" },
-    { name: "Subjects", href: "/dashboard/subjects" },
-    { name: "Storage", href: "/dashboard/storage" },
-  ];
+
 
   const getInitials = (name: string) => {
     return name
@@ -57,29 +52,8 @@ export default function Header({ title, subtitle }: HeaderProps = {}) {
         <Menu className="w-5 h-5 stroke-[2]" />
       </button>
 
-      {/* Left side: Navigation Tabs (hidden on mobile/tablet, visible on desktop) */}
-      <div className="hidden lg:flex items-center gap-1 bg-zinc-100 p-1 rounded-full border border-zinc-200/40">
-        {navTabs.map((tab) => {
-          const isActive = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href));
-          return (
-            <Link
-              key={tab.name}
-              href={tab.href}
-              className={`px-5 py-2 rounded-full text-xs font-extrabold tracking-tight transition-all cursor-pointer ${
-                isActive
-                  ? "bg-[#121212] text-white shadow-sm"
-                  : "text-zinc-550 hover:text-zinc-800"
-              }`}
-            >
-              {tab.name}
-            </Link>
-          );
-        })}
-        {/* Extra tab */}
-        <span className="px-5 py-2 text-zinc-400 text-xs font-extrabold cursor-not-allowed select-none">
-          Calendar
-        </span>
-      </div>
+      {/* Center spacer since navigation is removed */}
+      <div className="flex-1" />
 
       {/* Right side: Settings, Notification, and User Profile */}
       <div className="flex items-center gap-4 relative" ref={popupRef}>

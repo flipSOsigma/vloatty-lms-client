@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Lesson, Module, Subject } from "@/types/subject";
+import { Lesson, Module, Subject } from "@/types/subject.interface";
 import { StorageTracker } from "@/components/ui/StorageTracker";
 import { formatDate } from "@/lib/formatters";
 import { Lock, Unlock, GraduationCap, Lightbulb } from "lucide-react";

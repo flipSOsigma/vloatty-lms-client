@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLms } from "../../context/LmsContext";
-import { LmsEvent } from "../../types/lms";
+import { LmsEvent } from "../../types/lms.interface";
 import {
   Calendar,
   Clock,
@@ -233,7 +233,7 @@ export default function ScheduleView() {
 
   const scrollToToday = () => {
     if (scrollContainerRef.current && todayIndex !== -1) {
-      const scrollPos = todayIndex * 200 - scrollContainerRef.current.clientWidth / 2 + 100;
+      const scrollPos = todayIndex * DAY_WIDTH - scrollContainerRef.current.clientWidth / 2 + DAY_WIDTH / 2;
       scrollContainerRef.current.scrollTo({ left: scrollPos, behavior: "smooth" });
     }
   };
@@ -328,7 +328,7 @@ export default function ScheduleView() {
     });
   }, [filteredEvents, showDone, todayIndex]);
 
-  const DAY_WIDTH = 200;
+  const DAY_WIDTH = 75;
   const TRACK_HEIGHT = 90;
 
   const getMonthName = (dateStr: string) => {
@@ -421,36 +421,12 @@ export default function ScheduleView() {
   return (
     <div className="flex flex-col flex-1 select-none relative w-full h-[calc(100vh-190px)] no-scrollbar">
       
-      {/* Title & Description row */}
-      <div className="mb-6 text-left">
-        <h1 className="text-xl sm:text-[28px] font-black text-zinc-950 tracking-tight">Timeline</h1>
-        <p className="hidden sm:block text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
-          Detailed, visual representation of a project's journey, highlighting key milestones, progress updates, and upcoming tasks.
-        </p>
-      </div>
-
-      {/* Timeline Controls Bar (Match ref.jpg structure & premium theme style) */}
-      <div className="anime-card opacity-0 flex flex-wrap justify-between items-center gap-3 w-full mb-4 px-0.5 relative z-40">
+      {/* Title & Controls row (One Line) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 w-full text-left">
+        <h1 className="text-lg sm:text-xl font-black text-zinc-955 tracking-tight shrink-0">Timeline</h1>
         
-        {/* Left Side: View Mode Tabs & Navigation Arrows with Date Range */}
-        <div className="flex items-center gap-2">
-          {/* Day / Week / Month Pill Tabs */}
-          <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-[#EFECE6] shadow-2xs">
-            {(["Day", "Week", "Month"] as const).map((view) => (
-              <button
-                key={view}
-                onClick={() => setActiveViewMode(view)}
-                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] sm:text-[11.5px] font-extrabold tracking-tight transition-all cursor-pointer ${
-                  activeViewMode === view
-                    ? "bg-[#121212] text-white shadow-sm"
-                    : "text-zinc-500 hover:text-zinc-800"
-                }`}
-              >
-                {view}
-              </button>
-            ))}
-          </div>
-
+        {/* Right Side Controls */}
+        <div className="flex flex-wrap items-center gap-2">
           {/* Date range display & navigation arrows */}
           <div className="flex items-center bg-white rounded-full border border-[#EFECE6] shadow-2xs px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-[11.5px] font-extrabold text-zinc-700">
             <button 
@@ -471,13 +447,9 @@ export default function ScheduleView() {
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </div>
 
-        {/* Right Side: Toggle Done, Sort & Filter dropdown triggers, Jump to Today */}
-        <div className="flex items-center gap-2">
-          
           {/* Show done toggle */}
-          <div className="flex items-center gap-2 text-[10px] sm:text-[11.5px] font-extrabold text-zinc-500 mr-1">
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11.5px] font-extrabold text-zinc-500 bg-white border border-[#EFECE6] rounded-full px-3 py-1 sm:py-1.5 shadow-2xs">
             <span>Show done</span>
             <button
               onClick={() => setShowDone(!showDone)}
@@ -493,87 +465,6 @@ export default function ScheduleView() {
             </button>
           </div>
 
-          {/* Sort Button Dropdown Trigger */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setSortDropdownOpen(!sortDropdownOpen);
-                setFilterDropdownOpen(false);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white hover:bg-zinc-50 text-zinc-750 font-extrabold rounded-full text-[10px] sm:text-[11.5px] cursor-pointer border border-[#EFECE6] shadow-2xs active:scale-95 transition-all ${
-                sortDropdownOpen ? "border-zinc-950 text-zinc-950" : ""
-              }`}
-            >
-              <ListFilter className="w-3.5 h-3.5" />
-              <span>Sort</span>
-            </button>
-
-            {sortDropdownOpen && (
-              <div className="absolute right-0 mt-2 bg-white border border-[#EFECE6] rounded-2xl p-2.5 shadow-xl z-50 flex flex-col gap-1 w-44">
-                <div className="text-[9.5px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1.5">
-                  Sort Timeline
-                </div>
-                {(["date", "duration"] as const).map((mode) => {
-                  const isSelected = sortBy === mode;
-                  return (
-                    <button
-                      key={mode}
-                      onClick={() => {
-                        setSortBy(mode);
-                        setSortDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-left cursor-pointer transition-colors ${
-                        isSelected ? "bg-[#121212] text-white" : "hover:bg-zinc-50 text-zinc-650"
-                      }`}
-                    >
-                      <span>{mode === "date" ? "Start Date" : "Task Duration"}</span>
-                      {isSelected && <span className="text-[10px]">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Filter Button Dropdown Trigger */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setFilterDropdownOpen(!filterDropdownOpen);
-                setSortDropdownOpen(false);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white hover:bg-zinc-50 text-zinc-750 font-extrabold rounded-full text-[10px] sm:text-[11.5px] cursor-pointer border border-[#EFECE6] shadow-2xs active:scale-95 transition-all ${
-                filterDropdownOpen ? "border-zinc-950 text-zinc-950" : ""
-              }`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Filter</span>
-            </button>
-
-            {filterDropdownOpen && (
-              <div className="absolute right-0 mt-2 bg-white border border-[#EFECE6] rounded-2xl p-2.5 shadow-xl z-50 flex flex-col gap-1 w-44">
-                <div className="text-[9.5px] font-black text-zinc-400 uppercase tracking-widest px-2 mb-1.5">
-                  Filter by Tag
-                </div>
-                {categories.map((cat) => {
-                  const isSelected = selectedCategories.includes(cat);
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => toggleCategory(cat)}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-left cursor-pointer transition-colors ${
-                        isSelected ? "bg-[#121212] text-white" : "hover:bg-zinc-50 text-zinc-650"
-                      }`}
-                    >
-                      <span>{cat}</span>
-                      {isSelected && <span className="text-[10px]">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
           {/* Jump to Today Button */}
           <button
             onClick={scrollToToday}
@@ -583,7 +474,6 @@ export default function ScheduleView() {
             <span>Jump to Today</span>
           </button>
         </div>
-
       </div>
 
       {/* Horizontal Timeline Grid Card Frame (Transparent, integrated directly into page) */}
@@ -629,57 +519,45 @@ export default function ScheduleView() {
                 const isSelected = idx === activeDayIndex;
                 const isToday = idx === todayIndex;
                 const dateNum = new Date(day.fullDate).getDate();
-                const weekdayLetter = day.label[0];
                 return (
                   <div
                     key={day.fullDate}
                     onClick={() => setActiveDayIndex(idx)}
-                    className="absolute h-full flex items-center justify-between px-4 cursor-pointer group"
+                    className="absolute h-full flex flex-col items-center justify-center cursor-pointer group border-r border-[#EFECE6]/40"
                     style={{
                       left: `${idx * DAY_WIDTH}px`,
                       width: `${DAY_WIDTH}px`,
                     }}
                   >
-                    <div className="flex items-center gap-2 select-none">
-                      <span className={`text-[11px] font-extrabold transition-colors ${
-                        isSelected ? "text-[#121212]" : "text-zinc-400 group-hover:text-zinc-650"
-                      }`}>
-                        {weekdayLetter}
-                      </span>
-                      
-                      <div className="flex items-center justify-center relative">
-                        {isToday ? (
-                          <div className={`h-6 px-2 rounded-full flex items-center justify-center font-black text-[11px] transition-all shadow-xs border ${
-                            isSelected 
-                              ? "bg-[#121212] border-[#121212] text-white" 
-                              : "bg-[#facc15]/15 border-[#facc15]/80 text-[#d97706] font-black"
-                          }`}>
-                            {dateNum}
-                          </div>
-                        ) : isSelected ? (
-                          <div className="h-6 px-2 rounded-full bg-[#121212] text-white flex items-center justify-center font-black text-[11px] shadow-xs border border-[#121212]">
-                            {dateNum}
-                          </div>
-                        ) : (
-                          <span className="text-[11.5px] font-extrabold text-zinc-700 group-hover:text-zinc-950 transition-colors">
-                            {dateNum}
-                          </span>
-                        )}
-                      </div>
+                    <span className={`text-[9px] font-black tracking-wider transition-colors ${
+                      isSelected ? "text-zinc-950" : "text-zinc-400 group-hover:text-zinc-650"
+                    }`}>
+                      {day.label}
+                    </span>
+                    
+                    <div className="flex items-center justify-center relative mt-1">
+                      {isToday ? (
+                        <div className={`h-5.5 w-5.5 rounded-full flex items-center justify-center font-black text-[10.5px] transition-all shadow-xs border ${
+                          isSelected 
+                            ? "bg-[#121212] border-[#121212] text-white" 
+                            : "bg-[#facc15]/15 border-[#facc15]/80 text-[#d97706]"
+                        }`}>
+                          {dateNum}
+                        </div>
+                      ) : isSelected ? (
+                        <div className="h-5.5 w-5.5 rounded-full bg-[#121212] text-white flex items-center justify-center font-black text-[10.5px] shadow-xs border border-[#121212]">
+                          {dateNum}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] font-extrabold text-zinc-700 group-hover:text-zinc-950 transition-colors">
+                          {dateNum}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Small dots separator on the right of header cell */}
-                    {idx < DAYS.length - 1 && (
-                      <div className="flex items-center justify-between pl-6 w-full gap-1.5 ml-auto opacity-70">
-                        <div className="w-1 h-1 rounded-full bg-black/40" />
-                        <div className="w-1 h-1 rounded-full bg-black/40" />
-                        <div className="w-1 h-1 rounded-full bg-black/40" />
-                      </div>
-                    )}
-
-                    {/* Blue/indigo active top underline in header */}
+                    {/* Blue/indigo active bottom underline in header */}
                     {isSelected && (
-                      <div className="absolute bottom-0 left-4 right-4 h-0.75 bg-indigo-500 rounded-t-full z-20" />
+                      <div className="absolute bottom-0 left-2 right-2 h-0.75 bg-indigo-500 rounded-t-full z-20" />
                     )}
                   </div>
                 );
@@ -749,7 +627,7 @@ export default function ScheduleView() {
             {/* Active day solid vertical line indicator stretching down */}
             <div
               className="absolute top-0 bottom-0 border-l-2 border-indigo-500/40 z-20 pointer-events-none transition-all duration-300"
-              style={{ left: `${activeDayIndex * DAY_WIDTH + 24}px` }}
+              style={{ left: `${activeDayIndex * DAY_WIDTH + DAY_WIDTH / 2}px` }}
             />
 
             {/* Event Cards */}
@@ -782,58 +660,51 @@ export default function ScheduleView() {
                   indicatorColorClass = hash % 2 === 0 ? "bg-[#10b981]" : "bg-[#f97316]";
                 }
 
+                const isShort = width < 115;
                 return (
-                  <div
-                    key={event.id}
-                    onClick={() => setSelectedEvent(event)}
-                    className={`absolute rounded-[16px] px-3.5 py-1.5 flex items-center justify-between cursor-pointer select-none transition-all hover:scale-[1.015] hover:shadow-md group text-left min-w-0 z-20 ${cardClass}`}
-                    style={{
-                      left: `${left}px`,
-                      width: `${width}px`,
-                      top: `${top}px`,
-                      height: `${height}px`,
-                    }}
-                  >
-                    {/* Left details + pill indicator */}
-                    <div className="flex items-center gap-4.5 min-w-0 flex-1 h-full">
-                      {/* Accent vertical pill inside card */}
-                      {!isGradient && (
-                        <div className={`w-1 rounded-full shrink-0 ${indicatorColorClass}`} style={{ height: "20px" }} />
-                      )}
-
-                      {/* Sparkle/indicator arrow for special gradient card */}
-                      {isGradient && (
-                        <div className="text-white/90 shrink-0 text-[11px] font-black mr-0.5 animate-pulse">
-                          ✦
-                        </div>
-                      )}
-
-                      <div className="flex flex-col justify-center min-w-0 leading-tight">
-                        <span className="text-[12.5px] font-bold tracking-tight truncate pr-2" title={event.title}>
-                          {event.title}
-                        </span>
-                        <span className={`text-[10px] tracking-tight truncate mt-0.75 ${subtitleColorClass}`}>
-                          {event.subtitle || event.tag?.text || "LMS Subject"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button 
-                      className={`p-1 rounded-full transition-colors cursor-pointer shrink-0 ${
-                        isGradient
-                          ? "text-white/80 hover:bg-white/10"
-                          : event.color === "blue" || event.id.startsWith("deadline-")
-                            ? "text-zinc-400 hover:bg-zinc-800"
-                            : "text-zinc-400 hover:bg-zinc-100"
-                      }`}
-                      title="Options"
-                      onClick={(e) => {
-                        e.stopPropagation(); // prevent modal opening
+                    <div
+                      key={event.id}
+                      onClick={() => setSelectedEvent(event)}
+                      className={`absolute rounded-[14px] ${isShort ? "px-2" : "px-3.5"} py-0 flex items-center justify-between cursor-pointer select-none transition-all hover:scale-[1.015] hover:shadow-md group text-left min-w-0 z-20 ${cardClass}`}
+                      style={{
+                        left: `${left}px`,
+                        width: `${width}px`,
+                        top: `${top}px`,
+                        height: `${height}px`,
                       }}
                     >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
+                      {/* Left details */}
+                      <div className="flex items-center min-w-0 flex-1 h-full">
+                        <div className="flex flex-col justify-center min-w-0 leading-tight w-full">
+                          <span className={`text-[12px] font-bold tracking-tight truncate ${isShort ? "" : "pr-1.5"}`} title={event.title}>
+                            {event.title}
+                          </span>
+                          {!isShort && (
+                            <span className={`text-[9.5px] tracking-tight truncate mt-0.5 ${subtitleColorClass}`}>
+                              {event.subtitle || event.tag?.text || "LMS Subject"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {!isShort && (
+                        <button 
+                          className={`p-0.5 rounded-full transition-colors cursor-pointer shrink-0 ${
+                            isGradient
+                              ? "text-white/80 hover:bg-white/10"
+                              : event.color === "blue" || event.id.startsWith("deadline-")
+                                ? "text-zinc-400 hover:bg-zinc-800"
+                                : "text-zinc-400 hover:bg-zinc-100"
+                          }`}
+                          title="Options"
+                          onClick={(e) => {
+                            e.stopPropagation(); // prevent modal opening
+                          }}
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                 );
               })}
             </div>

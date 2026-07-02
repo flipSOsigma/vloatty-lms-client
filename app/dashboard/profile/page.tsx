@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import Header from "../../../components/views/Header";
 import Link from "next/link";
 import { useLms } from "../../../context/LmsContext";
+import { UserProfile } from "../../../types/lms.interface";
+import { updateUserProfile } from "../../../lib/services/user.service";
+import { uploadFile } from "../../../lib/services/upload.service";
 import ImageCropModal from "../../../components/ui/ImageCropModal";
 import {
   User,
@@ -14,16 +17,6 @@ import {
   Camera,
   Loader2,
 } from "lucide-react";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  premiumStatus: "free" | "premium" | "professional";
-  institution: string;
-  avatar: string;
-  banner?: string | null;
-}
 
 export default function ProfilePage() {
   const { currentUser, setCurrentUser, showToast } = useLms();
@@ -77,30 +70,14 @@ export default function ProfilePage() {
     
     setIsSaving(true);
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      
-      const response = await fetch(`${API_BASE_URL}/users/${profile.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          institution,
-          premiumStatus,
-          avatar,
-          banner,
-        })
+      const updatedUser = await updateUserProfile(profile.id, {
+        name,
+        email,
+        institution,
+        premiumStatus,
+        avatar,
+        banner,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to save profile on server");
-      }
-
-      const updatedUser = await response.json();
       setProfile(updatedUser);
       if (setCurrentUser) {
         setCurrentUser(updatedUser);
@@ -150,20 +127,7 @@ export default function ProfilePage() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_BASE_URL}/upload?userId=${profile.id}&type=avatar`, {
-          method: "POST",
-          headers: {
-            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-          },
-          body: formData,
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || "Avatar upload failed");
-        }
-        const data = await res.json();
+        const data = await uploadFile(formData, `userId=${profile.id}&type=avatar`);
         if (!data.url) throw new Error("Server returned an empty upload URL");
         setAvatar(data.url);
         if (showToast) {
@@ -182,20 +146,7 @@ export default function ProfilePage() {
       try {
         const formData = new FormData();
         formData.append("file", file);
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_BASE_URL}/upload?userId=${profile.id}&type=banner`, {
-          method: "POST",
-          headers: {
-            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-          },
-          body: formData,
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || "Banner upload failed");
-        }
-        const data = await res.json();
+        const data = await uploadFile(formData, `userId=${profile.id}&type=banner`);
         if (!data.url) throw new Error("Server returned an empty upload URL");
         setBanner(data.url);
         if (showToast) {
@@ -519,3 +470,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

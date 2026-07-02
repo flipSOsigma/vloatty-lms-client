@@ -14,6 +14,7 @@ interface FolderCardProps {
   bannerColor?: string;
   bannerHasStripes?: boolean;
   onClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
 export default function FolderCard({
@@ -28,6 +29,7 @@ export default function FolderCard({
   bannerColor = "#121212",
   bannerHasStripes = true,
   onClick,
+  onContextMenu,
 }: FolderCardProps) {
   // Safe defaults matching ref.jpg layout
   const displaySubtitle = subtitle || "Files Directory";
@@ -53,6 +55,7 @@ export default function FolderCard({
   return (
     <div
       onClick={onClick}
+      onContextMenu={onContextMenu}
       className="group bg-[#F9F7F2] border border-[#EFECE6] rounded-[24px] overflow-hidden flex flex-col justify-between text-left h-[240px] relative transition-all duration-300 hover:-translate-y-1 hover:shadow-xs cursor-pointer select-none"
     >
       {/* Top Banner: Supports Tailwind classes via bannerGradient or inline styled stripes */}
@@ -79,7 +82,7 @@ export default function FolderCard({
       <div className="flex-grow bg-[#F9F7F2] px-5 pb-5 pt-3.5 flex flex-col justify-between z-10">
         <div className="flex flex-col text-left">
           <span 
-            className="text-[14px] font-bold text-zinc-900 truncate leading-tight group-hover:text-zinc-950" 
+            className="text-[14px] font-bold text-zinc-900 truncate leading-tight group-hover:text-zinc-955" 
             title={name}
           >
             {name}

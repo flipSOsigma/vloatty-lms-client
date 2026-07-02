@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import InstitutionCard from "../../../components/ui/InstitutionCard";
 import ThirtyDaysActivityChart from "../../../components/ui/ThirtyDaysActivityChart";
 import { animate, stagger } from "animejs";
+import { getInstitutions, deleteInstitution } from "../../../lib/services/institution.service";
 
 export default function InstitutionsPage() {
   const router = useRouter();
@@ -15,13 +16,9 @@ export default function InstitutionsPage() {
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
   const fetchInstitutions = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/institutions`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch institutions");
-      const data = await res.json();
+      const data = await getInstitutions();
       console.log("Fetched institutions:", data);
       setInstitutions(data);
     } catch (err: any) {
@@ -50,16 +47,7 @@ export default function InstitutionsPage() {
     if (!confirm("Are you sure you want to delete this institution?")) return;
 
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const res = await fetch(`${API_BASE_URL}/institutions/${id}`, {
-        method: "DELETE",
-        headers: {
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {})
-        }
-      });
-
-      if (!res.ok) throw new Error("Failed to delete institution");
-
+      await deleteInstitution(id);
       showToast("Institution deleted successfully!", "success");
       fetchInstitutions();
     } catch (err: any) {
@@ -125,3 +113,4 @@ export default function InstitutionsPage() {
     </>
   );
 }
+

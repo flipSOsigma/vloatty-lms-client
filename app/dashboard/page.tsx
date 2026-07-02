@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { Subject, LmsEvent } from "../../types/lms";
+import { Subject, LmsEvent } from "../../types/lms.interface";
+import { getDashboardStats } from "../../lib/services/user.service";
 import { animate, stagger } from "animejs";
 
 export default function DashboardPage() {
@@ -50,13 +51,7 @@ export default function DashboardPage() {
     if (!currentUser?.id) return;
     const fetchStats = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_BASE_URL}/users/${currentUser.id}/dashboard-stats`, {
-          headers: token ? { "Authorization": `Bearer ${token}` } : {},
-        });
-        if (!res.ok) throw new Error("Failed to fetch dashboard stats");
-        const data = await res.json();
+        const data = await getDashboardStats(currentUser.id);
         setStats(data);
       } catch (err) {
         console.error("Failed to load dashboard stats", err);
@@ -536,32 +531,11 @@ export default function DashboardPage() {
       <div className="flex-grow overflow-y-auto pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full no-scrollbar bg-[#FAF7F2]">
         <div className="w-full px-2 md:px-4 flex flex-col gap-4">
           
-          {/* Dashboard Page Header & Description */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between w-full mt-2 mb-2 gap-4">
-            <div className="flex flex-col text-left">
-              <h1 className="text-xl sm:text-3xl font-extrabold text-zinc-955 tracking-tight leading-normal">
-                Academic Overview
-              </h1>
-              <p className="hidden sm:block text-[12.5px] text-zinc-500 font-semibold max-w-2xl mt-1 leading-snug">
-                Monitor your study metrics, check weekly learning activities, review scheduled calendar events, and manage course storage limits.
-              </p>
-            </div>
-            
-            {/* Action Pills */}
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-1.5 px-4 py-2 border border-zinc-200 bg-white hover:bg-zinc-50 rounded-full text-[12px] font-extrabold text-zinc-700 cursor-pointer shadow-sm">
-                <span>Default View</span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2 border border-zinc-200 bg-white hover:bg-zinc-50 rounded-full text-[12px] font-extrabold text-zinc-700 cursor-pointer shadow-sm">
-                <Download className="w-3.5 h-3.5 text-zinc-400" />
-                <span>Export</span>
-              </button>
-              <button className="flex items-center gap-1.5 px-4 py-2 border border-zinc-200 bg-white hover:bg-zinc-50 rounded-full text-[12px] font-extrabold text-zinc-700 cursor-pointer shadow-sm">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-400" />
-                <span>Filter</span>
-              </button>
-            </div>
+          {/* Dashboard Page Header */}
+          <div className="flex items-center justify-between w-full mt-2 mb-2">
+            <h1 className="text-lg sm:text-xl font-black text-zinc-955 tracking-tight">
+              Academic Overview
+            </h1>
           </div>
 
           {/* Grid Layout containing ALL components, arranged beautifully with 3 to 4 components per row */}
@@ -1004,3 +978,4 @@ export default function DashboardPage() {
     </>
   );
 }
+
