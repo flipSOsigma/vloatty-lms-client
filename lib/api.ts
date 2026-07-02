@@ -23,6 +23,7 @@ export async function apiFetch<T>(
     if (res.status === 401 || res.status === 403) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         const path = window.location.pathname;
         const isPublicPage = path === "/" || path === "/login" || path === "/register";
         if (!isPublicPage) {

@@ -1,0 +1,396 @@
+[
+  {
+    "id": "intro",
+    "title": "Introduction",
+    "category": "Welcome",
+    "icon": "HelpCircle",
+    "subSections": [
+      { "id": "intro-welcome", "title": "Welcome to Vloatty" },
+      { "id": "intro-architecture", "title": "Core Architecture" },
+      { "id": "intro-dashboard", "title": "Dashboard Tour" }
+    ],
+    "blocks": [
+      {
+        "id": "intro-welcome",
+        "type": "banner",
+        "title": "Welcome to Vloatty",
+        "text": "Vloatty is a next-generation Learning Management System (LMS) designed for modern schools, universities, and training institutions. It combines institutional coordination, student schedules, module planning, and state-of-the-art AI-assisted content tools into one cohesive, beautiful dashboard."
+      },
+      {
+        "id": "intro-architecture",
+        "type": "text",
+        "title": "Core Architecture",
+        "text": "Vloatty structures academic courses inside a clear parent-child chain: Institution -> Subject -> Module -> Lesson. This layout guarantees that students can review learning objectives sequentially, and teachers can keep course syllabus timelines organized."
+      },
+      {
+        "id": "intro-dashboard",
+        "type": "list",
+        "title": "Dashboard Tour",
+        "text": "Upon logging in, you will see your primary workspace:",
+        "items": [
+          { "bold": "Institution Shell:", "text": " Toggle between registered schools or clinical departments using the selector menu at the top left." },
+          { "bold": "Live Schedule Calendars:", "text": " Shows ongoing subject lectures and due assignments in a clean grid." },
+          { "bold": "Curriculum Panel:", "text": " Expand modules to see learning contents, files, dates, and active checklists." }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "getting-started",
+    "title": "Getting Started",
+    "category": "Getting Started",
+    "icon": "ArrowRight",
+    "subSections": [
+      { "id": "start-signup", "title": "Sign Up & Profiles" },
+      { "id": "start-create-inst", "title": "Create Institution" },
+      { "id": "start-join-inst", "title": "Join Existing" }
+    ],
+    "blocks": [
+      {
+        "id": "start-signup",
+        "type": "text",
+        "title": "Sign Up & Profiles",
+        "text": "Start by registering an account on the landing screen. Click Get Started Free, configure your email, user profile name, and password. Vloatty loads your personal academic sandbox page instantly."
+      },
+      {
+        "id": "start-create-inst",
+        "type": "steps",
+        "title": "Creating an Institution Profile",
+        "text": "If you are school head, dean, or system administrator:",
+        "items": [
+          "Open the dashboard sidebar.",
+          "Click on the Create Institution action.",
+          "Enter your school's name, room/building details, and upload your official institute emblem image.",
+          "Click submit. You are now designated as the Institution Owner."
+        ]
+      },
+      {
+        "id": "start-join-inst",
+        "type": "steps",
+        "title": "Joining an Existing Institution",
+        "text": "If you are a student or a lecturer joining an existing program:",
+        "items": [
+          "Open the dashboard and click the Join Institution option in the sidebar.",
+          "Enter the alphanumeric invite key provided by your coordinator.",
+          "Confirm the details of the school shown, then click join. Your sidebar will immediately update with the school's subjects list."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "subjects",
+    "title": "Subject Management",
+    "category": "Feature Guides",
+    "icon": "GraduationCap",
+    "subSections": [
+      { "id": "subject-concept", "title": "What is a Subject?" },
+      { "id": "subject-create", "title": "How to Create Subjects" },
+      { "id": "subject-scheduling", "title": "Scheduling & Timetables" },
+      { "id": "subject-roles", "title": "Roles & Permissions" },
+      { "id": "subject-invite", "title": "Inviting Members" },
+      { "id": "subject-change-role", "title": "Modifying User Roles" }
+    ],
+    "blocks": [
+      {
+        "id": "subject-concept",
+        "type": "text",
+        "title": "What is a Subject?",
+        "text": "A Subject represents a course or clinical rotation (e.g. Thermodynamics II or Cardiology Internship). It organizes syllabus chapters, hosts files, assigns lecturers, tracks student attendance/presence, and synchronizes lecture calendars."
+      },
+      {
+        "id": "subject-create",
+        "type": "steps",
+        "title": "How to Create and Manage Subjects",
+        "text": "To create a subject inside your linked school profile:",
+        "items": [
+          "Open the Institution profile dashboard view.",
+          "Navigate to the Subjects tab and click the Create Subject button.",
+          "Input the course title, code (e.g. MED-403), academic year, and descriptive guidelines.",
+          "Assign class classrooms (e.g., Room 101 or an online webinar link).",
+          "Select lecturers from the staff list to grant them curriculum editing permissions."
+        ]
+      },
+      {
+        "id": "subject-scheduling",
+        "type": "text",
+        "title": "Scheduling & Timetables",
+        "text": "Under subject settings, click Manage Schedule. Define class times (e.g. Tuesday & Friday 10:00 AM - 12:00 PM). Once set, these recurring slots automatically sync to the interactive calendars of all assigned lecturers and students."
+      },
+      {
+        "id": "subject-roles",
+        "type": "roles_list",
+        "title": "Roles & Permissions within Subjects",
+        "text": "Vloatty secures your classes using three distinct user roles:",
+        "items": [
+          { "role": "owner", "title": "Institution Owner", "text": "Complete management rights. Can delete institutions, edit billing credentials, invite colleagues, customize user permissions, and create/delete subjects." },
+          { "role": "lecturer", "title": "Lecturer", "text": "Granted editing rights on assigned subjects. Can publish lessons, create modules, upload slides, grade submissions, and generate AI quiz questions." },
+          { "role": "student", "title": "Student", "text": "Access to subject timelines, downloaded lesson material slides, and submission forms. Can participate in interactive AI generated student tests." }
+        ]
+      },
+      {
+        "id": "subject-invite",
+        "type": "steps",
+        "title": "Inviting Members to your Institution",
+        "text": "To add lecturers, administrators, or students to your school subject rosters:",
+        "items": [
+          "Navigate to your Institution Dashboard screen.",
+          "Go to the Members tab (or the setting management section).",
+          "Look for the Invitation Code / Key generator. Vloatty creates unique secure codes (e.g. INV-XYZ123).",
+          "Copy this code and send it to your staff or students.",
+          "When they sign in, they click Join Institution inside their sidebar and paste the key. They are added to your directory immediately."
+        ]
+      },
+      {
+        "id": "subject-change-role",
+        "type": "steps",
+        "title": "Modifying User Roles",
+        "text": "Only Institution Owners can change permissions:",
+        "items": [
+          "Inside the Members view, locate the table listing all joined accounts.",
+          "Find the member whose access level you wish to change.",
+          "Under the Role column, click the selector dropdown menu.",
+          "Choose between Lecturer, Admission (staff), or Student.",
+          "The system updates their security token instantly. The user will see their navigation tools change automatically on their next page load."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "modules",
+    "title": "Module Planning",
+    "category": "Feature Guides",
+    "icon": "Layers",
+    "subSections": [
+      { "id": "module-concept", "title": "What is a Module?" },
+      { "id": "module-create", "title": "How to Create Modules" },
+      { "id": "module-indexing", "title": "Auto-Indexing Logic" }
+    ],
+    "blocks": [
+      {
+        "id": "module-concept",
+        "type": "text",
+        "title": "What is a Module?",
+        "text": "A Module acts as a primary course chapter or weekly block within a subject (e.g. Module 1: Basic Electrostatics). It acts as a folder containing lessons, lecture notes, homework submission pages, and quizzes."
+      },
+      {
+        "id": "module-create",
+        "type": "steps",
+        "title": "How to Create Modules",
+        "text": "To setup learning modules for your courses:",
+        "items": [
+          "Open the details screen of any Subject you teach.",
+          "Click on the Create Module button in the syllabus header.",
+          "Input the chapter title (e.g. Introduction to Cells).",
+          "Add a start/release date. This organizes when students should expect this material to lock/unlock.",
+          "Write outline descriptions, or click the autofill option if you have AI tokens remaining."
+        ]
+      },
+      {
+        "id": "module-indexing",
+        "type": "text",
+        "title": "Client-Side Auto-Indexing",
+        "text": "To keep modules looking uniform, Vloatty performs automatic client-side indexing based on chronological creation. The frontend app dynamically calculates and renders prefixes (e.g., rendering Module 1, Module 2) before your title inline on student pages and schedules, removing the need to type it yourself."
+      }
+    ]
+  },
+  {
+    "id": "lessons",
+    "title": "Lesson & Materials Builder",
+    "category": "Feature Guides",
+    "icon": "BookOpen",
+    "subSections": [
+      { "id": "lesson-concept", "title": "What is a Lesson?" },
+      { "id": "lesson-create", "title": "How to Create Lessons" },
+      { "id": "lesson-types", "title": "Lesson Types & Formats" },
+      { "id": "lesson-lockouts", "title": "Lockouts & Restrictions" }
+    ],
+    "blocks": [
+      {
+        "id": "lesson-concept",
+        "type": "text",
+        "title": "What is a Lesson?",
+        "text": "A Lesson is a specific course item, classroom date, homework task, presence block, or quiz located under a parent Module (e.g. Lesson 1.1: Velocity & Vector Coordinates). It manages assignments, download files, and student grades."
+      },
+      {
+        "id": "lesson-create",
+        "type": "steps",
+        "title": "How to Create and Manage Lessons",
+        "text": "To build lessons within a module:",
+        "items": [
+          "Open the subject view and expand the target Module row.",
+          "Click on the Create Lesson button.",
+          "Choose a type: Learning (Holds lecture notes and files), Assignment (Includes submissions), Quizzes (Hosts online questions), or Presence (Registers attendance).",
+          "Select dates for opening and closing portals.",
+          "Drag-and-drop reference files (Slides, PDF, TXT) and submit."
+        ]
+      },
+      {
+        "id": "lesson-types",
+        "type": "lesson_types",
+        "title": "Lesson Types & Formats",
+        "text": "Vloatty allows teachers and department coordinators to create lessons with four distinct purpose-built types. Each type provides specialized tools and interfaces tailored to the learning activity.",
+        "items": [
+          {
+            "type": "learning",
+            "title": "Learning Material & Reference Slides",
+            "description": "Used to host lecture notes, reading attachments, external URLs, and slide decks (PDF, PPTX, TXT). Students can download these materials directly from their dashboard rotation timeline."
+          },
+          {
+            "type": "assignment",
+            "title": "Assignment Portal & Homework Submissions",
+            "description": "Enables students to upload files (reports, homework sheets, or spreadsheets) before the specified deadline. Lecturers can download submissions and register grades in the grading console."
+          },
+          {
+            "type": "quiz",
+            "title": "Interactive Quizzes & Self-Assessment Tests",
+            "description": "Supports multiple-choice and short-answer quizzes. Lecturers can build these manually or use the Gemini AI Quiz Generator to automatically draft balanced assessment pools based on reading slides."
+          },
+          {
+            "type": "presence",
+            "title": "Presence Registry & Attendance Tracking",
+            "description": "Provides quick check-in lists for live classes, lectures, or laboratory slots. Lecturers can toggle student attendance status with one click, establishing a permanent engagement archive."
+          }
+        ]
+      },
+      {
+        "id": "lesson-lockouts",
+        "type": "lockout_info",
+        "title": "Late Submission Lockdown Policies",
+        "text": "For assignments and quizzes, lecturers can define access rules:"
+      }
+    ]
+  },
+  {
+    "id": "storage",
+    "title": "Storage & File Management",
+    "category": "Feature Guides",
+    "icon": "FileText",
+    "subSections": [
+      { "id": "storage-upload", "title": "How Storage is Filled" },
+      { "id": "storage-delete", "title": "Emptying Storage" },
+      { "id": "storage-limits", "title": "Storage Tiers" }
+    ],
+    "blocks": [
+      {
+        "id": "storage-upload",
+        "type": "steps",
+        "title": "How Storage is Filled",
+        "text": "Storage space is filled when academic assets, slides, and class homework are uploaded:",
+        "items": [
+          "Lesson Materials: Lecturers upload PDF guidelines, slides (PPTX), and reading attachments during lesson configuration.",
+          "Student Submissions: Students upload document sheets, image proof, or spreadsheets directly to assignment slots.",
+          "Subject Files: Core syllabus files and campus policies uploaded to the Subject attachments table.",
+          "Institution Emblems: Emblems or logo files uploaded during the Institution profile configuration."
+        ]
+      },
+      {
+        "id": "storage-delete",
+        "type": "steps",
+        "title": "How to Empty Storage",
+        "text": "To free up space and make room for new materials, you can delete old files:",
+        "items": [
+          "Delete Lesson Materials: Open the Subject page, expand the lesson, locate the attached file list, and click the 'X' button next to the slide/PDF to delete it permanently.",
+          "Clear Student Homework: Academic archives or graded assignments can be cleared/reset to free up storage space.",
+          "Subject File Clean Up: Navigate to the Subject attachments panel and delete outdated syllabus sheets.",
+          "Institution File Refresh: Delete or update old logo emblems from the Institution details section."
+        ]
+      },
+      {
+        "id": "storage-limits",
+        "type": "list",
+        "title": "Storage Limits & Quotas",
+        "text": "Storage allowances vary depending on your premium status:",
+        "items": [
+          { "bold": "Basic (Free) Plan:", "text": " Restricted to 100MB of total secure storage, ideal for simple PDF guides and text notes." },
+          { "bold": "Professional Plan:", "text": " Unlocks 500MB of secure cloud storage. Ideal for extensive slide decks, homework, and course files." },
+          { "bold": "Max (Enterprise) Plan:", "text": " Unlocks 1GB of secure cloud storage capacity tailored for larger departments." }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ai-systems",
+    "title": "AI Generation & Token System",
+    "category": "Core Features",
+    "icon": "Sparkles",
+    "subSections": [
+      { "id": "ai-autofill", "title": "AI Autofill Descriptions" },
+      { "id": "ai-quizzes", "title": "AI Quiz Creation" },
+      { "id": "ai-limits", "title": "Tokens & Reset Limits" }
+    ],
+    "blocks": [
+      {
+        "id": "ai-autofill",
+        "type": "text",
+        "title": "AI Autofill Descriptions",
+        "text": "Vloatty integrates Gemini models directly on lesson and module creation forms. Input your title (e.g. Lesson 1.1: Newton's First Law), and click the AI Autofill button. The generator automatically drafts a descriptive learning objective of at least 30 words detailing core objectives, removing manual drafting."
+      },
+      {
+        "id": "ai-quizzes",
+        "type": "text",
+        "title": "Automated Student Quizzes",
+        "text": "On the Lesson page, lecturers can open the AI Quiz Builder tab. Specify question counts, select difficulty settings, and choose languages. Vloatty reviews the lesson plan text to generate a complete multi-option quiz for students."
+      },
+      {
+        "id": "ai-limits",
+        "type": "ai_tokens_info",
+        "title": "Tokens & Reset Limits",
+        "text": "AI operations (Module auto-outlines, Lesson auto-objectives, Quiz generation) require tokens."
+      }
+    ]
+  },
+  {
+    "id": "calendar",
+    "title": "Unified Planner & Calendar",
+    "category": "Core Features",
+    "icon": "Calendar",
+    "subSections": [
+      { "id": "calendar-classes", "title": "Class Scheduling" },
+      { "id": "calendar-deadlines", "title": "Deadlines & Due Dates" }
+    ],
+    "blocks": [
+      {
+        "id": "calendar-classes",
+        "type": "text",
+        "title": "Class Scheduling",
+        "text": "Schedules defined in subject settings are mapped directly onto student and lecturer dashboards. The interactive calendar renders class slots automatically, keeping schedules transparent."
+      },
+      {
+        "id": "calendar-deadlines",
+        "type": "text",
+        "title": "Deadlines & Due Dates",
+        "text": "Homework deadlines, quizzes, and exams are automatically synchronized on the calendar layout. Clicking any calendar card takes the user directly to the lesson submission page."
+      }
+    ]
+  },
+  {
+    "id": "pricing-tiers",
+    "title": "Subscription Plans & AI Quotas",
+    "category": "Subscription Plans",
+    "icon": "DollarSign",
+    "subSections": [
+      { "id": "tiers-overview", "title": "Offer Summary" },
+      { "id": "tiers-detail", "title": "Plan Comparison Matrix" },
+      { "id": "tiers-quotas", "title": "AI Quota Allocations" }
+    ],
+    "blocks": [
+      {
+        "id": "tiers-overview",
+        "type": "text",
+        "title": "Offer Summary",
+        "text": "Vloatty features tiered subscriptions matching your usage size. Tiers are defined at the account profile level and restrict maximum active items and daily Gemini tokens."
+      },
+      {
+        "id": "tiers-detail",
+        "type": "comparison_table",
+        "title": "Plan Comparison Matrix"
+      },
+      {
+        "id": "tiers-quotas",
+        "type": "pricing_cards",
+        "title": "AI Quota Allocations",
+        "text": "AI operations require 1 token per request. Limits reset daily at 00:00 UTC:"
+      }
+    ]
+  }
+]

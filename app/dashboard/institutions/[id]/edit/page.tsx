@@ -14,6 +14,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getInstitution, updateInstitution, deleteInstitution } from "@/lib/services/institution.service";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 
 interface PageProps {
@@ -34,14 +35,10 @@ export default function EditInstitutionPage({ params }: PageProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeSection, setActiveSection] = useState("basic-parameters");
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
   useEffect(() => {
     const fetchInstitution = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/institutions/${id}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch institution details");
-        const data = await res.json();
+        const data = await getInstitution(id);
         setNameInput(data.name);
         setDescInput(data.description || "");
         setStatusInput(data.subscriptionStatus);
@@ -101,21 +98,11 @@ export default function EditInstitutionPage({ params }: PageProps) {
 
     setIsSubmitting(true);
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const res = await fetch(`${API_BASE_URL}/institutions/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {})
-        },
-        body: JSON.stringify({
-          name: nameInput.trim(),
-          description: descInput.trim(),
-          subscriptionStatus: statusInput,
-        }),
+      await updateInstitution(id, {
+        name: nameInput.trim(),
+        description: descInput.trim(),
+        subscriptionStatus: statusInput,
       });
-
-      if (!res.ok) throw new Error("Failed to update institution");
 
       showToast("Institution updated successfully!", "success");
       router.push("/dashboard/institutions");
@@ -129,15 +116,7 @@ export default function EditInstitutionPage({ params }: PageProps) {
   const handleDeleteInstitution = async () => {
     setIsDeleting(true);
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const res = await fetch(`${API_BASE_URL}/institutions/${id}`, {
-        method: "DELETE",
-        headers: {
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {})
-        }
-      });
-
-      if (!res.ok) throw new Error("Failed to delete institution");
+      await deleteInstitution(id);
 
       showToast("Institution deleted successfully!", "success");
       router.push("/dashboard/institutions");

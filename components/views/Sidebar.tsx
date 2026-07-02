@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Calendar,
+  CalendarDays,
   Users,
   BarChart3,
   BookOpen,
@@ -9,7 +10,8 @@ import {
   Plus,
   ArrowRight,
   ChevronDown,
-  Star
+  Star,
+  HardDrive
 } from "lucide-react";
 import { useLms } from "../../context/LmsContext";
 import Link from "next/link";
@@ -25,13 +27,34 @@ export default function Sidebar() {
     setMobileSidebarOpen(false);
   }, [pathname, setMobileSidebarOpen]);
 
+  const [recentSubjects, setRecentSubjects] = useState<{ id: string; name: string; color?: string }[]>([]);
+
   // Sync state with localStorage on client mount
   useEffect(() => {
     const saved = localStorage.getItem("sidebar_state");
     if (saved === "0") {
       setIsMinimized(true);
     }
-  }, []);
+
+    const loadRecents = () => {
+      try {
+        const savedRecents = localStorage.getItem("recent_subjects");
+        if (savedRecents) {
+          setRecentSubjects(JSON.parse(savedRecents));
+        } else {
+          setRecentSubjects([]);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadRecents();
+
+    window.addEventListener("recent_subjects_updated", loadRecents);
+    return () => {
+      window.removeEventListener("recent_subjects_updated", loadRecents);
+    };
+  }, [pathname]);
 
   const handleToggle = () => {
     setIsMinimized((prev) => {
@@ -42,9 +65,11 @@ export default function Sidebar() {
   };
 
   const menuItems = [
-    { name: "Overview", icon: LayoutDashboard, href: "/dashboard", hasSub: true },
-    { name: "Schedule", icon: Calendar, href: "/dashboard/schedule" },
+    { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard", hasSub: true },
+    { name: "Schedule", icon: CalendarDays, href: "/dashboard/schedule" },
+    { name: "Timeline", icon: Calendar, href: "/dashboard/timeline" },
     { name: "Subjects", icon: BookOpen, href: "/dashboard/subjects" },
+    { name: "Storage", icon: HardDrive, href: "/dashboard/storage" },
   ];
 
   const pocketItems = [
@@ -76,39 +101,20 @@ export default function Sidebar() {
           <div className="flex items-center mt-2 px-1.5 w-full">
             <button
               onClick={handleToggle}
-              className={`flex items-center gap-2.5 transition-all duration-300 hover:scale-102 active:scale-98 cursor-pointer select-none text-left focus:outline-none w-full border-none bg-transparent p-0 ${
+              className={`flex items-center transition-all duration-300 hover:scale-102 active:scale-98 cursor-pointer select-none text-left focus:outline-none w-full border-none bg-transparent p-0 ${
                 isMinimized ? "justify-center" : ""
               }`}
               title={isMinimized ? "Expand Sidebar" : "Minimize Sidebar"}
             >
               <div className="relative flex-shrink-0 group">
                 <img
-                  src="/vloatty - Logo Only.png"
+                  src={isMinimized ? "/vloatty - Logo Only.png" : "/vloatty - Logo Typeface.png"}
                   alt="Vloatty Logo"
-                  className="w-7.5 h-7.5 object-contain transition-transform duration-500 group-hover:rotate-12 brightness-0"
+                  className={`${isMinimized ? "w-7.5 h-7.5 group-hover:rotate-12" : "h-7.5"} object-contain transition-all duration-500 brightness-0`}
                 />
               </div>
-              <span
-                className={`text-[22px] font-black text-zinc-900 tracking-tight leading-none transition-all duration-300 whitespace-nowrap overflow-hidden ${
-                  isMinimized ? "opacity-0 w-0 pointer-events-none" : "opacity-100 w-auto"
-                }`}
-              >
-                Vloatty
-              </span>
             </button>
           </div>
-
-          {/* User Welcome Text */}
-          {!isMinimized && (
-            <div className="text-left px-1.5 mt-1 transition-all duration-300">
-              <h2 className="text-[23px] font-black text-zinc-950 leading-tight tracking-tight">
-                Welcome Back, <span className="block text-[#d97706] font-black">{currentUser?.name ? currentUser.name.split(" ")[0] : "Academic"}!</span>
-              </h2>
-              <p className="text-[10px] text-zinc-400 font-bold mt-1 uppercase tracking-wide leading-normal">
-                academic portal
-              </p>
-            </div>
-          )}
 
           {/* Home Nav */}
           <div className="flex flex-col gap-1.5 mt-2">
@@ -230,6 +236,43 @@ export default function Sidebar() {
               })}
             </nav>
           </div>
+
+          {/* Recent Subjects Section */}
+          {!isMinimized && recentSubjects.length > 0 && (
+            <div className="flex flex-col gap-1.5 mt-1 transition-all duration-300 animate-in fade-in duration-300">
+              <span className="text-[9px] font-black text-zinc-400/80 tracking-widest uppercase px-3">
+                Recents
+              </span>
+              <nav className="flex flex-col gap-1 mt-1">
+                {recentSubjects.map((subject) => (
+                  <Link
+                    key={subject.id}
+                    href={`/dashboard/subject/${subject.id}`}
+                    className="w-full flex items-center gap-3 px-4 py-2 rounded-full text-[13px] font-semibold text-zinc-500 hover:text-zinc-950 hover:bg-zinc-50/80 transition-all duration-200 group truncate"
+                  >
+                    <span 
+                      className={`w-2 h-2 rounded-full shrink-0 ${
+                        subject.color === "yellow"
+                          ? "bg-amber-400"
+                          : subject.color === "blue"
+                          ? "bg-blue-400"
+                          : subject.color === "pink"
+                          ? "bg-pink-400"
+                          : subject.color === "green"
+                          ? "bg-emerald-400"
+                          : subject.color === "purple"
+                          ? "bg-purple-400"
+                          : "bg-zinc-400"
+                      }`}
+                    />
+                    <span className="truncate leading-none">
+                      {subject.name}
+                    </span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          )}
         </div>
 
         {/* Log Out */}

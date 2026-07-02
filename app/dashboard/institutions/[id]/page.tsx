@@ -6,25 +6,8 @@ import { useLms } from "../../../../context/LmsContext";
 import Link from "next/link";
 import { ArrowLeft, Users, BookOpen, Link2, Link2Off, CheckCircle, Grid2x2X, Grid2x2Plus, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Institution } from "../../../../types/lms.interface";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
-import SubjectCard from "../../../../components/ui/SubjectCard";
-import { StorageTracker } from "../../../../components/ui/StorageTracker";
-
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-interface Institution {
-  id: string;
-  name: string;
-  description?: string;
-  subscriptionStatus: string;
-  thumbnail?: string;
-  users?: any[];
-  subjects?: any[];
-  inviteCode?: string;
-  createdAt?: string;
-}
 
 const formatDate = (isoString: string | undefined) => {
   if (!isoString) return "";
@@ -74,13 +57,9 @@ export default function InstitutionDetailPage({ params }: PageProps) {
     }
   };
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
   const fetchInstitutionDetails = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/institutions/${id}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load institution details");
-      const data = await res.json();
+      const data = await getInstitution(id);
       setInstitution(data);
     } catch (err: any) {
       showToast(err.message || "Failed to load institution", "error");

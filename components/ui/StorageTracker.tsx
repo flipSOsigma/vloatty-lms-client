@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { HardDrive } from "lucide-react";
 
+import { getInstitutionStorage } from "@/lib/services/institution.service";
+
 interface StorageTrackerProps {
   institutionId: string;
 }
@@ -11,8 +13,6 @@ interface StorageData {
   usedBytes: number;
   maxBytes: number;
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export const StorageTracker: React.FC<StorageTrackerProps> = ({ institutionId }) => {
   const [data, setData] = useState<StorageData | null>(null);
@@ -23,13 +23,8 @@ export const StorageTracker: React.FC<StorageTrackerProps> = ({ institutionId })
 
     const fetchStorage = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const headers: HeadersInit = token ? { "Authorization": `Bearer ${token}` } : {};
-        const res = await fetch(`${API_BASE_URL}/institutions/${institutionId}/storage`, { headers });
-        if (res.ok) {
-          const storageData = await res.json();
-          setData(storageData);
-        }
+        const storageData = await getInstitutionStorage(institutionId);
+        setData(storageData);
       } catch (err) {
         console.error("Error fetching storage data:", err);
       } finally {

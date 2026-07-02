@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import { Mail, Key, User, Building, AlertCircle, ArrowRight, Library } from "lucide-react";
 import Link from "next/link";
+import { register } from "../../lib/services/auth.service";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,32 +29,19 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          institution,
-          premiumStatus: "free",
-          avatar: ""
-        }),
+      const data = await register({
+        name,
+        email,
+        password,
+        institution,
+        premiumStatus: "free",
+        avatar: ""
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create account");
-      }
 
       if (data.jwt?.accessToken) {
         localStorage.setItem("token", data.jwt.accessToken);
+        document.cookie = `token=${data.jwt.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       }
 
       if (data.user && setCurrentUser) {
@@ -186,3 +174,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

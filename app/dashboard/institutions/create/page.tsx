@@ -12,6 +12,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createInstitution } from "../../../../lib/services/institution.service";
 
 export default function CreateInstitutionPage() {
   const router = useRouter();
@@ -21,29 +22,17 @@ export default function CreateInstitutionPage() {
   const [statusInput, setStatusInput] = useState("free");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim()) return;
 
     setIsSubmitting(true);
     try {
-      const currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const res = await fetch(`${API_BASE_URL}/institutions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(currentToken ? { "Authorization": `Bearer ${currentToken}` } : {})
-        },
-        body: JSON.stringify({
-          name: nameInput.trim(),
-          description: descInput.trim(),
-          subscriptionStatus: statusInput,
-        }),
+      await createInstitution({
+        name: nameInput.trim(),
+        description: descInput.trim(),
+        subscriptionStatus: statusInput,
       });
-
-      if (!res.ok) throw new Error("Failed to create institution");
 
       showToast("Institution created successfully!", "success");
       router.push("/dashboard/institutions");
@@ -161,3 +150,4 @@ export default function CreateInstitutionPage() {
     </>
   );
 }
+

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Header from "../../../../../../components/views/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
+import { getAiTokens } from "@/lib/services/user.service";
+import { generateModuleDesc } from "@/lib/services/ai.service";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -16,7 +18,7 @@ import {
   Lightbulb,
   Info,
 } from "lucide-react";
-import { Module } from "../../../../../../types/subject";
+import { Module } from "../../../../../../types/subject.interface";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -31,6 +33,21 @@ export default function CreateModulePage({ params }: PageProps) {
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [aiTokens, setAiTokens] = useState<{ balance: number; maxTokens: number } | null>(null);
+
+  const fetchAiTokens = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const data = await getAiTokens(currentUser.id);
+      setAiTokens(data);
+    } catch (e) {
+      console.error("Failed to fetch AI tokens:", e);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAiTokens();
+  }, [currentUser]);
   const [date, setDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0]; 
@@ -49,31 +66,14 @@ export default function CreateModulePage({ params }: PageProps) {
 
     setIsGenerating(true);
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("token");
-      
-      const res = await fetch(`${API_BASE_URL}/ai/generate-module-desc`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          title: inputTitle.trim(),
-          subjectName: subject?.name,
-          subjectDesc: subject?.description,
-        }),
+      const data = await generateModuleDesc({
+        title: inputTitle.trim(),
+        subjectName: subject?.name,
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to generate description");
-      }
-
-      const data = await res.json();
       if (data.description) {
         setDesc(data.description);
         setHasAutofilled(true);
+        fetchAiTokens();
       }
     } catch (err: any) {
       console.error("AI Autofill failed:", err);
@@ -82,6 +82,8 @@ export default function CreateModulePage({ params }: PageProps) {
 
       if (msgLower.includes("failed to fetch") || msgLower.includes("network")) {
         userFriendlyMessage = "Unable to connect to the server. Please check your internet connection.";
+      } else if (msgLower.includes("limit reached") || msgLower.includes("token")) {
+        userFriendlyMessage = "Daily AI token limit reached. Resets tomorrow.";
       } else if (msgLower.includes("api_key") || msgLower.includes("api key") || msgLower.includes("unconfigured")) {
         userFriendlyMessage = "AI generator is temporarily offline due to setup issues. Please try again later.";
       } else if (msgLower.includes("busy") || msgLower.includes("503") || msgLower.includes("overloaded") || msgLower.includes("rate") || msgLower.includes("quota") || msgLower.includes("exhausted")) {
@@ -224,9 +226,6 @@ export default function CreateModulePage({ params }: PageProps) {
                   className={`w-full px-1 py-2.5 bg-transparent border-b text-[13px] font-semibold text-zinc-800 focus:outline-none rounded-none transition-all duration-200 ${
                     errorFields.title ? "border-red-400 focus:border-red-500" : "border-[#E5E1D8] focus:border-zinc-850"
                   }`}
-                  onBlur={(e) => {
-                    triggerAutofill(e.target.value);
-                  }}
                 />
                 {errorFields.title && (
                   <span className="text-[11px] text-red-500 font-bold">{errorFields.title}</span>
@@ -236,25 +235,32 @@ export default function CreateModulePage({ params }: PageProps) {
               <div className="flex flex-col gap-1.5 w-full">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Module Description</label>
-                  {title.trim() && (
-                    <button
-                      type="button"
-                      onClick={() => triggerAutofill(title)}
-                      disabled={isGenerating}
-                      className="text-[10px] font-bold text-[#d97706] hover:text-[#b45309] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 select-none"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <div className="w-3 h-3 rounded-full border border-[#d97706]/20 border-t-[#d97706] animate-spin" />
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>✨ AI Autofill</span>
-                        </>
-                      )}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {aiTokens && (
+                      <span className="text-[9.5px] font-bold text-zinc-400 bg-zinc-100 border border-zinc-200/50 px-2.5 py-0.5 rounded-full select-none">
+                        ✦ {aiTokens.balance} / {aiTokens.maxTokens} left
+                      </span>
+                    )}
+                    {title.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => triggerAutofill(title)}
+                        disabled={isGenerating}
+                        className="text-[10px] font-bold text-[#d97706] hover:text-[#b45309] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 select-none"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <div className="w-3 h-3 rounded-full border border-[#d97706]/20 border-t-[#d97706] animate-spin" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>✨ AI Autofill</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <textarea
                   placeholder="Brief summary or objectives of this module..."

@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { MoreHorizontal, BookOpen, Settings, RefreshCw } from "lucide-react";
-import { Subject } from "../../types/subject";
+import { MoreHorizontal, BookOpen, Settings, RefreshCw, Trash2 } from "lucide-react";
+import { Subject } from "../../types/subject.interface";
 import { useRouter } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import ContextMenu from "./ContextMenu";
+import ConfirmModal from "./ConfirmModal";
 
 interface SubjectCardProps {
   subject: Subject;
@@ -13,9 +14,25 @@ interface SubjectCardProps {
 
 export default function SubjectCard({ subject }: SubjectCardProps) {
   const router = useRouter();
-  const { showToast } = useLms();
+  const { showToast, deleteSubject } = useLms();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteSubject(subject.id);
+      showToast(`Subject "${subject.name}" deleted successfully.`, "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to delete subject", "error");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
 
   const getSubjectColorHex = (colorName: string | undefined) => {
     switch (colorName) {
@@ -117,18 +134,18 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
             </span>
           )}
 
-          <h3 className="text-[18px] font-black text-zinc-955 tracking-tight mt-1 truncate">
+          <h3 className="text-base sm:text-[18px] font-black text-zinc-955 tracking-tight mt-1 truncate">
             {subject.name}
           </h3>
 
-          <p className="text-[11.5px] font-semibold text-zinc-500 leading-relaxed line-clamp-2" title={subject.description}>
+          <p className="text-[10.5px] sm:text-[11.5px] font-semibold text-zinc-500 leading-relaxed line-clamp-2" title={subject.description}>
             {subject.description || "Explore syllabus details, learning resources, and assignments."}
           </p>
         </div>
 
         {/* Footer row: separator line, stats, & entry arrow trigger */}
-        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 mt-2 text-[10.5px] font-bold text-zinc-500 relative z-10 select-none">
-          <div className="flex items-center gap-1.5 text-zinc-400">
+        <div className="flex items-center justify-between border-t border-zinc-100 pt-3 mt-2 text-[9.5px] sm:text-[10.5px] font-bold text-zinc-500 relative z-10 select-none">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-zinc-400">
             <span>{modulesCount} Modules</span>
             <span>&bull;</span>
             <span>{totalLessons} Lessons</span>
@@ -164,7 +181,25 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
             icon: RefreshCw,
             onClick: () => showToast(`${subject.name} schedules synced successfully!`, "success"),
           },
+          {
+            label: "Delete Subject",
+            icon: Trash2,
+            danger: true,
+            onClick: () => setShowDeleteModal(true),
+          },
         ]}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Subject"
+        message={`Are you sure you want to delete "${subject.name}"? This action is permanent and cannot be undone.`}
+        confirmText="Delete"
+        isDanger={true}
+        isLoading={isDeleting}
+        verificationText={subject.name}
       />
     </>
   );

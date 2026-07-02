@@ -5,7 +5,8 @@
     "email": "turing.y@vloatty.edu",
     "premiumStatus": "professional",
     "institution": "",
-    "avatar": ""
+    "avatar": "",
+    "banner": null
   },
   "jwt": {
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM5YzE1YzQ3LTQ2OWEtNDEyZi04NDMxLTIxNTY4ZWFmMzVkNCIsIm5hbWUiOiJUdXJpbmcgWWVhZ2VyIiwiZW1haWwiOiJ0dXJpbmcueUB2bG9hdHR5LmVkdSIsInByZW1pdW1TdGF0dXMiOiJwcm9mZXNzaW9uYWwiLCJpbnN0aXR1dGlvbiI6IiIsImlhdCI6MTc4MzkwMDAwMCwiZXhwIjoxNzg0MDAwMDAwfQ.mockSignatureHere123456789012345678901234567890",

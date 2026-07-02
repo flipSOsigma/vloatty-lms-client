@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getInviteDetails, joinInstitution } from "../../../../lib/services/institution.service";
 import { useLms } from "../../../../context/LmsContext";
 import { Building2, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -27,13 +28,8 @@ export default function JoinInstitutionPage() {
     }
 
     const fetchInstitutionDetails = async () => {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
       try {
-        const response = await fetch(`${API_BASE_URL}/institutions/invite/${code}`);
-        if (!response.ok) {
-          throw new Error("Invalid or expired invitation link.");
-        }
-        const data = await response.json();
+        const data = await getInviteDetails(code);
         setInstName(data.name);
         setInstDesc(data.description || "");
         setInstThumbnail(data.thumbnail || "");
@@ -55,25 +51,9 @@ export default function JoinInstitutionPage() {
 
     setJoining(true);
     setError(null);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-    const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/institutions/join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ inviteCode: code }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to join institution.");
-      }
-
-      const resData = await response.json();
+      const resData = await joinInstitution({ inviteCode: code });
       showToast(`Successfully joined ${instName}!`, "success");
 
       setTimeout(() => {
@@ -153,3 +133,4 @@ export default function JoinInstitutionPage() {
     </div>
   );
 }
+

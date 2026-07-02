@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLms } from "@/context/LmsContext";
+import { getQuiz, getAttempts } from "@/lib/services/quiz.service";
 import Header from "@/components/views/Header";
 import {
   Trophy,
@@ -85,15 +86,11 @@ export default function QuizReviewPage({ params }: PageProps) {
         const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
 
         // 1. Fetch Quiz structure
-        const quizRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/quiz`, { headers });
-        if (!quizRes.ok) throw new Error("Failed to fetch quiz information");
-        const quizData = await quizRes.json();
+        const quizData = await getQuiz(lessonId);
         setQuiz(quizData);
 
         // 2. Fetch Attempts to find the matching one
-        const attemptsRes = await fetch(`${API_BASE_URL}/lessons/${lessonId}/quiz/attempts`, { headers });
-        if (!attemptsRes.ok) throw new Error("Failed to fetch attempts");
-        const attemptsData = await attemptsRes.json();
+        const attemptsData = await getAttempts(lessonId);
         setAllAttempts(attemptsData);
         
         const matchedAttempt = attemptsData.find((att: any) => att.id === attemptId);

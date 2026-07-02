@@ -3,7 +3,7 @@
 import React from "react";
 import { Search, X, Plus } from "lucide-react";
 
-import { Subject } from "../../../../../../types/subject";
+import { Subject } from "../../../../../../types/subject.interface";
 
 interface LinkClassModalProps {
   isOpen: boolean;

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import { Mail, Key, Sparkles, AlertCircle, ArrowRight, Library } from "lucide-react";
 import Link from "next/link";
+import { login } from "../../lib/services/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,25 +41,12 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to log in");
-      }
+      const data = await login({ email, password });
 
       if (data.jwt?.accessToken) {
         localStorage.setItem("token", data.jwt.accessToken);
+        document.cookie = `token=${data.jwt.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       }
       
       if (data.user && setCurrentUser) {
@@ -78,6 +66,7 @@ export default function LoginPage() {
           
           if (fallbackData.jwt?.accessToken) {
             localStorage.setItem("token", fallbackData.jwt.accessToken);
+            document.cookie = `token=${fallbackData.jwt.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
           }
           if (fallbackData.user && setCurrentUser) {
             setCurrentUser(fallbackData.user);
@@ -209,3 +198,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

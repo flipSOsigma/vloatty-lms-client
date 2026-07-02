@@ -13,6 +13,7 @@ interface ConfirmModalProps {
   cancelText?: string;
   isDanger?: boolean;
   isLoading?: boolean;
+  verificationText?: string;
 }
 
 export default function ConfirmModal({
@@ -25,8 +26,19 @@ export default function ConfirmModal({
   cancelText = "Cancel",
   isDanger = false,
   isLoading = false,
+  verificationText,
 }: ConfirmModalProps) {
+  const [verificationInput, setVerificationInput] = React.useState("");
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setVerificationInput("");
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const isConfirmDisabled = isLoading || (verificationText !== undefined && verificationInput !== verificationText);
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -52,13 +64,32 @@ export default function ConfirmModal({
             </button>
           </div>
 
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 w-full">
             <h3 className="text-[17px] font-extrabold text-[#121212] tracking-tight">
               {title}
             </h3>
-            <p className="text-[12.5px] text-zinc-500 font-medium max-w-xs leading-relaxed">
+            <p className="text-[12.5px] text-zinc-500 font-medium leading-relaxed">
               {message}
+              {verificationText && (
+                <span className="block mt-2 text-zinc-650">
+                  Please type <span className="text-[#121212] font-extrabold font-mono select-text">"{verificationText}"</span> to confirm.
+                </span>
+              )}
             </p>
+
+            {verificationText && (
+              <div className="w-full mt-3 text-left">
+                <input
+                  type="text"
+                  value={verificationInput}
+                  onChange={(e) => setVerificationInput(e.target.value)}
+                  placeholder={`Type "${verificationText}"`}
+                  className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 bg-white outline-none text-[#121212] text-[13px] font-semibold focus:border-zinc-500 shadow-2xs transition-all select-text"
+                  disabled={isLoading}
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -74,7 +105,7 @@ export default function ConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
-            disabled={isLoading}
+            disabled={isConfirmDisabled}
             className={`flex-1 py-3 text-white font-bold rounded-2xl text-[12px] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.98] disabled:opacity-50 ${
               isDanger
                 ? "bg-rose-600 hover:bg-rose-700 shadow-sm shadow-rose-100"

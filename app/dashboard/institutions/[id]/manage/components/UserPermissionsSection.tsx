@@ -7,7 +7,7 @@ import TableControls from "./TableControls";
 import TablePagination from "./TablePagination";
 import SortableHeader from "./SortableHeader";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { changeMemberRole, removeInstitutionUser } from "@/lib/services/institution.service";
 
 export interface UserPermission {
   id: string;
@@ -58,19 +58,7 @@ export default function UserPermissionsSection({
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${API_BASE_URL}/institutions/${institutionId}/users/${userId}/role`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to update role");
+      await changeMemberRole(institutionId, userId, newRole);
       setUsersPermissions((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       );
@@ -82,17 +70,7 @@ export default function UserPermissionsSection({
 
   const handleRemoveUser = async (userId: string) => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${API_BASE_URL}/institutions/${institutionId}/users/${userId}`,
-        {
-          method: "DELETE",
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to remove user");
+      await removeInstitutionUser(institutionId, userId);
       setUsersPermissions((prev) => prev.filter((u) => u.id !== userId));
       showToast("User removed from institution.", "success");
     } catch {

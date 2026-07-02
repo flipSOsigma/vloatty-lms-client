@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Lesson } from "@/types/subject";
-import { AssignmentSubmission } from "@/types/lesson";
+import { Lesson } from "@/types/subject.interface";
+import { AssignmentSubmission } from "@/types/lesson.interface";
 import { formatDate } from "@/lib/formatters";
 import { Lock, AlertTriangle, FileCheck, UploadCloud, X } from "lucide-react";
 
