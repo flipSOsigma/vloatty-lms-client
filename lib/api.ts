@@ -27,7 +27,6 @@ export function checkToken(): boolean {
       if (isExpired) {
         localStorage.removeItem("token");
         document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        alert("Your session has expired. Please log in again.");
         const path = window.location.pathname;
         const isPublicPage = path === "/" || path === "/login" || path === "/register";
         if (!isPublicPage) {
@@ -60,7 +59,6 @@ export async function apiFetch<T>(
           if (typeof payload.exp === "number" && payload.exp * 1000 < Date.now()) {
             localStorage.removeItem("token");
             document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            alert("Your session has expired. Please log in again.");
             const path = window.location.pathname;
             const isPublicPage = path === "/" || path === "/login" || path === "/register";
             if (!isPublicPage) {
@@ -86,13 +84,8 @@ export async function apiFetch<T>(
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
       if (typeof window !== "undefined") {
-        const token = localStorage.getItem("token");
         localStorage.removeItem("token");
         document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        
-        if (token) {
-          alert("Your session has expired. Please log in again.");
-        }
         
         const path = window.location.pathname;
         const isPublicPage = path === "/" || path === "/login" || path === "/register";
