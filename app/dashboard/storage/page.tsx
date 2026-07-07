@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import FolderCard from "../../../components/ui/FolderCard";
 import StatsSegmentCard from "../../../components/ui/StatsSegmentCard";
 import { useLms } from "../../../context/LmsContext";
 import { useSearchParams, useRouter } from "next/navigation";
 import { formatFileSize } from "../../../lib/formatters";
-import { getDashboardStats } from "../../../lib/services/user.service";
-import { uploadSubjectFile, deleteSubjectFile } from "../../../lib/services/subject.service";
+import { getDashboardStats } from "@/services/user.service";
+import { uploadSubjectFile, deleteSubjectFile } from "@/services/subject.service";
 import {
   FileText,
   Download,

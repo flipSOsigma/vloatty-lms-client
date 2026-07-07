@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import Header from "../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import SubjectCard from "../../../components/ui/SubjectCard";
 import { useLms } from "../../../context/LmsContext";
 import { CalendarDays, Sparkles } from "lucide-react";

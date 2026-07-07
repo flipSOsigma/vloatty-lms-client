@@ -16,8 +16,8 @@ import {
 import { animate, stagger, createTimeline } from "animejs";
 import styles from "./landing.module.css";
 import { useLms } from "../context/LmsContext";
-import Footer from "../components/views/Footer";
-import LandingNav from "../components/views/LandingNav";
+import Footer from "@/components/layout/Footer";
+import LandingNav from "@/components/layout/LandingNav";
 
 function RollingNumber({ value }: { value: string }) {
   const digits = value.split("");

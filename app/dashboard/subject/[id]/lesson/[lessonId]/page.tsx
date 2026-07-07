@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import Header from "../../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { StorageTracker } from "../../../../../../components/ui/StorageTracker";
 import Link from "next/link";
-import { getPresenceData, submitPresence } from "@/lib/services/presencion.service";
-import { getQuiz, getAttempts, saveQuiz, submitAttempt } from "@/lib/services/quiz.service";
-import { getAssignmentSettings, getMySubmission, getSubmissions, saveAssignmentSettings, deleteSubmission } from "@/lib/services/assignment.service";
-import { getSubjectFiles, deleteSubjectFile } from "@/lib/services/subject.service";
-import { generateQuiz } from "@/lib/services/ai.service";
+import { getPresenceData, submitPresence } from "@/services/presencion.service";
+import { getQuiz, getAttempts, saveQuiz, submitAttempt } from "@/services/quiz.service";
+import { getAssignmentSettings, getMySubmission, getSubmissions, saveAssignmentSettings, deleteSubmission } from "@/services/assignment.service";
+import { getSubjectFiles, deleteSubjectFile } from "@/services/subject.service";
+import { generateQuiz } from "@/services/ai.service";
 import { SubjectFile } from "../../../../../../types/subject.interface";
 import { useSearchParams } from "next/navigation";
 import {

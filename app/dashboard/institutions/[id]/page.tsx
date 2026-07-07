@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../context/LmsContext";
 import Link from "next/link";
 import { ArrowLeft, Users, BookOpen, Link2, Link2Off, CheckCircle, Grid2x2X, Grid2x2Plus, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Institution } from "../../../../types/lms.interface";
+import { getInstitution } from "@/services/institution.service";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
+import SubjectCard from "../../../../components/ui/SubjectCard";
+import { StorageTracker } from "../../../../components/ui/StorageTracker";
 
 const formatDate = (isoString: string | undefined) => {
   if (!isoString) return "";
@@ -24,7 +27,7 @@ const formatDate = (isoString: string | undefined) => {
   }
 };
 
-export default function InstitutionDetailPage({ params }: PageProps) {
+export default function InstitutionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = React.use(params);
   const { subjects, currentUser, updateSubject, showToast } = useLms();

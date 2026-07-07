@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
-import Header from "../../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAiTokens } from "@/lib/services/user.service";
-import { generateLessonDesc } from "@/lib/services/ai.service";
-import { uploadSubjectFile } from "@/lib/services/subject.service";
+import { getAiTokens } from "@/services/user.service";
+import { generateLessonDesc } from "@/services/ai.service";
+import { uploadSubjectFile } from "@/services/subject.service";
 import Link from "next/link";
 import {
   ArrowLeft,

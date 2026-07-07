@@ -7,7 +7,7 @@ import TableControls from "./TableControls";
 import TablePagination from "./TablePagination";
 import SortableHeader from "./SortableHeader";
 
-import { changeMemberRole, removeInstitutionUser } from "@/lib/services/institution.service";
+import { changeMemberRole, removeInstitutionUser } from "@/services/institution.service";
 
 export interface UserPermission {
   id: string;

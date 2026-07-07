@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "../../../../components/views/Header";
-import EventModal from "../../../../components/views/EventModal";
+import Header from "@/components/layout/Header";
+import EventModal from "@/components/layout/EventModal";
 import { useLms } from "../../../../context/LmsContext";
 import Link from "next/link";
-import { getQuiz, getAttempts } from "@/lib/services/quiz.service";
-import { getMySubmission, deleteSubmission } from "@/lib/services/assignment.service";
-import { kickParticipant } from "@/lib/services/subject.service";
+import { getQuiz, getAttempts } from "@/services/quiz.service";
+import { getMySubmission, deleteSubmission } from "@/services/assignment.service";
+import { kickParticipant } from "@/services/subject.service";
 import {
   ArrowLeft,
   GraduationCap,

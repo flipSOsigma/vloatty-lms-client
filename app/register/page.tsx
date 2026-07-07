@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import { Mail, Key, User, Building, AlertCircle, ArrowRight, Library } from "lucide-react";
 import Link from "next/link";
-import { register } from "../../lib/services/auth.service";
+import { register } from "@/services/auth.service";
 
 export default function RegisterPage() {
   const router = useRouter();

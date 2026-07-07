@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../context/LmsContext";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import InstitutionCard from "../../../components/ui/InstitutionCard";
 import ThirtyDaysActivityChart from "../../../components/ui/ThirtyDaysActivityChart";
 import { animate, stagger } from "animejs";
-import { getInstitutions, deleteInstitution } from "../../../lib/services/institution.service";
+import { getInstitutions, deleteInstitution } from "@/services/institution.service";
 
 export default function InstitutionsPage() {
   const router = useRouter();

@@ -6,7 +6,7 @@ import { useLms } from "../../../../../context/LmsContext";
 import { GraduationCap, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import LoadingSpinner from "../../../../../components/ui/LoadingSpinner";
-import { getSubjectDetails, joinSubject } from "@/lib/services/subject.service";
+import { getSubjectDetails, joinSubject } from "@/services/subject.service";
 
 interface PageProps {
   params: Promise<{ id: string }>;

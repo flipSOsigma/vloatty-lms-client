@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiDelete } from "../api";
+import { apiFetch, apiPost, apiDelete } from "@/lib/api";
 import { AssignmentSettings, AssignmentSubmission } from "@/types/lms.interface";
 
 export async function getAssignmentSettings(lessonId: string) {

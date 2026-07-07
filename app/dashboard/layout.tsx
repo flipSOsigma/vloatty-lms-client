@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
-import Sidebar from "../../components/views/Sidebar";
+import Sidebar from "@/components/layout/Sidebar";
 import Link from "next/link";
 import { Library, LayoutDashboard, Calendar, CalendarDays, BookOpen, HardDrive } from "lucide-react";
 

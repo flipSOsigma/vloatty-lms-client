@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getInviteDetails, joinInstitution } from "../../../../lib/services/institution.service";
+import { getInviteDetails, joinInstitution } from "@/services/institution.service";
 import { useLms } from "../../../../context/LmsContext";
 import { Building2, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -53,7 +53,7 @@ export default function JoinInstitutionPage() {
     setError(null);
 
     try {
-      const resData = await joinInstitution({ inviteCode: code });
+      const resData = await joinInstitution({ inviteCode: code || "" });
       showToast(`Successfully joined ${instName}!`, "success");
 
       setTimeout(() => {

@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiDelete, apiPut } from "../api";
+import { apiFetch, apiPost, apiDelete, apiPut } from "@/lib/api";
 import { Subject, SubjectFile } from "@/types/lms.interface";
 
 export async function joinSubject(id: string) {

@@ -1,8 +1,8 @@
 "use client";
 
-import Header from "../../../components/views/Header";
-import ScheduleView from "../../../components/views/ScheduleView";
-import EventModal from "../../../components/views/EventModal";
+import Header from "@/components/layout/Header";
+import ScheduleView from "@/components/layout/ScheduleView";
+import EventModal from "@/components/layout/EventModal";
 
 export default function TimelinePage() {
   return (

@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiPut, apiDelete } from "../api";
+import { apiFetch, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Institution } from "@/types/lms.interface";
 
 export interface InviteDetailsResponse {
@@ -34,7 +34,7 @@ export async function getInstitution(id: string) {
   return apiFetch<Institution>(`/institutions/${id}`);
 }
 
-export async function createInstitution(data: { name: string; description?: string }) {
+export async function createInstitution(data: { name: string; description?: string; subscriptionStatus?: string; thumbnail?: string | null }) {
   return apiPost<Institution>("/institutions", data);
 }
 

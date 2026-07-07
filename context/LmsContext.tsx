@@ -2,9 +2,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { LmsEvent, CalendarViewType, LmsState, Subject, UserProfile } from "../types/lms.interface";
-import { getMe, logout as authLogout } from "@/lib/services/auth.service";
-import { getSubjects, createSubject, deleteSubject as apiDeleteSubject, updateSubject as apiUpdateSubject } from "@/lib/services/subject.service";
+import { getMe, logout as authLogout } from "@/services/auth.service";
+import { getSubjects, createSubject, deleteSubject as apiDeleteSubject, updateSubject as apiUpdateSubject } from "@/services/subject.service";
 import { ToastItem, ToastStyles } from "../components/ui/Toast";
+import { checkToken } from "@/lib/api";
 
 interface LmsContextType extends LmsState {
   subjects: Subject[];
@@ -234,6 +235,13 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   useEffect(() => {
+    const hasValidToken = checkToken();
+    if (!hasValidToken) {
+      setCurrentUser(null);
+      setIsLoadingUser(false);
+      return;
+    }
+
     let currentToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     
     const fetchUser = (tokenToUse: string | null) => {
