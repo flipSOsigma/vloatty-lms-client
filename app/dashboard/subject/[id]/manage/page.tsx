@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
-import { getAllUsers } from "@/lib/services/user.service";
-import { uploadFile } from "@/lib/services/upload.service";
+import { getAllUsers } from "@/services/user.service";
+import { uploadFile } from "@/services/upload.service";
 import Link from "next/link";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 import ImageCropModal from "../../../../../components/ui/ImageCropModal";
@@ -525,6 +525,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 setCategory={setCategory}
                 subjectColor={subjectColor}
                 subjectId={subject.id}
+                ownerId={subject.createdBy}
                 inviteEmail={inviteEmail}
                 setInviteEmail={setInviteEmail}
                 invitedEmails={invitedEmails}

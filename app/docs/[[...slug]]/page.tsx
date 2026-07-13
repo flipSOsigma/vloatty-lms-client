@@ -31,8 +31,8 @@ import {
   Link2,
   DollarSign
 } from "lucide-react";
-import LandingNav from "../../../components/views/LandingNav";
-import Footer from "../../../components/views/Footer";
+import LandingNav from "@/components/layout/LandingNav";
+import Footer from "@/components/layout/Footer";
 import docsData from "../docsData.json";
 
 interface PageProps {

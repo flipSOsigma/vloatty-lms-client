@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLms } from "@/context/LmsContext";
-import { getQuiz, getAttempts } from "@/lib/services/quiz.service";
-import Header from "@/components/views/Header";
+import { getQuiz, getAttempts } from "@/services/quiz.service";
+import Header from "@/components/layout/Header";
 import {
   Trophy,
   X,

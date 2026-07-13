@@ -1,4 +1,4 @@
-import { Subject } from "./subject";
+import { Subject } from "./subject.interface";
 
 export interface InstitutionUser {
   id: string;

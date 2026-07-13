@@ -1,5 +1,5 @@
-import { LmsEvent } from "./event";
-import { CalendarViewType } from "./view";
+import { LmsEvent } from "./event.interface";
+import { CalendarViewType } from "./view.interface";
 
 export interface LmsState {
   events: LmsEvent[];

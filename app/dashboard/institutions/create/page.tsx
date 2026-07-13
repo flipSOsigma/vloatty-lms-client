@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../context/LmsContext";
 import {
   ArrowLeft,
@@ -12,7 +12,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createInstitution } from "../../../../lib/services/institution.service";
+import { createInstitution } from "@/services/institution.service";
 
 export default function CreateInstitutionPage() {
   const router = useRouter();

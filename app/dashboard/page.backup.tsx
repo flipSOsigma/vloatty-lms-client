@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../components/views/Header";
+import Header from "@/components/layout/Header";
 import SubjectCard from "../../components/ui/SubjectCard";
-import EventModal from "../../components/views/EventModal";
+import EventModal from "@/components/layout/EventModal";
 import { useLms } from "../../context/LmsContext";
 import Link from "next/link";
 import { Plus, Clock, MapPin, Compass, Grid2x2Plus, Grid2x2X, Calendar, Activity } from "lucide-react";

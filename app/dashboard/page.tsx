@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../components/views/Header";
-import EventModal from "../../components/views/EventModal";
+import Header from "@/components/layout/Header";
+import EventModal from "@/components/layout/EventModal";
 import { useLms } from "../../context/LmsContext";
 import {
   ArrowRight,
@@ -16,7 +16,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Subject, LmsEvent } from "../../types/lms.interface";
-import { getDashboardStats } from "../../lib/services/user.service";
+import { getDashboardStats } from "@/services/user.service";
 import { animate, stagger } from "animejs";
 
 export default function DashboardPage() {

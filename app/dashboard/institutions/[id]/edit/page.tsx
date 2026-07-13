@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../context/LmsContext";
 import {
   ArrowLeft,
@@ -14,7 +14,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getInstitution, updateInstitution, deleteInstitution } from "@/lib/services/institution.service";
+import { getInstitution, updateInstitution, deleteInstitution } from "@/services/institution.service";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 
 interface PageProps {

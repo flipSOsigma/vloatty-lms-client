@@ -1,8 +1,12 @@
-import { apiPost, apiFetch } from "../api";
+import { apiPost, apiFetch } from "@/lib/api";
 import { UserProfile } from "@/types/lms.interface";
 
 export interface AuthResponse {
-  token: string;
+  jwt: {
+    accessToken: string;
+    tokenType: string;
+    expiresIn: number;
+  };
   user: UserProfile;
 }
 

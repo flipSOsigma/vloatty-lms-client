@@ -1,4 +1,4 @@
-import { apiFetch, apiPost } from "../api";
+import { apiFetch, apiPost } from "@/lib/api";
 import { PresenceRecord, MyPresenceRecord } from "@/types/lms.interface";
 
 export interface PresenceDataResponse {

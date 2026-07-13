@@ -1,15 +1,26 @@
-import { apiFetch, apiPut } from "../api";
+import { apiFetch, apiPut } from "@/lib/api";
 import { UserProfile, SubjectFile } from "@/types/lms.interface";
 
 export interface DashboardStatsResponse {
-  totalSubjects: number;
-  totalAssignments: number;
-  pendingAssignments: number;
-  completedQuizAttempts: number;
+  storage: {
+    usedBytes: number;
+    maxBytes: number;
+    materialsBytes: number;
+    submissionsBytes: number;
+    systemAssetsBytes: number;
+  };
+  weeklyActivity: {
+    total: number;
+    subjects: number;
+    modules: number;
+    lessons: number;
+  };
 }
 
 export interface AiTokensResponse {
-  aiTokensBalance: number;
+  allowed: boolean;
+  balance: number;
+  maxTokens: number;
 }
 
 export async function getUserProfile(userId: string) {

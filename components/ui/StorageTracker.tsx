@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { HardDrive } from "lucide-react";
 
-import { getInstitutionStorage } from "@/lib/services/institution.service";
+import { getInstitutionStorage } from "@/services/institution.service";
 
 interface StorageTrackerProps {
   institutionId: string;

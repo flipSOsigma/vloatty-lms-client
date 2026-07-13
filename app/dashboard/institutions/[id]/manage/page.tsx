@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
-import { getInstitution, getInviteCode, updateInstitution, deleteInstitution, changeMemberRole, removeInstitutionUser } from "@/lib/services/institution.service";
-import { uploadFile } from "@/lib/services/upload.service";
+import { getInstitution, getInviteCode, updateInstitution, deleteInstitution, changeMemberRole, removeInstitutionUser } from "@/services/institution.service";
+import { uploadFile } from "@/services/upload.service";
 import Link from "next/link";
 import ConfirmModal from "../../../../../components/ui/ConfirmModal";
 import ImageCropModal from "../../../../../components/ui/ImageCropModal";

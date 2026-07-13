@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Header from "../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import Link from "next/link";
 import { useLms } from "../../../context/LmsContext";
 import { UserProfile } from "../../../types/lms.interface";
-import { updateUserProfile } from "../../../lib/services/user.service";
-import { uploadFile } from "../../../lib/services/upload.service";
+import { updateUserProfile } from "@/services/user.service";
+import { uploadFile } from "@/services/upload.service";
 import ImageCropModal from "../../../components/ui/ImageCropModal";
 import {
   User,
@@ -58,7 +58,7 @@ export default function ProfilePage() {
       setName(currentUser.name);
       setEmail(currentUser.email);
       setInstitution(currentUser.institution || "");
-      setPremiumStatus(currentUser.premiumStatus);
+      setPremiumStatus(currentUser.premiumStatus as "free" | "premium" | "professional");
       setAvatar(currentUser.avatar || "");
       setBanner(currentUser.banner || null);
     }
@@ -175,6 +175,10 @@ export default function ProfilePage() {
   }
 
   // Premium status styling
+  const premiumStatusSafe = (profile.premiumStatus === "premium" || profile.premiumStatus === "professional")
+    ? profile.premiumStatus
+    : "free";
+
   const premiumConfig = {
     free: {
       label: "Free Plan",
@@ -194,7 +198,7 @@ export default function ProfilePage() {
       accent: "text-amber-700",
       bgLight: "bg-amber-50/40",
     },
-  }[profile.premiumStatus];
+  }[premiumStatusSafe];
 
   return (
     <div className="flex flex-col gap-6 select-none animate-in fade-in slide-in-from-bottom-2 duration-300 h-full overflow-hidden">

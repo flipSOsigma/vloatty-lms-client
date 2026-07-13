@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "../../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import { useRouter } from "next/navigation";
-import { getAiTokens } from "@/lib/services/user.service";
-import { generateModuleDesc } from "@/lib/services/ai.service";
+import { getAiTokens } from "@/services/user.service";
+import { generateModuleDesc } from "@/services/ai.service";
 import Link from "next/link";
 import {
   ArrowLeft,

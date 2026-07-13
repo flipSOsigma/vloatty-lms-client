@@ -1,4 +1,4 @@
-import { apiFetch, apiPost } from "../api";
+import { apiFetch, apiPost } from "@/lib/api";
 import { QuizSettings, QuizAttempt } from "@/types/lms.interface";
 
 export async function getQuiz(lessonId: string) {

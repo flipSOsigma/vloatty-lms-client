@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLms } from "../../context/LmsContext";
 import { Mail, Key, Sparkles, AlertCircle, ArrowRight, Library } from "lucide-react";
 import Link from "next/link";
-import { login } from "../../lib/services/auth.service";
+import { login } from "@/services/auth.service";
 
 export default function LoginPage() {
   const router = useRouter();

@@ -1,4 +1,4 @@
-import { apiFetch, apiPost, apiDelete, apiPut } from "../api";
+import { apiFetch, apiPost, apiDelete, apiPut } from "@/lib/api";
 import { Subject, SubjectFile } from "@/types/lms.interface";
 
 export async function joinSubject(id: string) {
@@ -11,6 +11,10 @@ export async function getSubjectDetails(id: string) {
 
 export async function kickParticipant(subjectId: string, userId: string) {
   return apiDelete<{ message: string }>(`/subjects/${subjectId}/participants/${userId}`);
+}
+
+export async function updateParticipantRole(subjectId: string, userId: string, role: string) {
+  return apiPut<{ message: string }>(`/subjects/${subjectId}/participants/${userId}/role`, { role });
 }
 
 export async function getSubjectFiles(subjectId: string, lessonId: string | null | undefined) {
@@ -42,4 +46,8 @@ export async function deleteSubject(id: string) {
 
 export async function updateSubject(id: string, data: Partial<Subject>) {
   return apiPut<Subject>(`/subjects/${id}`, data);
+}
+
+export async function leaveSubject(id: string) {
+  return apiPost<{ message: string }>(`/subjects/${id}/leave`, {});
 }

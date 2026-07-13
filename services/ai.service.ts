@@ -1,34 +1,31 @@
-import { apiPost } from "../api";
+import { apiPost } from "@/lib/api";
 import { QuizQuestion } from "@/types/lms.interface";
 
 export interface GenerateLessonData {
-  lessonTitle: string;
-  lessonDesc: string;
-  subjectName: string;
-  subjectDesc: string;
-  aiInstructions?: string;
+  title: string;
+  type: string;
+  subjectName?: string;
+  subjectDesc?: string;
 }
 
 export interface GenerateModuleData {
-  moduleTitle: string;
-  moduleDesc: string;
-  subjectName: string;
-  subjectDesc: string;
-  aiInstructions?: string;
+  title: string;
+  subjectName?: string;
+  subjectDesc?: string;
 }
 
 export interface GenerateQuizData {
   lessonTitle: string;
-  lessonDesc: string;
-  subjectName: string;
-  subjectDesc: string;
+  lessonDesc?: string;
+  subjectName?: string;
+  subjectDesc?: string;
   questionCount: number;
   difficulty: string;
   language: string;
 }
 
 export interface GenerateTextResponse {
-  desc: string;
+  description: string;
   tokensUsed: number;
 }
 

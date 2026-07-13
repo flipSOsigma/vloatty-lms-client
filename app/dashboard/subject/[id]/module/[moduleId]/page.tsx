@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Header from "../../../../../../components/views/Header";
+import Header from "@/components/layout/Header";
 import { useLms } from "../../../../../../context/LmsContext";
 import Link from "next/link";
 import {

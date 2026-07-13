@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "../../../../components/views/Header";
-import EventModal from "../../../../components/views/EventModal";
+import Header from "@/components/layout/Header";
+import EventModal from "@/components/layout/EventModal";
 import { useLms } from "../../../../context/LmsContext";
 import Link from "next/link";
-import { getQuiz, getAttempts } from "@/lib/services/quiz.service";
-import { getMySubmission, deleteSubmission } from "@/lib/services/assignment.service";
-import { kickParticipant } from "@/lib/services/subject.service";
+import { useRouter } from "next/navigation";
+import { getQuiz, getAttempts } from "@/services/quiz.service";
+import { getMySubmission, deleteSubmission } from "@/services/assignment.service";
+import { kickParticipant, updateParticipantRole, leaveSubject as apiLeaveSubject } from "@/services/subject.service";
 import {
   ArrowLeft,
   GraduationCap,
@@ -26,9 +27,16 @@ import {
   Trash2,
   Trophy,
   BookOpen,
+  Clock,
+  MapPin,
+  MessageSquare,
+  Search,
+  Filter,
+  ChevronDown,
 } from "lucide-react";
 import ContextMenu from "../../../../components/ui/ContextMenu";
 import ConfirmModal from "../../../../components/ui/ConfirmModal";
+import AccountPreview from "@/components/ui/AccountPreview";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -53,8 +61,48 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 export default function SubjectDetailPage({ params }: PageProps) {
 
   const { id } = React.use(params);
+  const router = useRouter();
   const { subjects, currentUser, showToast, updateSubject, refreshSubjects } = useLms();
   const selectedSubject = subjects.find((s) => s.id === id);
+
+  const [activeTab, setActiveTab] = useState<"syllabus" | "details" | "forum">("syllabus");
+  const [selectedPreviewUser, setSelectedPreviewUser] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    avatar?: string | null;
+    banner?: string | null;
+    joinedAt?: string;
+  } | null>(null);
+  const [previewPos, setPreviewPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const handleLeaveSubject = async () => {
+    if (!selectedSubject) return;
+    if (confirm("Are you sure you want to leave this subject?")) {
+      try {
+        await apiLeaveSubject(selectedSubject.id);
+        showToast("Successfully left the subject", "success");
+        router.push("/dashboard");
+      } catch (err: any) {
+        console.error("Failed to leave subject:", err);
+        showToast(err.message || "Failed to leave subject", "error");
+      }
+    }
+  };
+
+  const scrollToAnchor = (elementId: string) => {
+    const container = document.getElementById("subject-detail-scroll-container");
+    const target = document.getElementById(elementId);
+    if (container && target) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const targetTop = targetRect.top - containerRect.top + container.scrollTop - 24; // 24px top margin offset
+      container.scrollTo({
+        top: targetTop,
+        behavior: "smooth"
+      });
+    }
+  };
 
   React.useEffect(() => {
     refreshSubjects();
@@ -92,6 +140,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string; email: string; role: string } | null>(null);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
+  const [memberRoleFilter, setMemberRoleFilter] = useState("all");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
 
   const [editingModule, setEditingModule] = useState<any | null>(null);
   const [showEditModuleModal, setShowEditModuleModal] = useState(false);
@@ -405,225 +456,55 @@ export default function SubjectDetailPage({ params }: PageProps) {
       {}
       <Header />
 
-      {/* Shared scrollable main container */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
+      <div id="subject-detail-scroll-container" className="flex-1 overflow-y-auto scroll-smooth no-scrollbar pr-1 pb-6 flex flex-col gap-6 text-left select-none w-full">
         <div className="w-full px-3 sm:px-6 md:px-8 flex flex-col gap-6">
-          {/* Back button and page status header */}
-          <div className="flex items-center justify-between mt-1">
-          <Link
-            href="/dashboard"
-            className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)]"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-1 w-full select-none">
+            <Link
+              href="/dashboard"
+              className="w-10 h-10 rounded-full border border-[#E5E1D8]/70 hover:bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer bg-white shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </Link>
 
-        <span className="text-[12px] font-semibold text-zinc-400 uppercase tracking-wider">
-          Syllabus Detail
-        </span>
-      </div>
-
-      {}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start text-left">
-        {}
-        <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-6 lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto no-scrollbar pr-2">
-          <div className="flex flex-col gap-5 w-full">
-            {selectedSubject.thumbnail && (
-              <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[#E5E1D8]/60 shadow-sm shrink-0">
-                <img
-                  src={selectedSubject.thumbnail}
-                  alt={selectedSubject.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-            <div className="flex flex-col gap-1">
-              <span
-                className="inline-block text-[9px] font-semibold px-3 py-1 rounded-full w-fit"
-                style={{
-                  backgroundColor: "#facc1515",
-                  color: "#facc15",
-                  border: "1px solid #facc1530"
-                }}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <button 
+                type="button"
+                onClick={() => setActiveTab("syllabus")} 
+                className={`pb-1 text-[13px] font-bold tracking-tight border-b-2 transition-all cursor-pointer ${
+                  activeTab === "syllabus" 
+                    ? "border-zinc-800 text-zinc-800 font-extrabold" 
+                    : "border-transparent text-zinc-400 hover:text-zinc-650"
+                }`}
               >
-                {selectedSubject.room || "Room Online"}
-              </span>
-              <h2 className="text-2xl sm:text-[34px] font-semibold text-zinc-800 tracking-tight leading-tight mt-1">
-                {selectedSubject.name}
-              </h2>
-              <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1">
-                <GraduationCap className="w-4 h-4" />
-                <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>
-              </div>
+                Syllabus Detail
+              </button>
+              <button 
+                type="button"
+                onClick={() => setActiveTab("details")} 
+                className={`pb-1 text-[13px] font-bold tracking-tight border-b-2 transition-all cursor-pointer ${
+                  activeTab === "details" 
+                    ? "border-zinc-800 text-zinc-800 font-extrabold" 
+                    : "border-transparent text-zinc-400 hover:text-zinc-650"
+                }`}
+              >
+                Subject Details
+              </button>
+              <button 
+                type="button"
+                onClick={() => setActiveTab("forum")} 
+                className={`pb-1 text-[13px] font-bold tracking-tight border-b-2 transition-all cursor-pointer ${
+                  activeTab === "forum" 
+                    ? "border-zinc-800 text-zinc-800 font-extrabold" 
+                    : "border-transparent text-zinc-400 hover:text-zinc-650"
+                }`}
+              >
+                Discussion Forum
+              </button>
             </div>
-
-            {selectedSubject.description && (
-              <p className="hidden sm:block text-[12px] text-zinc-500 leading-relaxed font-medium px-1">
-                {selectedSubject.description}
-              </p>
-            )}
-
-            {}
-            {selectedSubject.schedules && selectedSubject.schedules.length > 0 && (
-              <div className="flex flex-col gap-2 pt-2">
-                <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
-                  Class Schedule
-                </span>
-                <div className="flex flex-col gap-1.5">
-                  {selectedSubject.schedules.map((sch, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center text-[12px] font-semibold text-zinc-700 bg-transparent px-1 py-2"
-                    >
-                      <span>{sch.day}</span>
-                      <span className="text-zinc-500 text-[11px]">{sch.startTime} - {sch.endTime}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {(() => {
-            interface CourseMember {
-              userId: string;
-              name: string;
-              email: string;
-              role: "Owner" | "Lecturer" | "Participant";
-            }
-            const courseMembers: CourseMember[] = [];
-            if (selectedSubject.createdBy) {
-              courseMembers.push({
-                userId: selectedSubject.createdBy,
-                name: selectedSubject.creatorName || "Subject Owner",
-                email: selectedSubject.creatorEmail || "",
-                role: "Owner"
-              });
-            }
-            if (selectedSubject.lecturers) {
-              selectedSubject.lecturers.forEach((l) => {
-                if (l.userId !== selectedSubject.createdBy && !courseMembers.some(m => m.userId === l.userId)) {
-                  courseMembers.push({
-                    userId: l.userId,
-                    name: l.name,
-                    email: l.email || "",
-                    role: "Lecturer"
-                  });
-                }
-              });
-            }
-            if (selectedSubject.participants) {
-              selectedSubject.participants.forEach((p) => {
-                if (p.userId !== selectedSubject.createdBy && !courseMembers.some(m => m.userId === p.userId)) {
-                  courseMembers.push({
-                    userId: p.userId,
-                    name: p.name,
-                    email: p.email || "",
-                    role: "Participant"
-                  });
-                }
-              });
-            }
-
-            return (
-              <div className="flex flex-col gap-4 w-full">
-                <div className="flex items-center justify-between pb-2">
-                  <h3 className="text-[16px] font-semibold text-zinc-800 flex items-center gap-2 tracking-tight">
-                    <Users className="w-4.5 h-4.5 text-[#d97706]" />
-                    Course Members
-                  </h3>
-                  <span className="bg-zinc-800 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                    {courseMembers.length}
-                  </span>
-                </div>
-
-                {courseMembers.length === 0 ? (
-                  <div className="text-center py-4">
-                    <span className="text-[11.5px] text-zinc-400 font-semibold">No members found.</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    {courseMembers.map((member) => {
-                      const initials = member.name
-                        ? member.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
-                        : "?";
-                      
-                      return (
-                        <div key={member.userId} className="flex items-center justify-between bg-transparent px-1 py-2.5">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div
-                              className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-semibold border shrink-0"
-                              style={{
-                                backgroundColor: "rgba(242, 92, 136, 0.08)",
-                                color: "#facc15",
-                                borderColor: "rgba(242, 92, 136, 0.12)"
-                              }}
-                            >
-                              {initials}
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-[12.5px] font-semibold text-zinc-800 truncate">
-                                {member.name}
-                              </span>
-                              {member.email && (
-                                <span className="text-[10px] text-zinc-400 font-semibold truncate -mt-0.5">
-                                  {member.email}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0 pl-2">
-                            {member.role === "Owner" && (
-                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/15 uppercase tracking-wide">
-                                Owner
-                              </span>
-                            )}
-                            {member.role === "Lecturer" && (
-                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wide">
-                                Lecturer
-                              </span>
-                            )}
-                            {member.role === "Participant" && (
-                              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/50 uppercase tracking-wide">
-                                Student
-                              </span>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                setSelectedMember(member);
-                                setMenuPos({ x: e.clientX, y: e.clientY });
-                                setMenuOpen(true);
-                              }}
-                              className="w-6 h-6 rounded-full hover:bg-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer shrink-0"
-                            >
-                              <MoreHorizontal className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
-          {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
-            <Link
-              href={`/dashboard/subject/${selectedSubject.id}/manage`}
-              className="w-full flex items-center justify-center gap-1.5 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11px] rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.98] mt-2 text-center"
-            >
-              <span>Manage Subject</span>
-            </Link>
-          )}
-        </div>
-
-        {}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+      {activeTab === "syllabus" && (
+        <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
             <h3 className="text-[16px] font-semibold text-zinc-800 tracking-tight">
               Course Modules & Lessons
@@ -653,12 +534,15 @@ export default function SubjectDetailPage({ params }: PageProps) {
               <span className="text-[13px] text-zinc-400 font-semibold">No modules registered yet.</span>
             </div>
           ) : (
-            <div className="flex flex-col gap-6">
-              {selectedSubject.modules.map((mod, index) => (
-                <div
-                  key={mod.id}
-                  className="bg-transparent border-b border-[#E5E1D8]/50 last:border-b-0 pb-8 flex flex-col gap-4"
-                >
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start w-full">
+              {/* Left Column: Modules list (takes 3 of 4 columns) */}
+              <div className="lg:col-span-3 flex flex-col gap-6 w-full">
+                {selectedSubject.modules.map((mod, index) => (
+                  <div
+                    id={`module-${mod.id}`}
+                    key={mod.id}
+                    className="bg-transparent border-b border-[#E5E1D8]/50 last:border-b-0 pb-8 flex flex-col gap-4 scroll-mt-6"
+                  >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 pb-1">
                     <div className="flex flex-col gap-1 max-w-xl md:max-w-2xl">
                       <Link
@@ -716,8 +600,9 @@ export default function SubjectDetailPage({ params }: PageProps) {
 
                         return (
                           <div
+                            id={`lesson-${lesson.id}`}
                             key={lesson.id}
-                            className="relative pl-8 flex flex-col md:flex-row md:items-start justify-between gap-6 w-full"
+                            className="relative pl-8 flex flex-col md:flex-row md:items-start justify-between gap-6 w-full scroll-mt-10"
                           >
                             <div className="absolute left-0 -translate-x-1/2 top-[6px] w-3 h-3 rounded-full border-2 border-white bg-[#facc15] z-10 shadow-sm" />
                             {idx < sortedLessons.length - 1 && (
@@ -991,10 +876,615 @@ export default function SubjectDetailPage({ params }: PageProps) {
                   </div>
                 </div>
               ))}
+              </div>
+
+              {/* Right Column: Mini Navigation Sidebar (takes 1 of 4 columns) */}
+              <div className="hidden lg:flex flex-col gap-5 lg:sticky lg:top-6 bg-transparent p-1 pl-3 border-l border-[#E5E1D8]/50 select-none max-h-[calc(100vh-140px)] overflow-y-auto no-scrollbar">
+                <span className="text-[10px] font-bold text-zinc-400 tracking-wider mb-1">
+                  syllabus map
+                </span>
+                <div className="flex flex-col gap-5">
+                  {selectedSubject.modules.map((mod, index) => (
+                    <div key={mod.id} className="flex flex-col gap-1.5">
+                      <button
+                        onClick={() => scrollToAnchor(`module-${mod.id}`)}
+                        className="text-left text-[12px] font-bold text-zinc-650 hover:text-[#d97706] hover:translate-x-0.5 transition-all cursor-pointer truncate py-0.5"
+                      >
+                        Module {index + 1}: {mod.title}
+                      </button>
+                      {mod.lessons && mod.lessons.length > 0 && (
+                        <div className="flex flex-col gap-2 pl-3.5 ml-1.5 mb-1.5">
+                          {mod.lessons.map((lesson) => (
+                            <button
+                              key={lesson.id}
+                              onClick={() => scrollToAnchor(`lesson-${lesson.id}`)}
+                              className="text-left text-[11px] font-semibold text-zinc-400 hover:text-[#d97706] hover:translate-x-0.5 transition-all cursor-pointer truncate py-0.5"
+                              title={lesson.title}
+                            >
+                              {lesson.title}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
-      </div>
+      )}
+
+      {activeTab === "details" && (
+        <div className="flex flex-col gap-8 w-full animate-in fade-in duration-300">
+          {/* Top Row: Thumbnail and Details Side-by-Side */}
+          <div className="flex flex-col md:flex-row gap-8 items-start w-full">
+            {selectedSubject.thumbnail && (
+              <div className="w-full md:w-1/3 aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden border border-[#E5E1D8]/40 shadow-2xs shrink-0 bg-white">
+                <img src={selectedSubject.thumbnail} alt={selectedSubject.name} className="w-full h-full object-cover" />
+              </div>
+            )}
+            
+            <div className="flex-1 flex flex-col gap-5 w-full text-left">
+              <div className="flex flex-col gap-1.5">
+                <span className="inline-block text-[9px] font-bold px-2.5 py-0.5 rounded-full w-fit bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/15 uppercase tracking-wide">
+                  {selectedSubject.room || "Room Online"}
+                </span>
+                <h2 className="text-2xl sm:text-[32px] font-bold text-zinc-800 tracking-tight leading-tight mt-1">
+                  {selectedSubject.name}
+                </h2>
+                {selectedSubject.description && (
+                  <p className="text-[12px] text-zinc-500 leading-relaxed font-medium mt-1">
+                    {selectedSubject.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Lecturers under description without card styles, borders, or labels */}
+              <div className="flex flex-wrap gap-6 items-center w-full">
+                {selectedSubject.lecturers.map((lecturer) => {
+                  const initials = lecturer.name
+                    ? lecturer.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+                    : "?";
+                  return (
+                    <div
+                      key={lecturer.userId}
+                      onClick={(e) => {
+                        setSelectedPreviewUser({
+                          name: lecturer.name,
+                          email: lecturer.email || "",
+                          role: "Lecturer",
+                          avatar: lecturer.avatar || "",
+                          banner: lecturer.banner || null,
+                          joinedAt: selectedSubject.createdAt,
+                        });
+                        setPreviewPos({ x: e.clientX, y: e.clientY });
+                      }}
+                      className="flex items-center gap-3 cursor-pointer group select-none"
+                      title={`View ${lecturer.name}'s profile`}
+                    >
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 bg-[#facc15]/5 text-[#d97706] border-[#f97316]/10 overflow-hidden shadow-2xs group-hover:scale-105 transition-transform">
+                        {lecturer.avatar ? (
+                          <img src={lecturer.avatar} alt={lecturer.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{initials}</span>
+                        )}
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="text-[13px] font-bold text-zinc-800 group-hover:text-[#d97706] transition-colors leading-tight">
+                          {lecturer.name}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 font-semibold leading-tight mt-0.5">
+                          {lecturer.email || "No email provided"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Class Schedule Table (no label) */}
+              {selectedSubject.schedules && selectedSubject.schedules.length > 0 && (
+                <div className="w-full border border-[#E5E1D8]/60 rounded-3xl bg-white/30 overflow-x-auto no-scrollbar">
+                  <table className="w-full border-collapse text-left text-[12.5px] font-semibold text-zinc-700">
+                    <thead>
+                      <tr className="border-b border-[#E5E1D8]/40 text-[11.5px] font-bold text-zinc-500">
+                        <th className="py-3 px-5 font-bold">Day</th>
+                        <th className="py-3 px-5 font-bold">Time</th>
+                        <th className="py-3 px-5 font-bold">Room</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedSubject.schedules.map((sch, i) => (
+                        <tr key={i} className="border-b border-[#E5E1D8]/20 last:border-0 hover:bg-zinc-50/20 transition-colors">
+                          <td className="py-3.5 px-5 font-bold text-zinc-800">{sch.day}</td>
+                          <td className="py-3.5 px-5 text-zinc-505 font-semibold">
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                              {sch.startTime} - {sch.endTime}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-5 text-zinc-505 font-semibold">
+                            {sch.room ? (
+                              <span className="flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                {sch.room}
+                              </span>
+                            ) : (
+                              <span className="text-zinc-300">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Manage & Leave Actions placed below details */}
+              <div className="flex flex-wrap gap-3 w-full pt-3">
+                {selectedSubject && currentUser && selectedSubject.createdBy === currentUser.id && (
+                  <Link
+                    href={`/dashboard/subject/${selectedSubject.id}/manage`}
+                    className="w-full sm:w-auto px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11px] rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.98] text-center"
+                  >
+                    <span>Manage Subject</span>
+                  </Link>
+                )}
+
+                {selectedSubject && currentUser && selectedSubject.createdBy !== currentUser.id && (
+                  selectedSubject.lecturers.some((l) => l.userId === currentUser.id) ||
+                  selectedSubject.participants?.some((p) => p.userId === currentUser.id)
+                ) && (
+                  <button
+                    type="button"
+                    onClick={handleLeaveSubject}
+                    className="w-full sm:w-auto px-6 py-2.5 border border-red-200 hover:bg-red-55/70 hover:text-red-700 text-red-650 font-semibold text-[11px] rounded-xl transition-all cursor-pointer text-center select-none"
+                  >
+                    <span>Leave Subject</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Row: Course Members */}
+          <div className="w-full border-t border-[#E5E1D8]/45 pt-6 mt-4 text-left">
+            {(() => {
+              interface CourseMember {
+                userId: string;
+                name: string;
+                email: string;
+                role: "Owner" | "Lecturer" | "Participant";
+                avatar?: string;
+                banner?: string | null;
+                joinedAt?: string;
+              }
+              const courseMembers: CourseMember[] = [];
+              if (selectedSubject.createdBy) {
+                courseMembers.push({
+                  userId: selectedSubject.createdBy,
+                  name: selectedSubject.creatorName || "Subject Owner",
+                  email: selectedSubject.creatorEmail || "",
+                  role: "Owner",
+                  avatar: selectedSubject.creatorAvatar || "",
+                  banner: selectedSubject.creatorBanner || null,
+                  joinedAt: selectedSubject.createdAt,
+                });
+              }
+              if (selectedSubject.lecturers) {
+                selectedSubject.lecturers.forEach((l) => {
+                  if (l.userId !== selectedSubject.createdBy && !courseMembers.some(m => m.userId === l.userId)) {
+                    courseMembers.push({
+                      userId: l.userId,
+                      name: l.name,
+                      email: l.email || "",
+                      role: "Lecturer",
+                      avatar: l.avatar || "",
+                      banner: l.banner || null,
+                      joinedAt: selectedSubject.createdAt,
+                    });
+                  }
+                });
+              }
+              if (selectedSubject.participants) {
+                selectedSubject.participants.forEach((p) => {
+                  if (p.userId !== selectedSubject.createdBy && !courseMembers.some(m => m.userId === p.userId)) {
+                    courseMembers.push({
+                      userId: p.userId,
+                      name: p.name,
+                      email: p.email || "",
+                      role: "Participant",
+                      avatar: p.avatar || "",
+                      banner: p.banner || null,
+                      joinedAt: p.joinedAt,
+                    });
+                  }
+                });
+              }
+
+              const filteredMembers = courseMembers.filter((m) => {
+                const query = memberSearchQuery.toLowerCase().trim();
+                const matchesSearch =
+                  !query ||
+                  m.name.toLowerCase().includes(query) ||
+                  (m.email && m.email.toLowerCase().includes(query)) ||
+                  m.userId.toLowerCase().includes(query);
+
+                const matchesRole =
+                  memberRoleFilter === "all" ||
+                  (memberRoleFilter === "owner" && m.role === "Owner") ||
+                  (memberRoleFilter === "lecturer" && m.role === "Lecturer") ||
+                  (memberRoleFilter === "student" && m.role === "Participant");
+
+                return matchesSearch && matchesRole;
+              });
+
+              const isAllSelected = filteredMembers.length > 0 && selectedMemberIds.length === filteredMembers.length;
+
+              const handleSelectAllToggle = () => {
+                if (isAllSelected) {
+                  setSelectedMemberIds([]);
+                } else {
+                  setSelectedMemberIds(filteredMembers.map((m) => m.userId));
+                }
+              };
+
+              const handleSelectMemberToggle = (userId: string) => {
+                setSelectedMemberIds((prev) =>
+                  prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+                );
+              };
+
+              const handleBulkKick = async () => {
+                if (confirm(`Are you sure you want to remove the ${selectedMemberIds.length} selected members?`)) {
+                  try {
+                    await Promise.all(selectedMemberIds.map((userId) => kickParticipant(selectedSubject.id, userId)));
+                    showToast(`Successfully removed selected members!`, "success");
+                    setSelectedMemberIds([]);
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 800);
+                  } catch (err: any) {
+                    showToast(err.message || "Failed to remove selected members", "error");
+                  }
+                }
+              };
+
+              return (
+                <div className="flex flex-col gap-4 w-full">
+                  {/* Search, Filter, and Action Controls */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 w-full mb-2 select-none">
+                    <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                      {/* Search Input */}
+                      <div className="relative flex items-center w-full sm:max-w-xs">
+                        <Search className="absolute left-3 w-4 h-4 text-zinc-400" />
+                        <input
+                          type="text"
+                          placeholder="Search members by name, email, or ID..."
+                          value={memberSearchQuery}
+                          onChange={(e) => {
+                            setMemberSearchQuery(e.target.value);
+                            setSelectedMemberIds([]); // Clear selection when filtering
+                          }}
+                          className="w-full pl-9 pr-4 py-2 bg-white/40 border border-[#E5E1D8]/60 hover:border-zinc-300 focus:border-zinc-500 rounded-xl text-[12px] font-semibold text-zinc-700 placeholder-zinc-400 outline-none transition-colors"
+                        />
+                      </div>
+                      
+                      {/* Role Filter Selector */}
+                      <div className="relative flex items-center">
+                        <Filter className="absolute left-3 w-4 h-4 text-zinc-400 pointer-events-none" />
+                        <select
+                          value={memberRoleFilter}
+                          onChange={(e) => {
+                            setMemberRoleFilter(e.target.value);
+                            setSelectedMemberIds([]); // Clear selection when filtering
+                          }}
+                          className="pl-9 pr-8 py-2 bg-white/40 border border-[#E5E1D8]/60 hover:border-zinc-300 focus:border-zinc-500 rounded-xl text-[12px] font-bold text-zinc-700 outline-none transition-colors cursor-pointer appearance-none"
+                        >
+                          <option value="all">All Roles</option>
+                          <option value="owner">Owner</option>
+                          <option value="lecturer">Lecturer</option>
+                          <option value="student">Student</option>
+                        </select>
+                        <ChevronDown className="absolute right-2.5 w-3.5 h-3.5 text-zinc-450 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Actions on the Right */}
+                    <div className="flex items-center gap-2">
+                      {selectedSubject && currentUser && (selectedSubject.createdBy === currentUser.id || selectedSubject.lecturers.some(l => l.userId === currentUser.id)) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const link = `${window.location.origin}/join/${selectedSubject.id}/${selectedSubject.createdBy}`;
+                            navigator.clipboard.writeText(link);
+                            showToast("Invite link copied to clipboard!", "success");
+                          }}
+                          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-[11px] rounded-xl transition-all cursor-pointer select-none active:scale-[0.98]"
+                        >
+                          Invite Member
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bulk Action Bar */}
+                  {selectedMemberIds.length > 0 && (
+                    <div className="flex items-center justify-between bg-zinc-900 text-white px-4 py-3 rounded-2xl w-full mb-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <span className="text-[12px] font-bold">
+                        {selectedMemberIds.length} member{selectedMemberIds.length > 1 ? "s" : ""} selected
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMemberIds([])}
+                          className="text-[11px] font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                        >
+                          Cancel Selection
+                        </button>
+                        {selectedSubject && currentUser && (selectedSubject.createdBy === currentUser.id || selectedSubject.lecturers.some(l => l.userId === currentUser.id)) && (
+                          <button
+                            type="button"
+                            onClick={handleBulkKick}
+                            className="bg-red-600 hover:bg-red-500 text-white font-bold text-[11px] px-3.5 py-1.5 rounded-xl transition-all cursor-pointer select-none active:scale-[0.98]"
+                          >
+                            Remove Selected
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {filteredMembers.length === 0 ? (
+                    <div className="text-center py-8 border border-dashed border-[#E5E1D8]/60 rounded-3xl bg-white/20">
+                      <span className="text-[11.5px] text-zinc-400 font-semibold">No members found matching your search.</span>
+                    </div>
+                  ) : (
+                    <div className="w-full border border-[#E5E1D8]/60 rounded-3xl bg-white/30 overflow-x-auto no-scrollbar max-h-[450px] overflow-y-auto">
+                      <table className="w-full border-collapse text-left text-[12.5px] font-semibold text-zinc-700">
+                        <thead>
+                          <tr className="border-b border-[#E5E1D8]/45 text-[11.5px] font-bold text-zinc-500">
+                            <th className="py-3 px-5 w-10">
+                              <input
+                                type="checkbox"
+                                checked={isAllSelected}
+                                onChange={handleSelectAllToggle}
+                                className="w-4 h-4 text-zinc-800 rounded border-zinc-350 focus:ring-zinc-500 cursor-pointer"
+                              />
+                            </th>
+                            <th className="py-3 px-5 font-bold">Member</th>
+                            <th className="py-3 px-5 font-bold">User ID</th>
+                            <th className="py-3 px-5 font-bold">Role</th>
+                            <th className="py-3 px-5 font-bold">Joined Date</th>
+                            <th className="py-3 px-5 font-bold text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredMembers.map((member) => {
+                            const initials = member.name
+                              ? member.name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+                              : "?";
+                            
+                            return (
+                              <tr key={member.userId} className="border-b border-[#E5E1D8]/20 last:border-0 hover:bg-zinc-50/20 transition-colors animate-in fade-in duration-205">
+                                <td className="py-3 px-5 w-10">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedMemberIds.includes(member.userId)}
+                                    onChange={() => handleSelectMemberToggle(member.userId)}
+                                    className="w-4 h-4 text-zinc-800 rounded border-zinc-350 focus:ring-zinc-500 cursor-pointer"
+                                  />
+                                </td>
+                                <td 
+                                  className="py-3 px-5 cursor-pointer group select-none"
+                                  onClick={(e) => {
+                                    setSelectedPreviewUser({
+                                      name: member.name,
+                                      email: member.email || "",
+                                      role: member.role === "Participant" ? "Student" : member.role,
+                                      avatar: member.avatar || "",
+                                      banner: member.banner || null,
+                                      joinedAt: member.joinedAt || selectedSubject.createdAt,
+                                    });
+                                    setPreviewPos({ x: e.clientX, y: e.clientY });
+                                  }}
+                                  title={`View ${member.name}'s profile`}
+                                >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-bold border shrink-0 bg-[#facc15]/5 text-[#d97706] border-[#f97316]/10 overflow-hidden shadow-2xs group-hover:scale-105 transition-transform">
+                                      {member.avatar ? (
+                                        <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <span>{initials}</span>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                      <span className="text-[12.5px] font-bold text-zinc-800 group-hover:text-[#d97706] transition-colors truncate">
+                                        {member.name}
+                                      </span>
+                                      <span className="text-[10px] text-zinc-400 font-semibold truncate mt-0.5">
+                                        {member.email || "No email"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-5 font-mono text-[11.5px] text-zinc-400 select-all" title={member.userId}>
+                                  {member.userId}
+                                </td>
+                                <td className="py-3 px-5">
+                                  {member.role === "Owner" && (
+                                    <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded bg-[#facc15]/10 text-[#d97706] border border-[#f97316]/15 uppercase tracking-wide">
+                                      Owner
+                                    </span>
+                                  )}
+                                  {member.role === "Lecturer" && (
+                                    <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/50 uppercase tracking-wide">
+                                      Lec
+                                    </span>
+                                  )}
+                                  {member.role === "Participant" && (
+                                    <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200/50 uppercase tracking-wide">
+                                      Stu
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-5 text-zinc-450 text-[11px] font-medium">
+                                  {member.joinedAt ? formatDate(member.joinedAt) : "-"}
+                                </td>
+                                <td className="py-3 px-5 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setSelectedMember(member);
+                                      setMenuPos({ x: e.clientX, y: e.clientY });
+                                      setMenuOpen(true);
+                                    }}
+                                    className="w-6 h-6 rounded-full hover:bg-zinc-100 inline-flex items-center justify-center text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer"
+                                  >
+                                    <MoreHorizontal className="w-3.5 h-3.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "forum" && (
+        <div className="w-full flex flex-col gap-6 animate-in fade-in duration-300">
+          {/* Forum Actions Header - Card Styles Removed */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full bg-transparent border-none p-0 shadow-none">
+            <div className="relative w-full sm:max-w-md">
+              <Search className="absolute left-3.5 top-3 w-4 h-4 text-zinc-400" />
+              <input 
+                type="text" 
+                placeholder="Search discussion threads..." 
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E5E1D8]/70 text-[13px] bg-zinc-50 focus:bg-white focus:outline-none transition-all placeholder:text-zinc-400 font-medium"
+              />
+            </div>
+            <button 
+              type="button"
+              onClick={() => showToast("Forum discussions creation is a premium/preview feature. Backend integration coming soon!", "success")}
+              className="w-full sm:w-auto px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11.5px] rounded-xl transition-all cursor-pointer active:scale-95 shadow-sm"
+            >
+              New Thread
+            </button>
+          </div>
+
+          {/* Discussion Tags */}
+          <div className="flex flex-wrap gap-2 select-none">
+            {["All Discussions", "Announcements", "General", "Assignments", "Resources", "Q&A"].map((tag, idx) => (
+              <button 
+                key={idx}
+                type="button"
+                className={`px-3 py-1.5 border rounded-xl text-[11px] font-semibold transition-all cursor-pointer ${
+                  idx === 0 
+                    ? "bg-zinc-800 text-white border-zinc-800 shadow-xs" 
+                    : "bg-white text-zinc-500 border-[#E5E1D8]/70 hover:bg-zinc-50"
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          {/* Thread list */}
+          <div className="flex flex-col gap-4">
+            {[
+              {
+                title: "When is the final assignment due? Is there any extension?",
+                author: "Alex Rivers",
+                role: "Student",
+                snippet: "Hey everyone! I noticed the syllabus says July 20th but the assignment portal says July 18th. Can anyone clarify if we have a couple extra days?",
+                replies: 4,
+                views: 24,
+                tag: "Assignments",
+                tagColor: "bg-blue-50 text-blue-705 border-blue-200/50",
+                time: "2 hours ago"
+              },
+              {
+                title: "Recommended resources for learning TypeScript generics?",
+                author: "Sarah Chen",
+                role: "Student",
+                snippet: "I am struggling a bit with complex generic types in TypeScript. Are there any good articles or visual tools you'd recommend to understand them better?",
+                replies: 12,
+                views: 78,
+                tag: "Resources",
+                tagColor: "bg-emerald-50 text-emerald-705 border-emerald-200/50",
+                time: "1 day ago"
+              },
+              {
+                title: "Lecture 4 slides and code snippets uploaded!",
+                author: "Dr. Olivia",
+                role: "Lecturer",
+                snippet: "Dear students, I have uploaded the lecture slides and code blocks from today's session. Please review them before next Tuesday's quiz.",
+                replies: 2,
+                views: 110,
+                tag: "Announcements",
+                tagColor: "bg-amber-50 text-amber-705 border-amber-200/50",
+                time: "3 days ago"
+              }
+            ].map((thread, i) => {
+              const initials = thread.author.split(" ").map(n => n[0]).join("");
+              return (
+                <div 
+                  key={i} 
+                  className="bg-white border border-[#E5E1D8]/60 p-5 md:p-6 rounded-[24px] shadow-[0_12px_32px_-12px_rgba(0,0,0,0.02)] hover:border-zinc-350 hover:shadow-xs transition-all flex flex-col gap-4 text-left cursor-pointer"
+                  onClick={() => showToast(`Opening discussion thread: "${thread.title}"`, "success")}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 bg-zinc-100 text-zinc-700 border-zinc-200">
+                        {initials}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[12.5px] font-semibold text-zinc-800 truncate">
+                          {thread.author}
+                        </span>
+                        <span className="text-[10px] text-zinc-455 font-semibold truncate -mt-0.5">
+                          {thread.role} • {thread.time}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-md border uppercase tracking-wider ${thread.tagColor}`}>
+                      {thread.tag}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-[15.5px] font-bold text-zinc-800 tracking-tight leading-snug hover:text-zinc-950">
+                      {thread.title}
+                    </h3>
+                    <p className="text-[12.2px] text-zinc-550 leading-relaxed font-medium line-clamp-2">
+                      {thread.snippet}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-3.5 border-t border-[#E5E1D8]/45 text-[11px] font-semibold text-zinc-400 select-none">
+                    <span className="flex items-center gap-1.5 hover:text-zinc-650 transition-colors">
+                      <MessageSquare className="w-4 h-4 text-zinc-400" />
+                      {thread.replies} Replies
+                    </span>
+                    <span>•</span>
+                    <span>{thread.views} Views</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       </div> {/* Closes w-full px-6 md:px-8 padding wrapper */}
       </div> {/* Closes outer scrollable container */}
@@ -1029,15 +1519,37 @@ export default function SubjectDetailPage({ params }: PageProps) {
           },
           ...(selectedSubject.createdBy === currentUser?.id && selectedMember && selectedMember.role !== "Owner"
             ? [
-                {
-                  label: "Change Role",
-                  icon: UserCheck,
-                  onClick: () => {
-                    if (selectedMember) {
-                      showToast(`Role change flow initiated for ${selectedMember.name}`, "success");
-                    }
-                  }
-                },
+                ...(selectedMember.role === "Participant"
+                  ? [
+                      {
+                        label: "Change to Lecturer",
+                        icon: UserCheck,
+                        onClick: async () => {
+                          try {
+                            await updateParticipantRole(selectedSubject.id, selectedMember.userId, "Lecturer");
+                            showToast(`Successfully promoted ${selectedMember.name} to Lecturer!`, "success");
+                            setTimeout(() => window.location.reload(), 800);
+                          } catch (err: any) {
+                            showToast(err.message || "Failed to update role", "error");
+                          }
+                        }
+                      }
+                    ]
+                  : [
+                      {
+                        label: "Change to Student",
+                        icon: UserCheck,
+                        onClick: async () => {
+                          try {
+                            await updateParticipantRole(selectedSubject.id, selectedMember.userId, "Student");
+                            showToast(`Successfully demoted ${selectedMember.name} to Student!`, "success");
+                            setTimeout(() => window.location.reload(), 800);
+                          } catch (err: any) {
+                            showToast(err.message || "Failed to update role", "error");
+                          }
+                        }
+                      }
+                    ]),
                 {
                   label: "Kick User",
                   icon: UserMinus,
@@ -1156,6 +1668,14 @@ export default function SubjectDetailPage({ params }: PageProps) {
         confirmText="Delete"
         isDanger={true}
         isLoading={isDeletingModule}
+      />
+
+      <AccountPreview
+        isOpen={selectedPreviewUser !== null}
+        onClose={() => setSelectedPreviewUser(null)}
+        x={previewPos.x}
+        y={previewPos.y}
+        user={selectedPreviewUser}
       />
     </>
   );
