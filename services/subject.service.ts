@@ -13,6 +13,10 @@ export async function kickParticipant(subjectId: string, userId: string) {
   return apiDelete<{ message: string }>(`/subjects/${subjectId}/participants/${userId}`);
 }
 
+export async function updateParticipantRole(subjectId: string, userId: string, role: string) {
+  return apiPut<{ message: string }>(`/subjects/${subjectId}/participants/${userId}/role`, { role });
+}
+
 export async function getSubjectFiles(subjectId: string, lessonId: string | null | undefined) {
   return apiFetch<SubjectFile[]>(`/subjects/${subjectId}/lessons/${lessonId}/files`);
 }

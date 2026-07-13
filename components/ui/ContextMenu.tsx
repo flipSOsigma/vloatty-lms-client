@@ -57,8 +57,12 @@ export default function ContextMenu({ isOpen, onClose, x, y, options }: ContextM
         ref={menuRef}
         className="fixed bg-[#FAF7F2]/95 backdrop-blur-md border border-[#E5E1D8] rounded-2xl p-1.5 shadow-xl z-[999] w-44 text-left flex flex-col gap-0.5 origin-top-left animate-in fade-in zoom-in-95 duration-100"
         style={{
-          left: `${x}px`,
-          top: `${y}px`,
+          left: typeof window !== "undefined" && x + 176 > window.innerWidth 
+            ? `${Math.max(8, window.innerWidth - 184)}px` 
+            : `${x}px`,
+          top: typeof window !== "undefined" && y + (options.length * 36 + 16) > window.innerHeight 
+            ? `${Math.max(8, window.innerHeight - (options.length * 36 + 24))}px` 
+            : `${y}px`,
         }}
       >
         {options.map((opt, idx) => {

@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useLms } from "../../../../../context/LmsContext";
+import { useLms } from "../../../../context/LmsContext";
 import { GraduationCap, ArrowRight, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import LoadingSpinner from "../../../../../components/ui/LoadingSpinner";
+import LoadingSpinner from "../../../../components/ui/LoadingSpinner";
 import { getSubjectDetails, joinSubject } from "@/services/subject.service";
 import { SubjectParticipant } from "@/types/subject.interface";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ subjectId: string; ownerId: string }>;
 }
 
 export default function JoinSubjectPage({ params }: PageProps) {
-  const { id } = React.use(params);
+  const { subjectId, ownerId } = React.use(params);
   const router = useRouter();
   const { currentUser, isLoadingUser, showToast } = useLms();
 
@@ -29,7 +29,7 @@ export default function JoinSubjectPage({ params }: PageProps) {
   useEffect(() => {
     const fetchSubjectDetails = async () => {
       try {
-        const data = await getSubjectDetails(id);
+        const data = await getSubjectDetails(subjectId);
         setSubjectName(data.name);
         setSubjectDesc(data.description || "");
         setSubjectColor(data.color || "#facc15");
@@ -42,23 +42,23 @@ export default function JoinSubjectPage({ params }: PageProps) {
     };
 
     fetchSubjectDetails();
-  }, [id]);
+  }, [subjectId]);
 
   const handleJoin = async () => {
     if (!currentUser) {
-      router.push(`/login?redirect=/dashboard/subject/${id}/join`);
+      router.push(`/login?redirect=/join/${subjectId}/${ownerId}`);
       return;
     }
 
     setJoining(true);
     setError(null);
     try {
-      await joinSubject(id);
+      await joinSubject(subjectId);
 
       showToast(`Successfully joined ${subjectName}!`, "success");
       
       setTimeout(() => {
-        window.location.href = `/dashboard/subject/${id}`;
+        window.location.href = `/dashboard/subject/${subjectId}`;
       }, 800);
     } catch (err: any) {
       setError(err.message || "An error occurred while trying to join the subject.");

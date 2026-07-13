@@ -8,6 +8,7 @@ interface CategoryInviteSectionProps {
   setCategory: (val: string) => void;
   subjectColor: string;
   subjectId: string;
+  ownerId: string;
   inviteEmail: string;
   setInviteEmail: (val: string) => void;
   invitedEmails: string[];
@@ -22,6 +23,7 @@ export default function CategoryInviteSection({
   setCategory,
   subjectColor,
   subjectId,
+  ownerId,
   inviteEmail,
   setInviteEmail,
   invitedEmails,
@@ -79,13 +81,13 @@ export default function CategoryInviteSection({
               <input
                 type="text"
                 readOnly
-                value={typeof window !== "undefined" ? `${window.location.origin}/dashboard/subject/${subjectId}/join` : ""}
+                value={typeof window !== "undefined" ? `${window.location.origin}/join/${subjectId}/${ownerId}` : ""}
                 className="w-full px-4 py-2.5 rounded-2xl border border-zinc-200 text-[13px] bg-[#FAF7F2]/50 text-zinc-500 font-semibold outline-none"
               />
               <button
                 type="button"
                 onClick={() => {
-                  const link = typeof window !== "undefined" ? `${window.location.origin}/dashboard/subject/${subjectId}/join` : "";
+                  const link = typeof window !== "undefined" ? `${window.location.origin}/join/${subjectId}/${ownerId}` : "";
                   navigator.clipboard.writeText(link);
                   setCopied(true);
                   showToast("Invite link copied to clipboard!", "success");

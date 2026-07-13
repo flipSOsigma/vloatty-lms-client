@@ -525,6 +525,7 @@ export default function ManageSubjectPage({ params }: PageProps) {
                 setCategory={setCategory}
                 subjectColor={subjectColor}
                 subjectId={subject.id}
+                ownerId={subject.createdBy}
                 inviteEmail={inviteEmail}
                 setInviteEmail={setInviteEmail}
                 invitedEmails={invitedEmails}
