@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { LmsEvent, CalendarViewType, LmsState, Subject, UserProfile } from "../types/lms.interface";
 import { getMe, logout as authLogout } from "@/services/auth.service";
-import { getSubjects, createSubject, deleteSubject as apiDeleteSubject, updateSubject as apiUpdateSubject } from "@/services/subject.service";
+import { getSubjects, createSubject, deleteSubject as apiDeleteSubject, updateSubject as apiUpdateSubject, leaveSubject as apiLeaveSubject } from "@/services/subject.service";
 import { ToastItem, ToastStyles } from "../components/ui/Toast";
 import { checkToken } from "@/lib/api";
 
@@ -24,6 +24,7 @@ interface LmsContextType extends LmsState {
   addSubject: (subject: Omit<Subject, "id" | "createdAt" | "updatedAt" | "deletedAt"> & { id?: string }) => void;
   deleteSubject: (id: string) => void;
   updateSubject: (subject: Subject) => void;
+  leaveSubject: (id: string) => Promise<void>;
   refreshSubjects: () => Promise<void>;
   isLoadingUser: boolean;
   logout: () => void;
@@ -372,6 +373,25 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const leaveSubject = async (id: string) => {
+    try {
+      await apiLeaveSubject(id);
+
+      const now = new Date().toISOString();
+      setSubjects((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, deletedAt: now } : s))
+      );
+      setEvents((prev) => {
+        const remainingEvents = prev.filter((e) => e.subjectId !== id);
+        return remainingEvents;
+      });
+      showToast("Successfully left the subject!", "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Failed to leave subject", "error");
+    }
+  };
+
   const refreshSubjects = async () => {
     try {
       const data = await getSubjects();
@@ -420,6 +440,7 @@ export const LmsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addSubject,
         deleteSubject,
         updateSubject,
+        leaveSubject,
         refreshSubjects,
         isLoadingUser,
         logout,

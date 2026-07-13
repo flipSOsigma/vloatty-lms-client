@@ -43,3 +43,7 @@ export async function deleteSubject(id: string) {
 export async function updateSubject(id: string, data: Partial<Subject>) {
   return apiPut<Subject>(`/subjects/${id}`, data);
 }
+
+export async function leaveSubject(id: string) {
+  return apiPost<{ message: string }>(`/subjects/${id}/leave`, {});
+}

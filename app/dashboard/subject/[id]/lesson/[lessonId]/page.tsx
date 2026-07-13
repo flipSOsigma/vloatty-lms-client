@@ -110,7 +110,7 @@ function LessonDetailInner({ params }: PageProps) {
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [quizTab, setQuizTab] = useState<"quiz" | "settings" | "submissions">("quiz");
   const [selectedAssignmentForReview, setSelectedAssignmentForReview] = useState<any>(null);
-  const [showSubjectDetails, setShowSubjectDetails] = useState<boolean>(true);
+  const [showSubjectDetails, setShowSubjectDetails] = useState<boolean>(false);
   const [aiQuestionCount, setAiQuestionCount] = useState<number>(5);
   const [aiDifficulty, setAiDifficulty] = useState<string>("medium");
   const [aiLanguage, setAiLanguage] = useState<string>("English");
@@ -304,6 +304,8 @@ function LessonDetailInner({ params }: PageProps) {
     }, 500);
     return () => clearTimeout(timer);
   }, [submissionSearchQuery]);
+
+
 
   const handleAutoCreateQuiz = async () => {
     if (!selectedLesson) return;
@@ -1209,11 +1211,7 @@ function LessonDetailInner({ params }: PageProps) {
                         {selectedLesson.title}
                       </h1>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-zinc-500 font-semibold text-[12px] mt-2">
-                        {selectedModule && (
-                          <span className="bg-zinc-50 border border-[#E5E1D8]/70 px-3 py-1 rounded-full text-zinc-600 font-semibold uppercase text-[9px] tracking-wider">
-                            Module: {selectedModule.title}
-                          </span>
-                        )}
+
                         <span className="flex items-center gap-1">
                           <GraduationCap className="w-4 h-4 text-zinc-400" />
                           Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}
@@ -1222,12 +1220,65 @@ function LessonDetailInner({ params }: PageProps) {
                     </div>
 
                     {selectedLesson.desc ? (
-                      <div className="text-[14.5px] text-zinc-800 leading-relaxed font-normal whitespace-pre-wrap tracking-wide pt-2 select-text text-left">
+                      <div className="text-[12.5px] text-zinc-500 leading-relaxed font-medium whitespace-pre-wrap tracking-wide pt-2 select-text text-left">
                         {selectedLesson.desc}
                       </div>
                     ) : (
                       <div className="text-[12px] text-zinc-400 font-semibold italic py-4">
-                        No description or content provided for this learning lesson.
+                        No description provided for this learning lesson.
+                      </div>
+                    )}
+
+                    {selectedLesson.content && (
+                      <div className="text-[14px] text-zinc-800 leading-relaxed font-normal tracking-wide pt-4 mt-4 border-t border-[#E5E1D8]/50 select-text text-left rich-text-content w-full overflow-hidden">
+                        <style>{`
+                          .rich-text-content p {
+                            margin-bottom: 1rem !important;
+                            display: block !important;
+                          }
+                          .rich-text-content p:last-child {
+                            margin-bottom: 0 !important;
+                          }
+                          .rich-text-content b, .rich-text-content strong {
+                            font-weight: 700 !important;
+                          }
+                          .rich-text-content i, .rich-text-content em {
+                            font-style: italic !important;
+                          }
+                          .rich-text-content u {
+                            text-decoration: underline !important;
+                          }
+                          .rich-text-content ol {
+                            list-style-type: decimal !important;
+                            margin-left: 1.5rem !important;
+                            padding-left: 0.5rem !important;
+                            list-style-position: outside !important;
+                            display: block !important;
+                            margin-top: 0.5rem !important;
+                            margin-bottom: 0.5rem !important;
+                          }
+                          .rich-text-content ul {
+                            list-style-type: disc !important;
+                            margin-left: 1.5rem !important;
+                            padding-left: 0.5rem !important;
+                            list-style-position: outside !important;
+                            display: block !important;
+                            margin-top: 0.5rem !important;
+                            margin-bottom: 0.5rem !important;
+                          }
+                          .rich-text-content li {
+                            display: list-item !important;
+                            margin-bottom: 0.25rem !important;
+                          }
+                          .rich-text-content blockquote {
+                            border-left: 4px solid #E5E1D8 !important;
+                            padding-left: 1rem !important;
+                            font-style: italic !important;
+                            margin: 0.75rem 0 !important;
+                            color: #71717a !important;
+                          }
+                        `}</style>
+                        <div dangerouslySetInnerHTML={{ __html: selectedLesson.content }} />
                       </div>
                     )}
                   </div>
@@ -2701,11 +2752,7 @@ function LessonDetailInner({ params }: PageProps) {
                       <h2 className="text-2xl font-black text-[#121212] tracking-tight mt-2 leading-tight">
                         {selectedLesson.title}
                       </h2>
-                      {selectedModule && (
-                        <span className="text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider mt-0.5">
-                          Module: {selectedModule.title}
-                        </span>
-                      )}
+
                       <div className="flex items-center gap-1.5 text-zinc-500 font-semibold text-[13px] mt-1.5">
                         <GraduationCap className="w-4 h-4 text-zinc-400" />
                         <span>Lecturers: {selectedSubject.lecturers.map((l) => l.name).join(", ")}</span>

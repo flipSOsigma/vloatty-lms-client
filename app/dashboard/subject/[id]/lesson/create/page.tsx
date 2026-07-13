@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { Lesson } from "../../../../../../types/subject.interface";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -58,6 +59,7 @@ export function CreateLessonInner({ params }: PageProps) {
   }, [currentUser]);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [content, setContent] = useState("");
   const [openDate, setOpenDate] = useState(() => {
     const today = new Date();
     const year = today.getFullYear();
@@ -268,6 +270,7 @@ export function CreateLessonInner({ params }: PageProps) {
       id: newId,
       title: title.trim(),
       desc: desc.trim(),
+      content: content.trim(),
       type,
       openDate: type !== "learning" ? new Date(openDate).toISOString() : now,
       closeDate: type !== "learning" ? new Date(closeDate).toISOString() : now,
@@ -475,6 +478,15 @@ export function CreateLessonInner({ params }: PageProps) {
                   }}
                   rows={4}
                   className="w-full px-1 py-2 bg-transparent border-b border-[#E5E1D8] focus:border-zinc-850 rounded-none text-zinc-800 font-semibold text-[13px] focus:outline-none resize-none transition-all duration-200"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2 w-full">
+                <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Lesson Content (Rich Text & Code)</label>
+                <RichTextEditor
+                  value={content}
+                  onChange={setContent}
+                  placeholder="Explain the topic, add details, insert code snippets..."
                 />
               </div>
 

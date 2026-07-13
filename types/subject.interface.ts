@@ -27,6 +27,7 @@ export interface Lesson {
   openDate: string;
   closeDate: string;
   closeType: "restrict" | "open";
+  content?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -56,6 +57,7 @@ export interface SubjectLecturer {
   userId: string;
   name: string;
   email?: string;
+  avatar?: string;
 }
 
 export interface SubjectParticipant {
@@ -63,6 +65,7 @@ export interface SubjectParticipant {
   name: string;
   email?: string;
   avatar?: string;
+  joinedAt?: string;
 }
 
 export interface Subject {
